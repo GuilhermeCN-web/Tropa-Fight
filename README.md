@@ -1,32 +1,21 @@
-# React + TypeScript + Vite
+# Descrição da Aplicação — Tropa Fight
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A **Tropa Fight** será uma loja virtual especializada na comercialização de produtos relacionados às artes marciais, esportes de combate e treinamento físico. A aplicação será desenvolvida como uma plataforma de comércio eletrônico responsiva, disponibilizada para **web e dispositivos móveis**, permitindo que os usuários realizem suas compras de maneira prática, segura e acessível independentemente do dispositivo utilizado.
 
-Currently, two official plugins are available:
+A proposta da Tropa Fight é oferecer um ambiente digital voltado principalmente para praticantes e interessados em modalidades como **Boxe, Muay Thai, Jiu-Jitsu, Judô, Karatê, Taekwondo, Kickboxing e MMA**, disponibilizando produtos como luvas, bandagens, kimonos, rash guards, caneleiras, protetores, roupas esportivas, equipamentos de treinamento e acessórios. Os produtos serão organizados por categorias e poderão possuir diferentes variações, como tamanho, cor e modelo.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A aplicação contará com uma **área destinada aos clientes**, na qual será possível realizar o cadastro e autenticação de usuários, consultar o catálogo, pesquisar produtos, utilizar filtros e opções de ordenação, visualizar informações detalhadas dos produtos e adicionar itens ao carrinho. Cada produto poderá apresentar imagens, descrição, preço, disponibilidade em estoque, variações e avaliações de outros clientes.
 
-## React Compiler
+O sistema também disponibilizará um **carrinho de compras**, permitindo alterar quantidades, remover produtos, visualizar valores e aplicar cupons de desconto. Durante o processo de checkout, o usuário poderá selecionar ou cadastrar seu endereço, escolher a modalidade de entrega e selecionar uma forma de pagamento. Após a conclusão da compra, será possível acompanhar o status do pedido e consultar seu histórico de compras, incluindo informações como produtos adquiridos, valores, endereço de entrega e código de rastreamento, quando disponível.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Além da área do cliente, a Tropa Fight possuirá um **painel administrativo** destinado ao gerenciamento da operação da loja. Os administradores poderão cadastrar, editar, desativar e consultar produtos, categorias e variações, além de controlar preços, promoções e informações de estoque. O sistema deverá registrar as movimentações de estoque e permitir a identificação de produtos com quantidade reduzida, auxiliando no controle e reposição dos produtos.
 
-## Expanding the Oxlint configuration
+O painel administrativo também permitirá o gerenciamento de pedidos, possibilitando consultar compras realizadas, acompanhar seus respectivos status, confirmar informações de pagamento, registrar o envio e inserir códigos de rastreamento. Também será possível administrar clientes, cupons de desconto, avaliações e outras configurações relacionadas ao funcionamento da loja. Para aumentar a segurança, diferentes níveis de acesso poderão ser definidos para usuários administrativos, garantindo que cada funcionário tenha somente as permissões necessárias para suas atividades.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+A aplicação será desenvolvida utilizando uma **arquitetura em camadas**, buscando organizar e separar as responsabilidades do sistema. A camada de apresentação será responsável pela interface utilizada pelos clientes e administradores, proporcionando uma experiência responsiva e adequada tanto para computadores quanto para smartphones. A camada de aplicação ou negócio ficará responsável pelo processamento das operações e pelas regras do sistema, como cálculo de valores, gerenciamento de pedidos, controle de estoque e validação das operações. A camada de acesso a dados será responsável pela comunicação com o banco de dados, permitindo armazenar e consultar informações de usuários, produtos, pedidos, pagamentos, estoque e demais entidades da aplicação.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+A Tropa Fight também deverá possuir recursos técnicos voltados à **segurança, integridade e disponibilidade das informações**. O sistema deverá utilizar mecanismos de autenticação e autorização, validação de dados, proteção das informações armazenadas e controle de acesso às funcionalidades administrativas. Também serão considerados recursos de registro de logs, monitoramento do sistema e realização de backups periódicos do banco de dados, possibilitando a recuperação das informações em situações de falha.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Para completar o funcionamento da plataforma, a aplicação poderá ser integrada a serviços externos, como **gateways de pagamento, serviços de entrega, sistemas de envio de notificações e ferramentas de análise**, permitindo automatizar parte dos processos envolvidos em uma operação de comércio eletrônico.
+
+Dessa forma, a **Tropa Fight** terá como objetivo oferecer uma solução completa de comércio eletrônico para o segmento de artes marciais e esportes de combate, unindo catálogo de produtos, vendas online, gerenciamento de estoque, processamento de pedidos e administração da plataforma em um único sistema. A utilização de uma arquitetura em camadas contribuirá para uma aplicação mais organizada, modular, segura e preparada para futuras manutenções e expansões.
