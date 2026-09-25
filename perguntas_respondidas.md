@@ -1,1348 +1,1150 @@
-## Rodada 1 — Escopo e atores
+# Tropa Fight — Elicitação
 
-### 1. Quais funcionalidades devem obrigatoriamente compor a V1 para o cliente e para a administração? Há algo explicitamente fora de escopo?
+**Versão:** 1.0
+**Status:** ELICITAÇÃO EM ANDAMENTO
 
-**R:**
+Este documento contém as perguntas utilizadas para elicitar e validar os requisitos da Tropa Fight.
 
-**Incluídos obrigatoriamente na V1:**
-
-1. **Conta e área do cliente**
-
-   * Cadastro/login/logout.
-   * Confirmação obrigatória de e-mail.
-   * Recuperação de senha.
-   * Perfil e dados pessoais.
-   * Endereços.
-   * Histórico de pedidos.
-   * Biblioteca de produtos adquiridos.
-   * Solicitação de exclusão da conta/dados.
-
-2. **Catálogo**
-
-   * Produtos.
-   * Categorias.
-   * Marcas.
-   * Variantes.
-   * Busca.
-   * Filtros.
-   * Ordenação.
-   * Produtos gratuitos.
-   * Pré-vendas.
-   * Bundles.
-   * Produtos com licença limitada ou ilimitada.
-
-3. **Compra**
-
-   * Carrinho.
-   * Cupons.
-   * Checkout.
-   * Pix via Stripe.
-   * Pedidos.
-   * Histórico.
-   * Status do pedido.
-   * Reembolso/cancelamento conforme regras definidas.
-
-4. **Entrega digital**
-
-   * Download de PDF e EPUB.
-   * Marca d'água em ambos.
-   * Registro de downloads.
-   * Liberação após confirmação do pagamento.
-   * Liberação futura para pré-vendas.
-   * Atualização de arquivos para clientes que já possuem o produto.
-
-5. **Cliente**
-
-   * Wishlist.
-   * Alertas de promoção, alteração de preço e disponibilidade.
-   * Avaliações de 1 a 5 estrelas com comentário opcional.
-   * Denúncias.
-
-6. **Administração**
-
-   * Gestão de produtos.
-   * Categorias.
-   * Preços.
-   * Cupons.
-   * Importação CSV.
-   * Estoque/licenças.
-   * Pedidos.
-   * Clientes.
-   * Avaliações/moderação.
-   * Usuários administrativos.
-   * Relatórios básicos.
-
-7. **Operação**
-
-   * Logs de erro.
-   * Monitoramento de disponibilidade.
-   * Monitoramento de falhas de webhook.
-   * Backups semanais.
-
-**Fora de escopo da V1:**
-
-* Venda de produtos físicos.
-* Aluguel.
-* Assinaturas.
-* DRM.
-* Nota fiscal.
-* Outros meios de pagamento além do Pix.
-* Autenticação de dois fatores.
-* Relatórios avançados/exportáveis.
-* BI avançado.
-* Funcionalidades sociais/chat.
-* Sistema avançado de recomendações.
-* Outros recursos que não estejam explicitamente especificados para a V1.
+As respostas devem representar decisões reais do projeto. Informações ainda não decididas devem permanecer como **PENDENTES** e não devem ser preenchidas por suposição.
 
 ---
 
-### 2. Quais papéis existirão além de cliente e administrador?
+# Rodada 1 — Escopo comercial e operação da V1
+
+## 1. Quais produtos serão vendidos na Tropa Fight na V1?
 
 **R:**
 
-1. **Cliente**
+A Tropa Fight venderá produtos relacionados a:
 
-   * Navegação do catálogo.
-   * Compras.
-   * Downloads.
-   * Wishlist.
-   * Avaliações.
-   * Gerenciamento do próprio perfil.
+- artes marciais;
+- esportes de combate;
+- treinamento físico.
 
-2. **Administrador geral**
+Ainda precisamos definir o catálogo inicial.
 
-   * Acesso administrativo completo.
-   * Gestão de clientes.
-   * Gestão de produtos.
-   * Gestão de estoque/licenças.
-   * Gestão de pedidos.
-   * Reembolsos.
-   * Gestão de usuários administrativos.
-   * Relatórios.
-   * Moderação.
-   * Auditoria.
+**Pergunta:** quais categorias de produtos estarão efetivamente disponíveis na V1?
 
-3. **Gestor de catálogo**
+Por exemplo:
 
-   * Criar/editar/publicar livros.
-   * Gerenciar preços.
-   * Gerenciar cupons.
-   * Importar CSV.
-   * Moderar avaliações.
+- luvas;
+- bandagens;
+- caneleiras;
+- protetores;
+- quimonos;
+- roupas;
+- calçados;
+- equipamentos de treino;
+- acessórios;
+- suplementos;
+- outros.
 
-O gestor **não** terá acesso às demais operações administrativas, como reembolso, gestão de clientes, gestão de usuários ou pedidos.
+## 2. A Tropa Fight venderá somente produtos físicos?
 
-Todo usuário terá e-mail e senha. Confirmação de e-mail será obrigatória.
+**R:**
+
+O escopo atual indica equipamentos, vestuário e acessórios físicos.
+
+Porém, isso ainda precisa ser confirmado como regra comercial da V1.
+
+**Pergunta:** a V1 terá somente produtos físicos ou também poderá vender produtos digitais, cursos, conteúdos ou serviços?
+
+## 3. A Tropa Fight terá venda para pessoa física, pessoa jurídica ou ambas?
+
+**R:**
+
+Ainda não definido.
+
+**Pergunta:** quem poderá realizar compras?
+
+- somente pessoa física;
+- pessoa física e pessoa jurídica;
+- outro modelo.
+
+## 4. A loja atenderá todo o Brasil?
+
+**R:**
+
+A documentação atual não define explicitamente as regiões atendidas.
+
+**Pergunta:** a Tropa Fight venderá para todo o território brasileiro na V1 ou haverá regiões não atendidas?
+
+## 5. Haverá retirada física?
+
+**R:**
+
+A retirada física aparece como pendência.
+
+**Pergunta:** a V1 terá retirada em loja/ponto físico ou somente entrega?
+
+## 6. Haverá venda para menores de idade?
+
+**R:**
+
+Ainda não definido.
+
+**Pergunta:** clientes menores de idade poderão criar conta e comprar produtos ou a compra será restrita a maiores de 18 anos?
+
+## 7. Haverá limite de quantidade por produto?
+
+**R:**
+
+A documentação define controle de estoque, mas não define limite comercial por cliente.
+
+**Pergunta:** haverá limite de unidades por cliente/pedido?
+
+Exemplo:
+
+> Máximo de 5 unidades da mesma variante por pedido.
+
+Ou não haverá limite além do estoque disponível?
 
 ---
 
-### 3. Qual será o modelo comercial?
+# Rodada 2 — Cadastro e conta do cliente
+
+## 1. Quais dados serão obrigatórios no cadastro?
 
 **R:**
 
-A V1 terá:
+O modelo atual considera:
 
-* compra avulsa de e-books;
-* e-books gratuitos;
-* bundles;
-* pré-vendas;
-* cupons de desconto.
+- nome;
+- e-mail;
+- senha;
+- dados necessários para a conta.
 
-Ficam para versões futuras:
+Porém, os campos obrigatórios ainda precisam ser definidos.
 
-* assinaturas;
-* aluguel;
-* outros modelos comerciais.
+**Pergunta:** quais dados serão obrigatórios?
+
+Por exemplo:
+
+- nome completo;
+- CPF;
+- telefone;
+- data de nascimento;
+- e-mail;
+- senha.
+
+## 2. O e-mail deverá ser confirmado?
+
+**R:**
+
+A documentação exige autenticação e recuperação de acesso, mas não determina confirmação obrigatória de e-mail.
+
+**Pergunta:** o cliente precisará confirmar o e-mail antes de:
+
+- acessar a conta;
+- adicionar produtos ao carrinho;
+- iniciar checkout;
+- concluir uma compra?
+
+## 3. O CPF será obrigatório?
+
+**R:**
+
+Ainda não definido.
+
+**Pergunta:** CPF será obrigatório para cadastro ou somente durante o checkout?
+
+## 4. O cliente poderá alterar o CPF?
+
+**R:**
+
+Ainda não definido.
+
+**Pergunta:** depois de cadastrado, o CPF poderá ser alterado pelo cliente?
+
+## 5. Quais dados o cliente poderá alterar?
+
+**R:**
+
+O cliente deverá conseguir gerenciar os próprios dados permitidos.
+
+**Pergunta:** quais poderão ser alterados?
+
+- nome;
+- telefone;
+- e-mail;
+- CPF;
+- data de nascimento;
+- senha.
+
+## 6. O cliente poderá possuir mais de um endereço?
+
+**R:**
+
+O modelo possui `addresses` associado ao cliente.
+
+**Pergunta:** um cliente poderá cadastrar múltiplos endereços e escolher um deles durante o checkout?
 
 ---
 
-### 4. Como o cliente consumirá o e-book?
+# Rodada 3 — Catálogo e produtos
+
+## 1. Como será estruturado um produto?
 
 **R:**
 
-A entrega será por download de:
+O produto poderá possuir:
 
-* PDF;
-* EPUB.
+- nome;
+- descrição;
+- marca;
+- categoria;
+- imagens;
+- preço;
+- disponibilidade;
+- variantes;
+- SKU.
 
-O acesso será liberado somente após confirmação do pagamento.
+**Pergunta:** quais informações deverão ser obrigatórias em um produto?
 
-Os arquivos receberão marca d'água contendo:
-
-* nome do cliente;
-* ID do cliente;
-* ID do pedido;
-* data.
-
-A marca d'água será aplicada a PDF e EPUB.
-
-O download será ilimitado enquanto o cliente possuir o produto, podendo baixar todos os formatos disponíveis.
-
-DRM fica para versões futuras.
-
----
-
-### 5. Quais meios de pagamento serão utilizados?
+## 2. Quais tipos de variantes existirão?
 
 **R:**
 
-A V1 terá foco em **Pix através da Stripe**.
+A documentação prevê variantes como:
 
-Outros métodos de pagamento ficam para versões futuras.
+- tamanho;
+- cor;
+- peso;
+- modelo;
+- outras características.
 
-A conta Stripe e sua configuração para o ambiente brasileiro são dependências de implantação.
+**Pergunta:** quais atributos de variante serão suportados na V1?
 
-O sistema deverá tratar webhooks duplicados/reprocessados de forma idempotente.
-
----
-
-### 6. Como o catálogo será cadastrado?
-
-**R:**
-
-Haverá duas formas:
-
-* cadastro manual;
-* importação por CSV.
-
-A importação CSV será permitida para:
-
-* administrador geral;
-* gestor de catálogo.
-
-A importação utilizará as mesmas validações do cadastro manual.
-
-Se qualquer linha for inválida:
-
-* toda a operação deverá sofrer rollback;
-* nenhum livro será cadastrado;
-* deverá ser apresentado um relatório indicando os erros.
-
-Livros poderão ter:
-
-* limite numérico de licenças;
-* quantidade ilimitada de licenças.
-
----
-
-### 7. Como funcionarão as avaliações?
-
-**R:**
-
-Somente clientes que compraram o produto poderão avaliá-lo.
-
-A avaliação terá:
-
-* nota de 1 a 5;
-* comentário opcional.
-
-Qualquer usuário autenticado poderá denunciar uma avaliação.
-
-Gestores e administradores poderão moderar avaliações.
-
-Uma avaliação moderada ficará:
-
-* oculta publicamente;
-* visível para gestores e administradores;
-* registrada para fins de auditoria.
-
-Usuários poderão ser impedidos de realizar novas avaliações/comentários após comportamento ofensivo conforme as regras de moderação.
-
----
-
-# Rodada 2 — Compra e catálogo
-
-### 1. Como funcionam compras gratuitas?
-
-**R:**
-
-Produtos gratuitos deverão passar pelo:
+Exemplo:
 
 ```text
-Carrinho → Checkout → Pedido R$ 0,00
+Luva de Boxe
+├── 10 oz / Preto
+├── 12 oz / Preto
+├── 14 oz / Preto
+├── 10 oz / Vermelho
+└── 12 oz / Vermelho
+````
+
+ ## 3\. Cada variante terá seu próprio SKU?
+
+ **R:**
+
+ O modelo prevê SKU em `product_variants`.
+
+ **Pergunta:** o SKU será obrigatório e único para cada variante?
+
+ ## 4\. O preço pertence ao produto ou à variante?
+
+ **R:**
+
+ A documentação permite preço no produto e menciona preço em `product_variants`.
+
+ **Pergunta:** qual será a regra?
+
+ Exemplo:
+
+```
+Luva X
+10 oz → R$ 100
+12 oz → R$ 110
+14 oz → R$ 120
 ```
 
-A etapa de pagamento será pulada quando o carrinho possuir somente produtos gratuitos.
+ Ou todas as variantes obrigatoriamente possuem o mesmo preço?
 
-Caso exista pelo menos um produto pago, o checkout seguirá o fluxo normal de pagamento.
+ ## 5\. O estoque será controlado por produto ou variante?
 
-O usuário precisa ter:
+ **R:**
 
-* conta;
-* e-mail confirmado;
-* aceite dos termos;
-* idade mínima exigida.
+ O modelo atual relaciona `Inventory` com `ProductVariant`.
 
-A compra gratuita também será registrada como pedido.
+ **Pergunta:** cada variante terá estoque independente?
 
----
+ Exemplo:
 
-### 2. Como funciona a pré-venda?
-
-**R:**
-
-A cobrança acontece no momento da compra.
-
-Após o pagamento:
-
-```text
-Pré-venda → Pré-venda aguardando lançamento
+```
+Luva X
+10 oz → 5 unidades
+12 oz → 2 unidades
+14 oz → 0 unidades
 ```
 
-O download permanece bloqueado até a data definida pelo administrador.
+ ## 6\. Produtos podem ser vendidos sem estoque?
 
-Na data de lançamento:
+ **R:**
 
-```text
-Pré-venda aguardando lançamento
-        ↓
-Disponível para download
+ A regra atual impede operações que resultem em estoque inconsistente.
+
+ **Pergunta:** produto sem estoque poderá receber pedidos em pré-venda/backorder ou ficará simplesmente indisponível?
+
+ ## 7\. Como produtos inativados serão tratados?
+
+ **R:**
+
+ A regra RN-006 determina que produtos inativados não sejam disponibilizados para novas compras, mas pedidos históricos devem preservar suas informações.
+
+ **Pergunta:** produto inativado continuará aparecendo:
+
+ - em pedidos antigos;
+- em avaliações;
+- em favoritos;
+- nos resultados administrativos?
+
+---
+
+ # Rodada 4 — Estoque
+
+ ## 1\. Quando o estoque será reservado?
+
+ **R:**
+
+ Essa é uma pendência explícita:
+
+ > **RN-PD-001 — Momento exato da reserva/baixa de estoque.**
+
+ **Pergunta:** qual será a estratégia?
+
+ Opções:
+
+ - **A)** Reserva ao adicionar ao carrinho
+- **B)** Reserva ao iniciar checkout
+- **C)** Reserva ao criar pagamento
+- **D)** Reserva ao confirmar pagamento
+- **E)** Outra
+
+ ## 2\. Por quanto tempo uma reserva poderá permanecer ativa?
+
+ **R:**
+
+ A documentação possui pagamento pendente, mas não define prazo de reserva.
+
+ **Pergunta:** uma unidade reservada durante o checkout/pagamento será liberada após quanto tempo?
+
+ ## 3\. O estoque será incrementado automaticamente após cancelamento/reembolso?
+
+ **R:**
+
+ A regra de cancelamento, devolução e reembolso ainda está pendente.
+
+ **Pergunta:** quando um pedido for cancelado ou reembolsado, o estoque deverá ser automaticamente restaurado?
+
+ ## 4\. Como serão realizados ajustes manuais?
+
+ **R:**
+
+ Usuários autorizados poderão registrar movimentações.
+
+ **Pergunta:** todo ajuste manual deverá exigir:
+
+ - quantidade;
+- tipo;
+- motivo;
+- usuário responsável;
+- observação?
+
+ ## 5\. Haverá estoque mínimo?
+
+ **R:**
+
+ A documentação prevê controle de estoque, mas não define alerta de estoque baixo.
+
+ **Pergunta:** a V1 terá alerta de estoque mínimo por produto/variante?
+
+---
+
+ # Rodada 5 — Carrinho e checkout
+
+ ## 1\. O carrinho será persistente?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** um cliente autenticado poderá sair da aplicação e retornar posteriormente encontrando o mesmo carrinho?
+
+ ## 2\. Um produto sem estoque pode permanecer no carrinho?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** se um produto ficar sem estoque depois de ser adicionado ao carrinho, o sistema deverá:
+
+ - removê-lo automaticamente;
+- mantê-lo e bloquear o checkout;
+- informar indisponibilidade e exigir remoção?
+
+ ## 3\. O preço do carrinho será atualizado automaticamente?
+
+ **R:**
+
+ A regra RN-012 determina que pedidos confirmados preservem seus preços, mas não define o comportamento do carrinho.
+
+ **Pergunta:** se o preço mudar enquanto o produto estiver no carrinho, o cliente verá:
+
+ - o preço antigo;
+- o novo preço;
+- aviso de alteração antes do checkout?
+
+ ## 4\. Quando o preço do pedido será definitivamente capturado?
+
+ **R:**
+
+ A regra RN-005 exige que o preço utilizado no pedido seja preservado no momento adequado.
+
+ **Pergunta:** esse momento será:
+
+ - criação do pedido;
+- confirmação do pagamento;
+- outra etapa?
+
+ ## 5\. O checkout permitirá compra sem cadastro?
+
+ **R:**
+
+ O modelo atual possui contas de clientes e pedidos associados a clientes.
+
+ **Pergunta:** haverá checkout como visitante ou toda compra exigirá conta?
+
+---
+
+ # Rodada 6 — Pagamentos
+
+ ## 1\. Quais meios de pagamento existirão na V1?
+
+ **R:**
+
+ A documentação ainda deixa os meios de pagamento pendentes.
+
+ **Pergunta:** quais métodos serão aceitos?
+
+ Por exemplo:
+
+ - Pix;
+- cartão de crédito;
+- cartão de débito;
+- boleto;
+- outros.
+
+ ## 2\. Qual gateway será utilizado?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** existe algum provedor já escolhido ou devemos deixar a escolha para um ADR?
+
+ ## 3\. Quando um pedido será considerado pago?
+
+ **R:**
+
+ RN-011 determina que o pedido não poderá ser considerado pago apenas por informação enviada pelo cliente.
+
+ **Pergunta:** a confirmação definitiva virá exclusivamente do provedor de pagamento através de webhook/evento confirmado?
+
+ ## 4\. Como serão tratados pagamentos pendentes?
+
+ **R:**
+
+ O sistema deverá acompanhar estados de pagamento.
+
+ **Pergunta:** quais estados serão necessários?
+
+ Por exemplo:
+
+```
+pending
+authorized
+paid
+failed
+expired
+cancelled
+refunded
+partially_refunded
 ```
 
-O cliente poderá cancelar e solicitar reembolso de acordo com as regras definidas.
+ ## 5\. Haverá pagamento parcial?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** a V1 permitirá pagamentos parciais ou cada pedido deverá possuir uma única confirmação integral?
 
 ---
 
-### 3. Quando a licença é consumida?
+ # Rodada 7 — Pedidos, cancelamentos e reembolsos
 
-**R:**
+ ## 1\. Quais serão os estados definitivos do pedido?
 
-A licença é consumida na **confirmação do pagamento**.
+ **R:**
 
-Enquanto o pagamento estiver pendente, a licença fica temporariamente reservada/indisponível para evitar venda acima do limite.
+ Atualmente existe apenas a exigência de que o pedido possua estados consistentes com pagamento e entrega.
 
-O Pix expira após **24 horas**.
+ **Pergunta:** quais estados você deseja?
 
-Se o pagamento falhar ou expirar:
+ Uma possibilidade seria:
 
-* o pedido vai para `falha`;
-* a reserva é liberada;
-* a licença volta a ficar disponível.
-
----
-
-### 4. Quais regras de cupom existirão na V1?
-
-**R:**
-
-Os cupons terão:
-
-* desconto percentual;
-* desconto de valor fixo;
-* validade;
-* quantidade máxima de usos.
-
-Podem ser utilizados em:
-
-* livros pagos;
-* bundles.
-
-Não se aplicam a:
-
-* livros gratuitos.
-
-Regras mais avançadas ficam para versões futuras.
-
----
-
-### 5. Como funcionará o painel de vendas?
-
-**R:**
-
-O administrador poderá consultar:
-
-* por mês;
-* por período personalizado.
-
-Indicadores:
-
-* faturamento;
-* unidades vendidas;
-* títulos mais vendidos;
-* alerta de licença baixa.
-
-Não haverá relatórios avançados/exportáveis na V1.
-
----
-
-### 6. Quais campos são obrigatórios para um livro?
-
-**R:**
-
-* título;
-* autor;
-* editora;
-* sinopse;
-* capa;
-* categoria;
-* ISBN válido;
-* idioma;
-* preço;
-* arquivos;
-* data de lançamento;
-* edição;
-* limite de licença;
-* disponibilidade.
-
-O limite de licença poderá ser:
-
-* numérico;
-* ilimitado.
-
-Estados de publicação:
-
-```text
-Rascunho
-Publicado
-Arquivado/Inativado
 ```
-
-Um produto inativado deixa de ser vendido, mas continua disponível na biblioteca de quem já o adquiriu.
-
----
-
-# Rodada 3 — Cliente e comercial
-
-### 1. Quais dados são obrigatórios no cadastro?
-
-**R:**
-
-Obrigatórios:
-
-* nome;
-* e-mail;
-* senha;
-* CPF;
-* telefone;
-* data de nascimento.
-
-O cliente poderá alterar:
-
-* nome;
-* telefone;
-* demais dados permitidos.
-
-O CPF será imutável após cadastro/validação.
-
-O cliente deverá ser maior de idade para realizar compras, inclusive gratuitas.
-
----
-
-### 2. Quais pagamentos estarão disponíveis?
-
-**R:**
-
-Somente **Pix via Stripe** na V1.
-
-Cartão, boleto e parcelamento ficam para versões futuras.
-
----
-
-### 3. Qual a política de cancelamento e reembolso?
-
-**R:**
-
-**Pré-venda:**
-
-O cancelamento poderá ocorrer até **uma semana antes da data de lançamento**.
-
-**Produto já lançado:**
-
-O reembolso poderá ocorrer:
-
-* até 2 horas após o download; ou
-* até 2 semanas após a compra caso o cliente ainda não tenha realizado download.
-
-O processo será automático quando as condições forem atendidas.
-
-O administrador poderá executar reembolso manualmente quando necessário.
-
-O controle de download será baseado no **clique no link de download gerado**.
-
----
-
-### 4. Como funcionam os cupons?
-
-**R:**
-
-Podem oferecer:
-
-* desconto percentual;
-* desconto fixo.
-
-Podem ser aplicados a:
-
-* livros pagos;
-* bundles.
-
-Não podem ser aplicados a:
-
-* livros gratuitos.
-
----
-
-### 5. Como funcionam os bundles?
-
-**R:**
-
-Um bundle é um conjunto de livros com:
-
-* capa própria;
-* preço próprio;
-* identificação própria.
-
-Após a compra, os livros são liberados **separadamente** na biblioteca do cliente.
-
-Um livro pode pertencer a vários bundles.
-
-Não pode existir mais de um bundle contendo exatamente os mesmos livros com preços diferentes.
-
-Todo livro incluído em um bundle precisa estar cadastrado no sistema.
-
-Se o cliente já possuir alguns livros:
-
-```text
-Preço do bundle
-− valor proporcional dos livros já adquiridos
-= preço final
-```
-
-Se o cliente já possuir todos os livros do bundle, o bundle não poderá ser comprado.
-
----
-
-### 6. Como funciona a importação CSV?
-
-**R:**
-
-Administrador e gestor de catálogo podem importar.
-
-O CSV deverá possuir os mesmos campos obrigatórios e validações do cadastro manual.
-
-Qualquer linha inválida provoca:
-
-```text
-Importação iniciada
-       ↓
-Validação
-       ↓
-Erro encontrado
-       ↓
-ROLLBACK
-       ↓
-Nenhum livro cadastrado
-```
-
-O sistema deverá informar:
-
-* linha;
-* campo;
-* valor/problemática;
-* motivo do erro.
-
----
-
-### 7. Como funciona privacidade/exclusão?
-
-**R:**
-
-O aceite dos Termos de Uso e Política de Privacidade será obrigatório.
-
-Sem aceite:
-
-* não pode realizar compra;
-* não pode realizar compra gratuita.
-
-O cliente poderá solicitar exclusão.
-
-Após a solicitação:
-
-```text
-Conta ativa
-    ↓
-Solicitação de exclusão
-    ↓
-Conta desativada
-    ↓
-Prazo legal de retenção
-    ↓
-Exclusão definitiva
-```
-
-Durante o período de espera, o cliente poderá solicitar retomada da conta.
-
-O administrador poderá acompanhar as solicitações.
-
-O cliente receberá notificações por e-mail próximas à exclusão e após a exclusão.
-
----
-
-# Rodada 4 — Estados, arquivos e segurança
-
-### 1. Perfil
-
-**R:**
-
-Nome é obrigatório e pode ser alterado.
-
-CPF:
-
-* obrigatório;
-* não pode ser alterado.
-
-Data de nascimento será utilizada para verificar maioridade.
-
----
-
-### 2. Estados do pedido
-
-**R:**
-
-Os estados da V1 serão:
-
-```text
-aguardando pagamento
-pago
+aguardando_pagamento
+pagamento_confirmado
+em_separacao
+enviado
+em_transito
+entregue
 cancelado
 reembolsado
-pré-venda aguardando lançamento
-disponível para download
-falha
 ```
 
-Para pedidos com múltiplos itens, o estado de disponibilidade deve considerar cada item individualmente.
+ > Essa lista não deve ser considerada definida até confirmação.
+
+ ## 2\. Quando o cliente poderá cancelar um pedido?
+
+ **R:**
+
+ A política de cancelamento ainda está pendente.
+
+ **Pergunta:** o cliente poderá cancelar:
+
+ - antes do pagamento;
+- após pagamento;
+- antes da expedição;
+- depois da expedição;
+- somente mediante atendimento?
+
+ ## 3\. Haverá reembolso parcial?
+
+ **R:**
+
+ A documentação menciona reembolsos, mas não define sua granularidade.
+
+ **Pergunta:** será possível reembolsar somente alguns itens de um pedido?
+
+ ## 4\. Haverá troca?
+
+ **R:**
+
+ A política de troca está pendente.
+
+ **Pergunta:** a V1 terá troca de produtos ou apenas cancelamento/devolução/reembolso?
+
+ ## 5\. Como será tratado um pedido parcialmente enviado?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** um pedido poderá ser enviado em múltiplos volumes/remessas?
 
 ---
 
-### 3. Notificações obrigatórias
+ # Rodada 8 — Entrega
 
-**R:**
+ ## 1\. Qual serviço calculará o frete?
 
-Enviar e-mail para:
+ **R:**
 
-* confirmação de cadastro;
-* confirmação de e-mail;
-* recuperação de senha;
-* confirmação de compra;
-* mudanças relevantes no status do pedido;
-* alteração de dados da conta;
-* confirmação de exclusão;
-* aviso próximo à exclusão;
-* aviso de alteração/correção de livro já adquirido;
-* liberação de pré-venda;
-* demais eventos críticos definidos no fluxo.
+ O sistema deverá integrar um serviço de entrega, mas o provedor ainda não foi definido.
 
----
+ **Pergunta:** existe transportadora/serviço escolhido ou isso será definido posteriormente?
 
-### 4. Arquivos
+ ## 2\. Quais modalidades de entrega existirão?
 
-**R:**
+ **R:**
 
-Formatos:
+ Ainda pendente.
 
-* PDF;
-* EPUB.
+ **Pergunta:** haverá:
 
-Ambos são aceitos.
+ - econômica;
+- expressa;
+- retirada;
+- outras?
 
-Não haverá limite de tamanho definido para a V1.
+ ## 3\. O frete será calculado em qual momento?
 
-Administradores poderão substituir arquivos já publicados.
+ **R:**
 
-Clientes que já possuem o produto:
+ O checkout deverá calcular frete.
 
-* receberão aviso da alteração;
-* terão acesso ao novo arquivo.
+ **Pergunta:** o cálculo dependerá de:
 
----
+ - CEP;
+- peso;
+- dimensões;
+- valor do pedido;
+- quantidade;
+- modalidade?
 
-### 5. Marca d'água
+ ## 4\. Haverá frete grátis?
 
-**R:**
+ **R:**
 
-Será aplicada em:
+ A política está explicitamente pendente.
 
-* PDF;
-* EPUB.
+ **Pergunta:** haverá frete grátis na V1?
 
-Dados:
+ Se sim, quais critérios?
 
-* nome;
-* ID do cliente;
-* ID do pedido;
-* data.
+ ## 5\. Haverá rastreamento?
+
+ **R:**
+
+ O rastreamento é previsto caso a integração escolhida o suporte.
+
+ **Pergunta:** o rastreamento será obrigatório quando disponível ou opcional?
 
 ---
 
-### 6. Segurança administrativa
+ # Rodada 9 — Cupons e promoções
 
-**R:**
+ ## 1\. Quais tipos de desconto existirão?
 
-2FA não será obrigatório na V1.
+ **R:**
 
-Fica planejado para versão futura, com objetivo de posteriormente disponibilizá-lo para todos os usuários.
+ A documentação prevê:
 
-Devem possuir auditoria, no mínimo:
+ - cupons;
+- promoções.
 
-* alteração de preço;
-* alteração de catálogo;
-* reembolso;
-* moderação;
-* compras;
-* alterações administrativas relevantes.
+ **Pergunta:** os descontos poderão ser:
 
----
+ - percentual;
+- valor fixo;
+- frete grátis;
+- desconto por quantidade;
+- desconto por categoria;
+- desconto por marca;
+- outros?
 
-# Rodada 5 — Descoberta e operação
+ ## 2\. Cupons poderão ser acumulados?
 
-### 1. Busca e filtros
+ **R:**
 
-**R:**
+ A regra ainda está pendente.
 
-A V1 terá busca/filtros por:
+ **Pergunta:** um pedido poderá utilizar mais de um cupom?
 
-* título;
-* autor;
-* categoria;
-* idioma;
-* faixa de preço;
-* mais vendidos;
-* bem avaliados;
-* data de lançamento.
+ ## 3\. Cupom poderá ser aplicado sobre frete?
 
----
+ **R:**
 
-### 2. Wishlist
+ Ainda não definido.
 
-**R:**
+ **Pergunta:** um cupom poderá reduzir o valor do frete?
 
-A wishlist permitirá:
+ ## 4\. Promoções e cupons poderão coexistir?
 
-* adicionar;
-* remover;
-* visualizar.
+ **R:**
 
-Também haverá notificações quando houver:
+ Ainda não definido.
 
-* promoção;
-* alteração de preço;
-* disponibilidade após pré-venda;
-* mudança relevante de disponibilidade.
+ **Pergunta:** se um produto já estiver em promoção, um cupom também poderá ser aplicado?
 
----
+ ## 5\. O administrador poderá limitar cupons por cliente?
 
-### 3. Downloads
+ **R:**
 
-**R:**
+ Ainda não definido.
 
-Downloads são ilimitados.
+ **Pergunta:** haverá regras como:
 
-O cliente pode baixar todos os formatos disponíveis para o produto.
-
-Cada clique no link de download deverá ser registrado.
-
-O registro será utilizado, entre outras coisas, para determinar a regra de reembolso das 2 horas.
+ - 1 uso por cliente;
+- 1 uso por CPF;
+- 1 uso por conta.
 
 ---
 
-### 4. Contas bloqueadas
+ # Rodada 10 — Avaliações e favoritos
 
-**R:**
+ ## 1\. Quem poderá avaliar um produto?
 
-Administradores poderão gerenciar contas.
+ **R:**
 
-Conta bloqueada não poderá:
+ A documentação define que a avaliação será realizada por cliente elegível.
 
-* realizar compras;
-* realizar downloads;
-* realizar avaliações;
-* realizar comentários.
+ **Pergunta:** somente quem efetivamente comprou o produto poderá avaliar?
 
-Gestores de catálogo poderão moderar avaliações, mas não terão as demais permissões administrativas.
+ ## 2\. Quantas avaliações um cliente poderá fazer?
 
----
+ **R:**
 
-### 5. Stripe
+ Ainda não definido.
 
-**R:**
+ **Pergunta:** o cliente poderá ter:
 
-A configuração da Stripe será dependência de implantação.
+ - uma avaliação por produto;
+- várias avaliações;
+- uma avaliação por pedido?
 
-O sistema deverá suportar:
+ ## 3\. O cliente poderá editar sua avaliação?
 
-* webhooks;
-* eventos duplicados;
-* reprocessamento;
-* idempotência.
+ **R:**
 
----
+ Ainda não definido.
 
-### 6. Qualidade mínima
+ **Pergunta:** depois de publicar uma avaliação, ele poderá alterar nota/comentário?
 
-**R:**
+ ## 4\. Quem poderá denunciar avaliações?
 
-* aplicação responsiva;
-* acessibilidade mínima WCAG nível A;
-* carregamento máximo desejado de 20 segundos;
-* disponibilidade para todo o Brasil;
-* backups semanais.
+ **R:**
 
-**Observação:** o limite de 20 segundos é muito permissivo para um requisito de desempenho e deveria ser refinado posteriormente em uma RNF mensurável por tipo de operação.
+ Ainda não definido.
 
----
+ **Pergunta:** somente clientes autenticados poderão denunciar ou qualquer visitante poderá denunciar?
 
-# Rodada 6 — Administração e operação
+ ## 5\. Como funcionará a moderação?
 
-### 1. Permissões do gestor
+ **R:**
 
-**R:**
+ Gestores e administradores poderão moderar avaliações.
 
-O gestor de catálogo pode:
+ **Pergunta:** quais estados existirão?
 
-* criar livros;
-* editar livros;
-* publicar livros;
-* alterar preços;
-* gerenciar cupons;
-* importar CSV;
-* moderar avaliações.
+ Por exemplo:
 
-Não pode:
-
-* gerenciar clientes;
-* executar reembolsos;
-* administrar pedidos;
-* administrar outros usuários;
-* acessar as demais funções exclusivas do administrador.
-
----
-
-### 2. Alerta de licença baixa
-
-**R:**
-
-Existem dois níveis:
-
-* limite global;
-* limite individual por livro.
-
-Se houver limite individual, ele prevalece.
-
-Se não houver, utiliza-se o limite global.
-
-Ambos são configuráveis pelo administrador.
-
-Quando a licença chegar a zero:
-
-* novas compras devem ser bloqueadas;
-* clientes que já possuem o produto continuam com acesso.
-
----
-
-### 3. Nota fiscal
-
-**R:**
-
-Não haverá emissão de nota fiscal na V1.
-
-A integração será estudada para versão futura.
-
----
-
-### 4. Estados de publicação
-
-**R:**
-
-Um livro poderá estar:
-
-```text
-Rascunho
-Publicado
-Arquivado/Inativado
 ```
-
-Livro inativo:
-
-* não pode receber novas compras;
-* continua na biblioteca de quem já comprou.
-
----
-
-### 5. Exclusão de conta
-
-**R:**
-
-Ao solicitar exclusão:
-
-* conta é desativada;
-* dados ficam sujeitos ao período legal de retenção;
-* usuário pode recuperar a conta antes da exclusão definitiva;
-* administrador acompanha o processo;
-* usuário recebe aviso próximo à exclusão;
-* usuário recebe confirmação após exclusão.
-
----
-
-# Rodada 7 — Pedidos e administração
-
-### 1. Produto lançado vs. pré-venda
-
-**R:**
-
-Sim.
-
-Produto já lançado:
-
-```text
-Pagamento confirmado
-        ↓
-Disponível para download
-```
-
-Pré-venda:
-
-```text
-Pagamento confirmado
-        ↓
-Pré-venda aguardando lançamento
-        ↓
-Data de lançamento
-        ↓
-Disponível para download
+pendente
+publicada
+oculta
+removida
 ```
 
 ---
 
-### 2. Pedido com pré-venda + produto disponível
+ # Rodada 11 — Administração e permissões
 
-**R:**
+ ## 1\. Os perfis administrativos atuais serão mantidos?
 
-Cada item deve possuir seu próprio estado de disponibilidade.
+ **R:**
 
-Assim:
+ A documentação propõe:
 
-```text
-Produto lançado → disponível imediatamente
-Pré-venda → bloqueado até sua data
+ - Administrador geral;
+- Gestor de catálogo;
+- Gestor de estoque;
+- Atendimento;
+- Financeiro.
+
+ **Pergunta:** todos esses perfis existirão na V1 ou alguns serão removidos/consolidados?
+
+ ## 2\. O administrador geral poderá fazer tudo?
+
+ **R:**
+
+ Atualmente ele possui acesso administrativo amplo.
+
+ **Pergunta:** administrador geral terá acesso a todas as operações, incluindo:
+
+ - clientes;
+- estoque;
+- pagamentos;
+- reembolsos;
+- pedidos;
+- catálogo;
+- usuários;
+- auditoria?
+
+ ## 3\. As permissões serão baseadas em papéis?
+
+ **R:**
+
+ O modelo possui:
+
+ - `User`;
+- `AdminUser`;
+- `Role`;
+- `Permission`.
+
+ **Pergunta:** a V1 utilizará RBAC com permissões granulares, como:
+
+```
+product:create
+product:update
+inventory:adjust
+order:refund
+customer:read
 ```
 
-O reembolso poderá ser realizado **por item**.
+ ## 4\. Um usuário administrativo poderá possuir múltiplos papéis?
+
+ **R:**
+
+ O modelo permite relação entre usuários e funções.
+
+ **Pergunta:** um mesmo usuário poderá possuir múltiplos roles?
+
+ ## 5\. O sistema poderá ficar sem administrador geral?
+
+ **R:**
+
+ Essa regra ainda não foi definida.
+
+ **Pergunta:** devemos impedir a remoção/desativação do último administrador geral ativo?
 
 ---
 
-### 3. Reembolso e licença
+ # Rodada 12 — Auditoria, segurança e LGPD
 
-**R:**
+ ## 1\. Quais operações deverão obrigatoriamente gerar auditoria?
 
-Se uma licença limitada for consumida e posteriormente houver reembolso:
+ **R:**
 
-* a licença volta a ficar disponível se o produto estiver ativo/disponível;
-* se o produto estiver inativo, ninguém poderá realizar nova compra até sua reativação.
+ A documentação exige auditoria de operações administrativas sensíveis.
+
+ **Pergunta:** devemos registrar, no mínimo:
+
+ - alteração de preço;
+- alteração de estoque;
+- alteração de produto;
+- cancelamento;
+- reembolso;
+- alteração de permissões;
+- criação/bloqueio de administrador;
+- alteração de cupom;
+- moderação de avaliação?
+
+ ## 2\. O log de auditoria poderá ser alterado?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** usuários administrativos poderão excluir/editar registros de auditoria ou eles serão somente leitura?
+
+ ## 3\. O cliente poderá solicitar exclusão da conta?
+
+ **R:**
+
+ A documentação exige proteção de dados e observância à LGPD, mas não detalha o fluxo.
+
+ **Pergunta:** haverá funcionalidade de solicitação de exclusão da conta diretamente pelo cliente?
+
+ ## 4\. O que acontecerá com pedidos históricos após exclusão?
+
+ **R:**
+
+ Ainda pendente.
+
+ **Pergunta:** os dados serão:
+
+ - anonimizados;
+- excluídos;
+- mantidos integralmente quando houver obrigação legal;
+- outra estratégia?
+
+ ## 5\. Haverá consentimento para comunicações promocionais?
+
+ **R:**
+
+ As notificações estão previstas, mas a distinção entre comunicações transacionais e promocionais ainda não está definida.
+
+ **Pergunta:** o cliente poderá escolher receber ou não:
+
+ - promoções;
+- ofertas;
+- alteração de preço;
+- estoque;
+- novidades?
 
 ---
 
-### 4. Administradores
+ # Rodada 13 — Imagens, armazenamento e arquivos
 
-**R:**
+ ## 1\. Onde serão armazenadas as imagens?
 
-Um administrador geral pode criar:
+ **R:**
 
-* administradores;
-* gestores de catálogo.
+ O sistema terá um serviço de armazenamento, mas o provedor ainda não foi definido.
 
-O sistema deve impedir que:
+ **Pergunta:** essa escolha ficará para ADR?
 
-* o último administrador geral seja removido;
-* o sistema fique sem nenhum administrador geral ativo.
+ ## 2\. Quantas imagens um produto poderá possuir?
 
----
+ **R:**
 
-### 5. Infraestrutura
+ Ainda não definido.
 
-**R:**
+ **Pergunta:** haverá limite?
 
-Ainda não decidido.
+ Exemplo:
 
-A definição de:
-
-* provedor;
-* hospedagem;
-* banco;
-* armazenamento;
-* ambientes;
-* CI/CD;
-
-deve ser registrada como decisão arquitetural antes da implementação correspondente.
-
----
-
-### 6. Operação
-
-**R:**
-
-Na V1:
-
-* logs de erros;
-* monitoramento de disponibilidade;
-* monitoramento de falhas de webhook.
-
-Monitoramento avançado e outros mecanismos operacionais podem ser evoluídos posteriormente.
-
----
-
-# Rodada 8 — Regras de negócio avançadas
-
-### 1. Expiração do Pix
-
-**R:**
-
-O Pix expira após **24 horas**.
-
-Durante o período de pagamento pendente:
-
-* a licença limitada fica temporariamente reservada;
-* outros clientes não podem consumir aquela licença.
-
-Após expiração:
-
-```text
-aguardando pagamento
-        ↓
-falha
-        ↓
-reserva liberada
+```
+1 imagem principal
++ até 10 imagens adicionais
 ```
 
+ ## 3\. Quais formatos de imagem serão aceitos?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** serão aceitos:
+
+ - JPEG;
+- PNG;
+- WebP;
+- AVIF;
+- outros?
+
 ---
 
-### 2. Compra duplicada e bundles
+ # Rodada 14 — Notificações
 
-**R:**
+ ## 1\. Quais canais existirão?
 
-O cliente não pode comprar novamente um e-book que já possui.
+ **R:**
 
-Porém, pode comprar um bundle contendo livros que já possui.
+ A documentação prevê serviço de e-mail/notificações.
 
-Nesse caso:
+ **Pergunta:** a V1 utilizará:
 
-```text
-Preço original do bundle
-− valor proporcional dos livros já adquiridos
-= preço ajustado
+ - e-mail;
+- SMS;
+- WhatsApp;
+- notificações dentro da aplicação;
+- outros?
+
+ ## 2\. Quais notificações serão obrigatórias?
+
+ **R:**
+
+ Precisamos separar notificações transacionais das promocionais.
+
+ **Pergunta:** confirme quais eventos deverão gerar comunicação obrigatória, por exemplo:
+
+ - cadastro;
+- recuperação de senha;
+- pedido criado;
+- pagamento aprovado;
+- pagamento recusado;
+- pedido enviado;
+- pedido entregue;
+- cancelamento;
+- reembolso;
+- alteração de preço;
+- estoque disponível.
+
+---
+
+ # Rodada 15 — Operação, backup e qualidade
+
+ ## 1\. Qual será a frequência de backup?
+
+ **R:**
+
+ A documentação exige backup, mas não define frequência.
+
+ **Pergunta:** devemos trabalhar com:
+
+ - diário;
+- semanal;
+- outro intervalo?
+
+ ## 2\. Qual será o RPO?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** qual perda máxima aceitável de dados em caso de desastre?
+
+ Exemplo:
+
+```
+RPO = 24 horas
 ```
 
-Se todos os livros do bundle já forem possuídos, o bundle não pode ser comprado.
+ ## 3\. Qual será o RTO?
 
----
+ **R:**
 
-### 3. Definição de download
+ Ainda não definido.
 
-**R:**
+ **Pergunta:** em caso de desastre, em quanto tempo o sistema deverá estar novamente operacional?
 
-Um download é considerado iniciado quando o cliente **clica no link de download gerado**.
+ ## 4\. O backup deverá ter restauração testada?
 
-O sistema deverá registrar cada evento de download, incluindo o item/formato correspondente.
+ **R:**
 
-Esse registro será utilizado para:
+ A documentação indica que a restauração deve ser testável.
 
-* auditoria;
-* controle;
-* regra de reembolso.
+ **Pergunta:** devemos estabelecer testes periódicos de restauração como requisito obrigatório?
 
----
+ ## 5\. Qual disponibilidade será esperada?
 
-### 4. Moderação
+ **R:**
 
-**R:**
+ Ainda não existe uma meta numérica.
 
-Após moderação:
+ **Pergunta:** qual será a meta da V1?
 
-* comentário fica oculto publicamente;
-* permanece disponível para gestores e administradores;
-* ação fica registrada para auditoria.
+ Exemplo:
 
-Qualquer usuário autenticado pode denunciar uma avaliação.
-
----
-
-### 5. Tecnologia e arquitetura
-
-**R:**
-
-A arquitetura deverá ser **em camadas**.
-
-Ainda não há preferência tecnológica definida para:
-
-* frontend;
-* backend;
-* banco;
-* armazenamento;
-* hospedagem;
-* CI/CD.
-
-As tecnologias deverão ser selecionadas posteriormente e justificadas por ADR.
-
----
-
-# Perguntas adicionais que ainda precisam ser respondidas
-
-Aqui eu adicionaria algumas perguntas que **não estavam no exemplo**, mas são importantes para fechar a elicitação do Tropa Fight.
-
-## Rodada 9 — Questões ainda abertas
-
-### 1. O carrinho pode conter múltiplas unidades do mesmo e-book?
-
-Como o produto é digital e a compra duplicada é proibida, a tendência seria limitar cada e-book a **quantidade 1 por pedido**. Porém, isso precisa ser confirmado.
-
-**Pergunta:** um cliente poderá colocar quantidade `2` do mesmo e-book no carrinho ou a quantidade deve ser sempre `1`?
-
----
-
-### 2. Como funciona o preço proporcional dos bundles?
-
-Você definiu que um bundle deve descontar proporcionalmente os livros que o cliente já possui.
-
-**Pergunta:** o cálculo proporcional será baseado no preço atual individual dos livros ou nos preços individuais cadastrados no momento da criação do bundle?
-
-Exemplo:
-
-```text
-Livro A = R$ 40
-Livro B = R$ 30
-Livro C = R$ 30
-
-Bundle = R$ 60
+```
+99,0%
+99,5%
+99,9%
 ```
 
-A participação seria:
+ ## 6\. Quais metas de desempenho serão adotadas?
 
-```text
-A = 40%
-B = 30%
-C = 30%
+ **R:**
+
+ A documentação determina que as metas sejam mensuráveis, mas ainda não define números.
+
+ **Pergunta:** você quer definir metas específicas para:
+
+ - catálogo;
+- busca;
+- página de produto;
+- carrinho;
+- checkout;
+- APIs;
+- painel administrativo?
+
+---
+
+ # Rodada 16 — Arquitetura e tecnologia
+
+ ## 1\. A arquitetura em camadas será mantida como decisão arquitetural inicial?
+
+ **R:**
+
+ A proposta atual é:
+
+```
+Apresentação
+     ↓
+Aplicação
+     ↓
+Domínio
+     ↓
+Infraestrutura
 ```
 
-Se o cliente já possui A, o desconto seria de 40% do preço do bundle?
+ Com avaliação de monólito modular para a V1.
+
+ **Pergunta:** podemos considerar essa a direção arquitetural inicial e registrar a decisão definitiva em ADR?
+
+ ## 2\. Haverá frontend separado do backend?
+
+ **R:**
+
+ Ainda não definido.
+
+ **Pergunta:** a aplicação será:
+
+ - frontend separado + API;
+- aplicação monolítica;
+- outra arquitetura?
+
+ ## 3\. Haverá aplicativo mobile na V1?
+
+ **R:**
+
+ A documentação menciona dispositivos móveis conforme estratégia do projeto, mas não aprova um aplicativo.
+
+ **Pergunta:** a V1 terá:
+
+ - somente web responsiva;
+- web + aplicativo Android;
+- web + Android/iOS?
+
+ ## 4\. Qual banco de dados será utilizado?
+
+ **R:**
+
+ Ainda pendente.
+
+ **Pergunta:** podemos deixar a escolha do banco relacional para a fase arquitetural e ADR?
+
+ ## 5\. Qual será a estratégia de infraestrutura?
+
+ **R:**
+
+ Ainda não definida.
+
+ **Pergunta:** antes da implementação devemos decidir:
+
+ - hospedagem;
+- banco;
+- storage;
+- cache;
+- filas;
+- observabilidade;
+- CI/CD;
+- ambientes de desenvolvimento;
+- homologação;
+- produção.
 
 ---
 
-### 3. O que acontece com um bundle quando um dos livros é arquivado/inativado?
+ # Controle da elicitação
 
-Como bundles precisam ser compostos por livros existentes, precisamos definir se:
+ ## Status
 
-* o bundle também fica indisponível;
-* continua vendável;
-* é automaticamente atualizado;
-* ou precisa de intervenção administrativa.
-
----
-
-### 4. O preço de um produto pode ser alterado enquanto ele está em pré-venda?
-
-Exemplo:
-
-```text
-Pré-venda: R$ 50
-Depois administrador altera para R$ 60
-```
-
-O cliente que já comprou paga R$ 50 ou existe algum ajuste?
-
----
-
-### 5. Qual será a regra para alteração de preço de um livro já adquirido?
-
-Provavelmente o cliente mantém o direito adquirido independentemente do novo preço, mas é importante registrar isso como regra explícita.
-
-**Pergunta:** alterações futuras de preço devem afetar somente novas compras?
-
----
-
-### 6. O cliente poderá baixar novamente um arquivo depois que ele for substituído?
-
-Você definiu que clientes antigos receberão o novo arquivo.
-
-**Pergunta:** o sistema deverá manter versões anteriores disponíveis ou somente a versão atual?
+ | Item | Status |
+| --- | --- |
+| Escopo V1 | PENDENTE |
+| Catálogo | PENDENTE |
+| Conta de cliente | PENDENTE |
+| Variantes/SKU | PENDENTE |
+| Estoque | PENDENTE |
+| Carrinho | PENDENTE |
+| Checkout | PENDENTE |
+| Pagamento | PENDENTE |
+| Pedidos | PENDENTE |
+| Entrega | PENDENTE |
+| Cupons | PENDENTE |
+| Avaliações | PENDENTE |
+| Favoritos | PENDENTE |
+| Administração | PENDENTE |
+| Permissões/RBAC | PENDENTE |
+| Auditoria | PENDENTE |
+| LGPD | PENDENTE |
+| Notificações | PENDENTE |
+| Backup/recuperação | PENDENTE |
+| Desempenho | PENDENTE |
+| Arquitetura | PENDENTE |
+| Tecnologias | PENDENTE |
 
 ---
 
-### 7. Como funciona o limite de licença durante pré-venda?
+ # Regra da elicitação
 
-Se um livro tiver:
+ Durante a elicitação:
 
-```text
-100 licenças
-```
-
-e 100 clientes comprarem a pré-venda, as 100 licenças ficam consumidas imediatamente ou apenas quando o livro for lançado?
-
-Isso é importante porque você definiu que a licença é consumida na confirmação do pagamento, mas a entrega ocorre posteriormente.
-
----
-
-### 8. Cancelamento de pré-venda e licença
-
-Se uma pré-venda for cancelada antes do lançamento:
-
-* a licença retorna ao estoque?
-* o reembolso libera imediatamente a licença?
-* o bundle relacionado sofre alguma alteração?
+ - nenhuma decisão será inventada;
+- respostas do responsável pelo projeto terão prioridade sobre suposições;
+- decisões contraditórias deverão ser identificadas;
+- requisitos derivados das respostas deverão ser explicitados;
+- regras de negócio deverão ser separadas de requisitos funcionais;
+- decisões arquiteturais relevantes deverão gerar ADR;
+- requisitos ainda indefinidos permanecerão como **PENDENTE**;
+- alterações de escopo deverão ser registradas;
+- a matriz de rastreabilidade será atualizada após a consolidação dos requisitos.
 
 ---
 
-### 9. CPF
-
-Como o CPF é obrigatório e imutável:
-
-**Pergunta:** haverá validação apenas do formato/dígitos verificadores ou também será necessária alguma consulta externa para verificar titularidade?
-
----
-
-### 10. ISBN
-
-Você definiu "ISBN válido".
-
-**Pergunta:** a V1 precisa apenas validar matematicamente o ISBN-10/ISBN-13 ou consultar uma fonte externa para confirmar que o ISBN realmente corresponde ao livro?
-
----
-
-### 11. Capa e arquivos
-
-Você definiu que não há limite de tamanho para PDF/EPUB.
-
-**Pergunta:** a capa também terá limite de tamanho/formato/dimensões ou isso ficará livre na V1?
-
----
-
-### 12. Recuperação de conta excluída
-
-Você definiu que a conta pode ser retomada antes da exclusão definitiva.
-
-**Pergunta:** o usuário recupera exatamente todos os dados anteriores ou alguns dados são anonimizados/desativados durante o período de espera?
-
----
-
-### 13. Administrador e auditoria
-
-Você definiu que compras devem entrar na auditoria.
-
-**Pergunta:** a auditoria deverá registrar apenas operações administrativas sobre compras ou também eventos automáticos, como:
-
-* pagamento aprovado;
-* pagamento expirado;
-* licença consumida;
-* download;
-* reembolso automático;
-* liberação de pré-venda?
-
----
-
-### 14. Prazo de retenção
-
-Você definiu que a exclusão definitiva ocorrerá após o prazo mínimo estabelecido por lei.
-
-**Pergunta:** esse prazo ficará configurável no sistema, para que possa ser alterado sem modificar código, enquanto a regra jurídica ainda estiver sendo estudada?
-
----
-
-### 15. Desempenho
-
-O requisito atual é:
-
-> carregamento máximo de 20 segundos.
-
-Isso é mensurável, mas pouco rigoroso para um sistema web.
-
-**Pergunta:** você quer manter exatamente **20 segundos como limite da V1**, ou prefere definir metas separadas, por exemplo:
-
-* páginas públicas;
-* APIs;
-* checkout;
-* busca;
-* download;
-
-com métricas diferentes?
-
----
-
-### 16. Backups
-
-Você definiu backups semanais.
-
-**Pergunta:** além de fazer backup semanal, o sistema deverá **testar a restauração** periodicamente para comprovar que o backup realmente pode ser utilizado?
-
----
-
-### 17. Disponibilidade
-
-"Disponível em todo o Brasil" define abrangência geográfica, mas não disponibilidade técnica.
-
-**Pergunta:** você quer definir uma meta de disponibilidade, como `99%`, `99,5%` ou `99,9%`?
-
----
-
-### 18. Endereço
-
-Como a V1 será exclusivamente digital:
-
-**Pergunta:** o endereço será realmente necessário no cadastro/checkout ou podemos deixar endereço fora da V1 até existir venda física?
-
-Isso é importante porque atualmente o modelo inicial previa `Address`, mas o escopo comercial da V1 não exige entrega física.
-
----
-
-### 19. Notificação de alteração de livro
-
-Quando um arquivo for corrigido/substituído, você definiu que clientes anteriores serão avisados.
-
-**Pergunta:** a notificação será enviada automaticamente para todos os compradores daquele livro ou o administrador poderá escolher quem será notificado?
-
----
-
-### 20. Wishlist e produtos inativos
-
-**Pergunta:** se um produto da wishlist for inativado, o cliente deve:
-
-* continuar vendo-o na wishlist;
-* receber uma notificação;
-* ter o produto removido automaticamente?
-
----
-
-### 21. Estados do produto
-
-Você definiu:
-
-```text
-Rascunho
-Publicado
-Arquivado/Inativado
-```
-
-**Pergunta:** "arquivado" e "inativado" são realmente o mesmo estado ou devem representar situações diferentes?
-
----
-
-### 22. Administrador e gestor
-
-Você definiu que o administrador pode criar administradores e gestores.
-
-**Pergunta:** o administrador também poderá remover/rebaixar outros administradores, desde que **pelo menos um administrador geral permaneça ativo**?
-
----
-
-### 23. Exclusão e compras
-
-**Pergunta:** uma conta com pedidos, pagamentos ou downloads registrados poderá ser definitivamente excluída após o prazo legal mediante anonimização dos dados que precisam ser preservados?
-
-Essa decisão é importante para o modelo de dados e para a LGPD.
-
----
-
-### 24. Gateway Stripe
-
-Você definiu Stripe + Pix, mas ainda não definiu a estratégia técnica.
-
-**Pergunta:** devemos deixar a escolha entre Checkout hospedado, Payment Element ou integração própria como uma decisão arquitetural a ser tomada em ADR?
-
----
+ # Próximo passo
+
+ A elicitação deverá começar pela **Rodada 1 — Escopo comercial e operação da V1**.
+
+ As respostas fornecidas serão utilizadas para consolidar posteriormente:
+
+ - requisitos funcionais;
+- requisitos não funcionais;
+- regras de negócio;
+- casos de uso;
+- modelo de domínio;
+- modelo de dados;
+- APIs;
+- permissões;
+- ADRs;
+- riscos;
+- roadmap;
+- matriz de rastreabilidade;
+- `TASKS.md`.
