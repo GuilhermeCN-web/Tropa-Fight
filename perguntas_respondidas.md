@@ -1,7 +1,4 @@
-# Tropa Fight — Elicitação
-
-**Versão:** 1.0
-**Status:** ELICITAÇÃO EM ANDAMENTO
+# Tropa Fight
 
 Este documento contém as perguntas utilizadas para elicitar e validar os requisitos da Tropa Fight.
 
