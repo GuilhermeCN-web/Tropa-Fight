@@ -150,8 +150,15 @@ project-root/
 ├── TASKS.md
 └── docs/
     ├── adr/
+    │   └── ADRs.md
     ├── architecture/
-    └── diagrams/
+    │   └── overview.md
+    ├── diagrams/
+    ├── planning/
+    │   ├── development-plan.md
+    │   └── answered-questions.md
+    └── TASKS/
+        └── especificações das TASKs
 ```
 
 | Artefato           | Responsabilidade                                        |
