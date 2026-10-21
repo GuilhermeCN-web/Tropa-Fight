@@ -4,7 +4,7 @@
 
  - **ID:** TASK-001
 - **Título:** Inicializar aplicação e fundação de qualidade
-- **Status:** READY
+ - **Status:** DONE
 - **Phase:** PHASE-01
 - **Priority:** CRITICAL
 - **Tipo:** Foundation / Architecture / Quality

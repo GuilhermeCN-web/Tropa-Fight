@@ -14,7 +14,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 | Ordem | TASK     | Fase     | Prioridade | Dependências               | Estado  |
 | ----: | -------- | -------- | ---------- | -------------------------- | ------- |
-|     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | READY   |
+|     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | DONE    |
 |     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | BLOCKED |
 |     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | BLOCKED |
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | BLOCKED |
@@ -41,7 +41,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-001 — Inicializar aplicação e fundação de qualidade
 
-**Status:** READY
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / CRITICAL
 **Dependências:** `DEPENDS_ON: NONE`
 **Relacionados:** RNF-001, RNF-002, RNF-013, ADR-001, ADR-002
@@ -51,6 +51,37 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** regras de negócio, checkout, pagamentos, catálogo comercial, integrações externas reais, migrations de domínio.
 **Critérios de aceitação/Testes:** build passa; lint passa; teste de exemplo passa; dependências entre camadas respeitam a arquitetura aprovada.
 **DoD específico:** execução local reproduzível e comandos de qualidade documentados.
+
+**Decisão registrada para TASK-001:** front em React com TypeScript; sem backend próprio e sem banco/conexão a dados nesta etapa. PostgreSQL permanece como possibilidade futura, ainda sem decisão de integração.
+
+**Execução atual (2026-10-21):**
+
+- Branch: `chore/TASK-001-organizar-documentacao`.
+- GATE-001 — Recontextualização e prontidão: APROVADO após decisão de escopo do responsável; dependências inexistentes; sem requisitos comerciais iniciados.
+- GATE-002 — Planejamento: APROVADO; camadas apenas no front, sem persistência, API ou integração externa.
+- GATE-003 — Implementação controlada: APROVADO; alterações primárias em configuração, `src/**`, `tests/**`, README operacional e esta TASK.
+- GATE-004 — Revisão e validação automatizada: APROVADO; `npm run quality` passou (formatação, lint, typecheck, 3 testes e build); `npm audit --json` reportou 0 vulnerabilidades; servidor Vite iniciou e respondeu HTTP 200 em `http://127.0.0.1:5173/`.
+- GATE-005 — Testes manuais: APROVADO; inspeção visual da tela React realizada no Chrome headless e captura preservada como evidência.
+- GATE-006 — Conclusão: APROVADO; Definition of Done, critérios, diff, rastreabilidade e Scope Guard revisados.
+- Contagem dos Gates: 6 no total; 6 concluídos; 0 pendentes; 0 bloqueados.
+
+**Teste manual executado (TASK-001-MAN-001):**
+
+- Objetivo: confirmar visualmente o bootstrap React no navegador.
+- Pré-condição/ambiente: servidor local disponível; Node.js 24.x e dependências instaladas.
+- Comando: `npm run dev -- --host 127.0.0.1`.
+- Passos: abrir `http://127.0.0.1:5173/` e conferir visualmente a tela inicial.
+- Esperado: título “Tropa Fight”, estado “ok”, ambiente “development” e nenhuma tela de erro.
+- Resultado: PASS; tela exibida conforme esperado. Evidência: [`TASK001-MAN-001.png`](docs/TASKS/evidence/TASK001-MAN-001.png).
+
+**Revisão final / Definition of Done:** PASS.
+
+- PRIMARY: configuração React/TypeScript e scripts de qualidade; estrutura em camadas; bootstrap/configuração/logging/erros básicos; testes unitários e arquiteturais; documentação operacional e evidência manual.
+- INCIDENTAL: nenhuma.
+- FORBIDDEN: nenhuma.
+- Gates: Build PASS; Lint PASS; Unit PASS; Integration N/A; API N/A; Security PASS (auditoria npm sem vulnerabilidades); Acceptance PASS; Regression N/A.
+- Escopo: `ALLOWED_CHANGES` PASS; `FORBIDDEN_CHANGES` PASS; Scope Creep NONE.
+- Próxima TASK elegível: NONE; TASK-002 continua BLOCKED por suas próprias pendências.
 
 ## TASK-002 — Definir infraestrutura, ambientes e observabilidade
 
