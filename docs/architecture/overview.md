@@ -62,9 +62,15 @@ Backups, monitoramento e procedimentos de recuperação devem ser definidos e te
 * Operações demoradas e notificações devem ser desacopladas do fluxo transacional quando apropriado.
 * Aplicativo nativo, microserviços e integrações adicionais não são considerados parte automática do escopo da V1.
 
+## Baseline de infraestrutura
+
+A etapa atual executa somente o front React/TypeScript em ambiente local, conforme [`infrastructure-baseline.md`](infrastructure-baseline.md). Não há backend, persistência conectada, provedor externo ou publicação. O ADR-003 aprova persistência relacional como estratégia futura; mecanismo, versão, provedor e hospedagem permanecem pendentes. Produção segue `PENDING_APPROVAL`.
+
 ## Decisões pendentes
 
-* Stack, framework, banco de dados e hospedagem.
+* Stack e hospedagem do backend; mecanismo, versão e provedor do banco relacional.
+* Provedores e configuração de development compartilhado e staging, quando necessários.
+* Metas de RPO, RTO, disponibilidade e thresholds de alertas.
 * Gateway e meios de pagamento.
 * Política de reserva, baixa e recomposição do estoque.
 * Transportadoras, cálculo de frete e rastreamento.

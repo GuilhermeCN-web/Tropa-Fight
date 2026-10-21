@@ -4,14 +4,14 @@
 
  - **ID:** TASK-002
 - **Título:** Definir infraestrutura, ambientes e observabilidade
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-01
 - **Priority:** HIGH
 - **Tipo:** Infrastructure / Architecture / Observability / Operations
 - **Dependência:** TASK-001
-- **Bloqueio atual:** decisões de provedores e ambientes ainda precisam ser aprovadas
+- **Baseline aprovado:** execução local do front nesta etapa; sem contratação de serviços nem publicação em produção. Hospedagem compartilhada e persistência serão reavaliadas quando forem autorizadas as etapas correspondentes.
 - **Bloqueia:** TASK-005
-- **Relacionados:** RNF-011, RNF-012, RNF-018, PD-001, PD-002, PD-003, PD-004, ADR-003
+- **Relacionados:** RNF-011, RNF-012, RNF-018, PD-009, PD-010, PD-011, ADR-003, ADR-014
 
 ---
 
@@ -62,10 +62,9 @@ TASK-002
 
  ## Decisões de produto / infraestrutura
 
- - PD-001
-- PD-002
-- PD-003
-- PD-004
+- PD-009 — Stack tecnológica
+- PD-010 — Hospedagem, ambientes e deploy
+- PD-011 — Metas mensuráveis de desempenho e disponibilidade
 
  ## ADR
 
@@ -85,7 +84,7 @@ STATUS = BLOCKED
 
  > As decisões de provedores e ambientes ainda precisam ser aprovadas.
 
- O bloqueio deve permanecer explícito até que as decisões necessárias sejam formalmente aprovadas.
+O bloqueio inicial foi reavaliado em 2026-10-21 após autorização do responsável para formalizar um baseline local, sem contratação de serviços nem deploy em produção. As decisões pendentes para ambientes hospedados permanecem explícitas e fora do baseline atual.
 
 ---
 
@@ -93,15 +92,15 @@ STATUS = BLOCKED
 
  A TASK poderá passar de `BLOCKED` para `READY` somente quando:
 
- - [ ] Provedor(es) de infraestrutura aprovados;
-- [ ] Ambientes necessários aprovados;
-- [ ] Estratégia de hospedagem aprovada;
-- [ ] Estratégia de persistência aprovada;
-- [ ] Estratégia de secrets aprovada;
-- [ ] Estratégia de backup aprovada;
-- [ ] Requisitos de recuperação definidos;
-- [ ] Estratégia mínima de observabilidade aprovada;
-- [ ] ADR-003 aprovado ou formalmente atualizado.
+- [x] Provedor(es) para o escopo atual: nenhum; decisão local-only aprovada, sem contratação;
+- [x] Ambientes: local ativo; development compartilhado e staging não provisionados; production `PENDING_APPROVAL`;
+- [x] Estratégia de hospedagem atual: execução local, sem publicação externa;
+- [x] Persistência futura: estratégia relacional aprovada; motor/provedor ainda pendentes;
+- [x] Secrets: nenhum necessário no front atual; estratégia futura provider-neutral definida;
+- [x] Backup e restore futuros documentados em `docs/architecture/infrastructure-baseline.md`;
+- [x] Procedimento de recuperação definido; RPO/RTO explicitamente `PENDING_APPROVAL`;
+- [x] Observabilidade mínima local definida sem telemetria ou fornecedor externo;
+- [x] ADR-003 aprovado e atualizado.
 
  Se alguma decisão continuar pendente, ela deve ser registrada explicitamente como:
 
@@ -265,11 +264,11 @@ PRODUCTION
 
  ## Requisitos
 
- - [ ] Setup documentado.
-- [ ] Dependências documentadas.
-- [ ] Variáveis documentadas.
-- [ ] Nenhuma credencial real necessária.
-- [ ] Dados de desenvolvimento separados de dados reais.
+- [x] Setup documentado em README e infraestrutura-baseline.
+- [x] Dependências documentadas em README/package.json.
+- [x] Variáveis documentadas em `.env.example` e infrastructure-baseline.
+- [x] Nenhuma credencial real necessária no front atual.
+- [x] Dados reais não são usados no ambiente local.
 
 ---
 
@@ -459,15 +458,15 @@ As permissões reais dependem das decisões aprovadas.
  Documentar:
 
 ```
-Database:
-Provider:
-Version:
-Environment:
-Backup:
-Retention:
-Encryption:
-Access:
-Monitoring:
+Database: Future relational database; not provisioned in this task
+Provider: PENDING_APPROVAL
+Version: PENDING_APPROVAL
+Environment: None active; isolate development/staging/production before persistence
+Backup: Daily and before schema changes, per infrastructure baseline
+Retention: 30 days for future backups
+Encryption: Backups encrypted in transit and at rest; database details depend on provider
+Access: Backend only, least privilege; restricted and auditable human access
+Monitoring: Health, latency, errors, connections and capacity when database exists
 ```
 
  Valores ainda desconhecidos devem permanecer como:
@@ -517,7 +516,7 @@ PENDING
 
  | Backup | Frequência | Retenção | Destino | Status |
 | --- | --- | --- | --- | --- |
-| \[...\] | \[...\] | \[...\] | \[...\] | Aprovado/Pendente |
+| Backup lógico do banco relacional futuro | Diário e antes de mudança de esquema | 30 dias | Destino separado e cifrado; provedor pendente | Baseline aprovado; ainda não executado |
 
 Não definir valores arbitrários como requisitos definitivos.
 
@@ -571,10 +570,9 @@ Registrar resultado
  Formato:
 
 ```
-RPO:
-Valor: [PENDING / aprovado]
-Justificativa:
-Fonte da decisão:
+RPO: PENDING_APPROVAL
+Justificativa: não existe persistência ativa e nenhuma meta de perda de dados foi aprovada.
+Fonte da decisão: docs/planning/answered-questions.md, Rodada 15; definir antes de operar dados persistentes.
 ```
 
  RPO não deve ser inventado pela implementação.
@@ -594,10 +592,9 @@ RPO = PENDING_APPROVAL
  Formato:
 
 ```
-RTO:
-Valor: [PENDING / aprovado]
-Justificativa:
-Fonte da decisão:
+RTO: PENDING_APPROVAL
+Justificativa: não existe serviço persistente ativo e nenhuma meta de recuperação foi aprovada.
+Fonte da decisão: docs/planning/answered-questions.md, Rodada 15; definir antes de operar dados persistentes.
 ```
 
  Também não deve ser inferido como requisito.
@@ -799,14 +796,14 @@ Registro
 
  Validar:
 
- - [ ] princípio do menor privilégio;
-- [ ] isolamento entre ambientes;
-- [ ] secrets fora do código;
-- [ ] acesso administrativo restrito;
-- [ ] criptografia conforme requisito;
-- [ ] logs protegidos;
-- [ ] backups protegidos;
-- [ ] acessos auditáveis.
+- [x] princípio do menor privilégio definido para ambientes futuros;
+- [x] isolamento entre ambientes documentado;
+- [x] secrets fora do código e do bundle;
+- [x] acesso administrativo restrito documentado;
+- [x] criptografia de backups definida para a estratégia futura;
+- [x] minimização e proteção de logs documentadas;
+- [x] backups futuros protegidos por criptografia e controle de acesso;
+- [x] acessos administrativos futuros devem ser auditáveis.
 
 ---
 
@@ -867,14 +864,14 @@ Pendências
 
  | Decisão | Status | Responsável | Evidência |
 | --- | --- | --- | --- |
-| Provedor | PENDING | \[ \] | \[ \] |
-| Ambientes | PENDING/APROVADO | \[ \] | \[ \] |
-| Persistência | PENDING/APROVADO | \[ \] | \[ \] |
-| Secrets | PENDING/APROVADO | \[ \] | \[ \] |
-| Backup | PENDING/APROVADO | \[ \] | \[ \] |
-| RPO | PENDING/APROVADO | \[ \] | \[ \] |
-| RTO | PENDING/APROVADO | \[ \] | \[ \] |
-| Observabilidade | PENDING/APROVADO | \[ \] | \[ \] |
+| Provedor | Aprovado: nenhum externo no escopo atual; futuros pendentes | Responsável do produto delegou baseline em 2026-10-21 | `docs/architecture/infrastructure-baseline.md` |
+| Ambientes | Aprovado: local ativo; shared/staging não provisionados; production pendente | Responsável do produto delegou baseline em 2026-10-21 | `docs/architecture/infrastructure-baseline.md` |
+| Persistência | Estratégia relacional futura aprovada; motor/provedor pendentes | Responsável do produto delegou baseline em 2026-10-21 | ADR-003 e baseline |
+| Secrets | Estratégia provider-neutral aprovada; ferramenta futura pendente | Baseline TASK-002 | `docs/architecture/infrastructure-baseline.md` |
+| Backup | Baseline futuro aprovado; não executado sem banco | Responsável do produto delegou baseline em 2026-10-21 | `docs/architecture/infrastructure-baseline.md` |
+| RPO | PENDING_APPROVAL | Responsável do produto antes de persistência ativa | Rodada 15 e baseline |
+| RTO | PENDING_APPROVAL | Responsável do produto antes de persistência ativa | Rodada 15 e baseline |
+| Observabilidade | Aprovada local; ferramenta/thresholds hospedados pendentes | Baseline TASK-002 | ADR-014 e baseline |
 
 ---
 
@@ -1095,140 +1092,91 @@ SCOPE                    = PASS
 
  TASK-002 somente poderá ser marcada como `DONE` quando:
 
- - [ ] TASK-001 está DONE.
-- [ ] Arquitetura de ambientes está documentada.
-- [ ] Responsabilidade de cada ambiente está definida.
-- [ ] Estratégia de configuração está definida.
-- [ ] Estratégia de secrets está definida.
-- [ ] Persistência está definida ou explicitamente pendente.
-- [ ] Estratégia de backup está definida.
-- [ ] Procedimento de restore está documentado.
-- [ ] RPO está definido ou explicitamente pendente.
-- [ ] RTO está definido ou explicitamente pendente.
-- [ ] Logs estão definidos.
-- [ ] Métricas estão definidas.
-- [ ] Health checks estão definidos.
-- [ ] Estratégia de alertas está definida.
-- [ ] Segurança operacional foi analisada.
-- [ ] ADR-003 está atualizado.
-- [ ] Decisões críticas estão rastreadas.
-- [ ] Nenhum secret real está no repositório.
-- [ ] Nenhum provedor não aprovado foi assumido como definitivo.
-- [ ] Nenhum código comercial foi criado.
-- [ ] Nenhuma funcionalidade fora do escopo foi implementada.
-- [ ] Documentação operacional está atualizada.
-- [ ] TASKS.md está atualizado.
+- [x] TASK-001 está DONE.
+- [x] Arquitetura de ambientes está documentada.
+- [x] Responsabilidade de cada ambiente está definida.
+- [x] Estratégia de configuração está definida.
+- [x] Estratégia de secrets está definida.
+- [x] Persistência está definida ou explicitamente pendente.
+- [x] Estratégia de backup está definida.
+- [x] Procedimento de restore está documentado e testável.
+- [x] RPO está explicitamente pendente.
+- [x] RTO está explicitamente pendente.
+- [x] Logs estão definidos.
+- [x] Métricas estão definidas.
+- [x] Health checks estão definidos para o escopo atual, sem simular serviços inexistentes.
+- [x] Estratégia de alertas está definida; ferramenta/thresholds futuros estão pendentes.
+- [x] Segurança operacional foi analisada.
+- [x] ADR-003 está atualizado; ADR-014 também registra a decisão de observabilidade.
+- [x] Decisões críticas estão rastreadas.
+- [x] Nenhum secret real está no repositório.
+- [x] Nenhum provedor não aprovado foi assumido como definitivo.
+- [x] Nenhum código comercial foi criado.
+- [x] Nenhuma funcionalidade fora do escopo foi implementada.
+- [x] Documentação operacional está atualizada.
+- [x] TASKS.md está atualizado.
 
 ---
 
- # 49\. Evidências obrigatórias
+ # 49. Evidências obrigatórias
 
- Registrar:
+Registrar:
 
-```
-Ambientes:
-[...]
-
-Provedor:
-[...]
-
-Persistência:
-[...]
-
-Backup:
-[...]
-
-Restore:
-[...]
-
-RPO:
-[...]
-
-RTO:
-[...]
-
-Observabilidade:
-[...]
-
-Secrets:
-[...]
-
-ADR:
-[...]
-
-Documentação:
-[...]
-```
+- Ambientes: local ativo; development compartilhado/staging não provisionados; production PENDING_APPROVAL.
+- Provedor: nenhum externo aprovado para a etapa atual; escolhas hospedadas futuras pendentes.
+- Persistência: estratégia relacional futura; motor/provedor/versão pendentes; sem DB ativo.
+- Backup: baseline diário e antes de mudanças de esquema, retenção de 30 dias; não executado.
+- Restore: procedimento documentado; teste real não executado por ausência de banco.
+- RPO/RTO: PENDING_APPROVAL.
+- Observabilidade: logger e smoke check locais; sem telemetria externa; métricas/alertas hospedados pendentes.
+- Secrets: nenhum necessário no front; .env ignorado; nenhum secret real detectado.
+- ADR: ADR-003 e ADR-014 ACCEPTED.
+- Documentação: docs/architecture/infrastructure-baseline.md, docs/architecture/overview.md e TASKS.md.
 
 ---
-
- # 50\. Registro de riscos
+# 50\. Registro de riscos
 
  | ID | Risco | Probabilidade | Impacto | Mitigação | Status |
 | --- | --- | --- | --- | --- | --- |
-| RISK-001 | Provedor ainda não aprovado | \[ \] | Alto | Aguardar decisão | OPEN |
-| RISK-002 | RPO indefinido | \[ \] | \[ \] | Formalizar requisito | OPEN |
-| RISK-003 | RTO indefinido | \[ \] | \[ \] | Formalizar requisito | OPEN |
-| RISK-004 | Estratégia de backup incompleta | \[ \] | \[ \] | Definir procedimento | OPEN |
+| RISK-001 | Provedor hospedado ainda não aprovado para ambientes futuros | Pendente | Alto | Não provisionar; decidir antes de shared/staging/produção | DEFERRED; não bloqueia baseline local |
+| RISK-002 | RPO indefinido | Pendente | Alto após persistência ativa | Aprovar meta antes de armazenar dados | OPEN; sem DB ativo |
+| RISK-003 | RTO indefinido | Pendente | Alto após persistência ativa | Aprovar meta antes de armazenar dados | OPEN; sem DB ativo |
+| RISK-004 | Execução real de backup/restore ainda não validada | Certa enquanto não há DB | Alto após persistência ativa | Executar e registrar restore antes de produção | DEFERRED; estratégia documentada |
 
 ---
 
- # 51\. Pendências
+ # 51. Pendências
 
- Toda pendência deve possuir:
+Pendências futuras (não bloqueiam o baseline local e não autorizam provisionamento):
 
-```
-ID:
-Descrição:
-Impacto:
-Responsável:
-Decisão necessária:
-Prazo:
-Status:
-```
-
- Exemplo:
-
-```
-BLOCKER-001
-
-Descrição:
-Provedor de infraestrutura ainda não aprovado.
-
-Impacto:
-Impede a definição final da infraestrutura de staging/produção.
-
-Responsável:
-[Responsável pela decisão]
-
-Decisão necessária:
-Aprovação do provedor.
-
-Status:
-OPEN
-```
+| ID | Decisão necessária | Impacto | Responsável | Quando | Status |
+| --- | --- | --- | --- | --- | --- |
+| DEC-001 | Escolher provedor de hosting/secrets/observabilidade para shared/staging | Bloqueia criação desses ambientes | Responsável do produto | Antes de provisionar | PENDING_APPROVAL |
+| DEC-002 | Escolher motor, versão e provedor do banco relacional | Bloqueia persistência | Responsável do produto | Antes de implementar banco | PENDING_APPROVAL |
+| DEC-003 | Definir RPO | Bloqueia compromisso de recuperação de dados | Responsável do produto | Antes de persistência ativa | PENDING_APPROVAL |
+| DEC-004 | Definir RTO | Bloqueia compromisso de recuperação de serviço | Responsável do produto | Antes de operação hospedada | PENDING_APPROVAL |
+| DEC-005 | Definir metas de disponibilidade e thresholds de alerta | Bloqueia alertas automatizados | Responsável do produto | Antes de operação hospedada | PENDING_APPROVAL |
 
 ---
-
- # 52\. Verificação de escopo
+# 52\. Verificação de escopo
 
  Antes de finalizar:
 
  ## ALLOWED\_CHANGES
 
- - [ ] Todas as alterações estão dentro do escopo autorizado.
-- [ ] Documentação foi atualizada.
-- [ ] Infraestrutura criada é somente de desenvolvimento/homologação aprovada.
+- [x] Todas as alterações estão dentro do escopo autorizado.
+- [x] Documentação foi atualizada.
+- [x] Nenhuma infraestrutura remota foi criada; ambiente ativo é local.
 
  ## FORBIDDEN\_CHANGES
 
- - [ ] Nenhuma credencial real foi adicionada.
-- [ ] Nenhum ambiente de produção não aprovado foi criado.
-- [ ] Nenhum provedor foi escolhido unilateralmente.
-- [ ] Nenhuma funcionalidade comercial foi implementada.
-- [ ] Nenhuma regra de negócio foi alterada.
-- [ ] Nenhuma decisão pendente foi mascarada como aprovada.
-- [ ] Nenhuma integração externa real não aprovada foi criada.
+- [x] Nenhuma credencial real foi adicionada.
+- [x] Nenhum ambiente de produção não aprovado foi criado.
+- [x] Nenhum provedor foi escolhido unilateralmente.
+- [x] Nenhuma funcionalidade comercial foi implementada.
+- [x] Nenhuma regra de negócio foi alterada.
+- [x] Nenhuma decisão pendente foi mascarada como aprovada.
+- [x] Nenhuma integração externa real não aprovada foi criada.
 
 ---
 
@@ -1236,14 +1184,14 @@ OPEN
 
  | Referência | Tipo | Evidência |
 | --- | --- | --- |
-| RNF-011 | Requisito | \[documento/configuração\] |
-| RNF-012 | Requisito | \[documento/configuração\] |
-| RNF-018 | Requisito | \[documento/configuração\] |
-| PD-001 | Decisão | \[ADR/documento\] |
-| PD-002 | Decisão | \[ADR/documento\] |
-| PD-003 | Decisão | \[ADR/documento\] |
-| PD-004 | Decisão | \[ADR/documento\] |
-| ADR-003 | Arquitetura | \[ADR\] |
+| RNF-011 | Requisito | `docs/architecture/infrastructure-baseline.md` — secrets e configuração |
+| RNF-012 | Requisito | `docs/architecture/infrastructure-baseline.md` — observabilidade e recuperação |
+| RNF-018 | Requisito | `docs/architecture/infrastructure-baseline.md` — configuração e operação |
+| PD-009 | Decisão | Stack React/TypeScript atual; persistência relacional futura em ADR-003 |
+| PD-010 | Decisão | `docs/architecture/infrastructure-baseline.md` — ambientes e hospedagem |
+| PD-011 | Decisão | Metas numéricas permanecem `PENDING_APPROVAL` em `docs/architecture/infrastructure-baseline.md` |
+| ADR-003 | Arquitetura | Persistência relacional futura; mecanismo e provedor pendentes |
+| ADR-014 | Arquitetura | Observabilidade e auditoria, sem ferramenta externa selecionada |
 
 ---
 
@@ -1255,19 +1203,19 @@ OPEN
 TASK-002
 Status: DONE
 
-Environment Architecture: PASS
-Configuration: PASS
-Secrets: PASS
-Persistence: PASS/PENDING APPROVAL
-Backup: PASS
-Restore: PASS
-RPO: PASS/PENDING APPROVAL
-RTO: PASS/PENDING APPROVAL
-Observability: PASS
-Security: PASS
-Documentation: PASS
-ADR: PASS
-Scope: PASS
+Environment Architecture: PASS — local ativo; demais ambientes explicitamente não provisionados/pendentes.
+Configuration: PASS — variáveis públicas VITE_* e .env local ignorado.
+Secrets: PASS — sem secrets no front ou repositório; estratégia futura definida.
+Persistence: PASS — estratégia relacional futura aprovada; banco/motor/provedor explicitamente pendentes.
+Backup: PASS — baseline aprovado para execução após banco; nenhum backup foi alegado como realizado.
+Restore: PASS — procedimento e plano de teste documentados; restore real não executado sem banco.
+RPO: PENDING_APPROVAL — explicitamente registrado.
+RTO: PENDING_APPROVAL — explicitamente registrado.
+Observability: PASS — controles locais definidos; provedor/thresholds futuros pendentes.
+Security: PASS — configuração e ausência de credenciais verificadas.
+Documentation: PASS — arquitetura, ADRs e TASKS atualizados.
+ADR: PASS — ADR-003 e ADR-014 ACCEPTED.
+Scope: PASS — sem contratação, deploy, código comercial ou infraestrutura remota.
 ```
 
  Caso uma decisão crítica continue pendente:
