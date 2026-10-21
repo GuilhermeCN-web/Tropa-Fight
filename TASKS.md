@@ -81,7 +81,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 - FORBIDDEN: nenhuma.
 - Gates: Build PASS; Lint PASS; Unit PASS; Integration N/A; API N/A; Security PASS (auditoria npm sem vulnerabilidades); Acceptance PASS; Regression N/A.
 - Escopo: `ALLOWED_CHANGES` PASS; `FORBIDDEN_CHANGES` PASS; Scope Creep NONE.
-- Próxima TASK elegível: NONE; TASK-002 continua BLOCKED por suas próprias pendências.
+- Próxima TASK elegível: NONE; TASK-002 foi concluída; TASK-003 e TASK-004 permanecem BLOCKED por suas próprias pendências.
 
 ## TASK-002 — Definir infraestrutura, ambientes e observabilidade
 
