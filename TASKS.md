@@ -14,8 +14,8 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 | Ordem | TASK     | Fase     | Prioridade | Dependências               | Estado  |
 | ----: | -------- | -------- | ---------- | -------------------------- | ------- |
-|     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | READY   |
-|     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | BLOCKED |
+|     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | DONE    |
+|     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | DONE |
 |     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | BLOCKED |
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | BLOCKED |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | BLOCKED |
@@ -41,7 +41,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-001 — Inicializar aplicação e fundação de qualidade
 
-**Status:** READY
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / CRITICAL
 **Dependências:** `DEPENDS_ON: NONE`
 **Relacionados:** RNF-001, RNF-002, RNF-013, ADR-001, ADR-002
@@ -52,12 +52,43 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **Critérios de aceitação/Testes:** build passa; lint passa; teste de exemplo passa; dependências entre camadas respeitam a arquitetura aprovada.
 **DoD específico:** execução local reproduzível e comandos de qualidade documentados.
 
+**Decisão registrada para TASK-001:** front em React com TypeScript; sem backend próprio e sem banco/conexão a dados nesta etapa. PostgreSQL permanece como possibilidade futura, ainda sem decisão de integração.
+
+**Execução atual (2026-10-21):**
+
+- Branch: `chore/TASK-001-organizar-documentacao`.
+- GATE-001 — Recontextualização e prontidão: APROVADO após decisão de escopo do responsável; dependências inexistentes; sem requisitos comerciais iniciados.
+- GATE-002 — Planejamento: APROVADO; camadas apenas no front, sem persistência, API ou integração externa.
+- GATE-003 — Implementação controlada: APROVADO; alterações primárias em configuração, `src/**`, `tests/**`, README operacional e esta TASK.
+- GATE-004 — Revisão e validação automatizada: APROVADO; `npm run quality` passou (formatação, lint, typecheck, 3 testes e build); `npm audit --json` reportou 0 vulnerabilidades; servidor Vite iniciou e respondeu HTTP 200 em `http://127.0.0.1:5173/`.
+- GATE-005 — Testes manuais: APROVADO; inspeção visual da tela React realizada no Chrome headless e captura preservada como evidência.
+- GATE-006 — Conclusão: APROVADO; Definition of Done, critérios, diff, rastreabilidade e Scope Guard revisados.
+- Contagem dos Gates: 6 no total; 6 concluídos; 0 pendentes; 0 bloqueados.
+
+**Teste manual executado (TASK-001-MAN-001):**
+
+- Objetivo: confirmar visualmente o bootstrap React no navegador.
+- Pré-condição/ambiente: servidor local disponível; Node.js 24.x e dependências instaladas.
+- Comando: `npm run dev -- --host 127.0.0.1`.
+- Passos: abrir `http://127.0.0.1:5173/` e conferir visualmente a tela inicial.
+- Esperado: título “Tropa Fight”, estado “ok”, ambiente “development” e nenhuma tela de erro.
+- Resultado: PASS; tela exibida conforme esperado. Evidência: [`TASK001-MAN-001.png`](docs/TASKS/evidence/TASK001-MAN-001.png).
+
+**Revisão final / Definition of Done:** PASS.
+
+- PRIMARY: configuração React/TypeScript e scripts de qualidade; estrutura em camadas; bootstrap/configuração/logging/erros básicos; testes unitários e arquiteturais; documentação operacional e evidência manual.
+- INCIDENTAL: nenhuma.
+- FORBIDDEN: nenhuma.
+- Gates: Build PASS; Lint PASS; Unit PASS; Integration N/A; API N/A; Security PASS (auditoria npm sem vulnerabilidades); Acceptance PASS; Regression N/A.
+- Escopo: `ALLOWED_CHANGES` PASS; `FORBIDDEN_CHANGES` PASS; Scope Creep NONE.
+- Próxima TASK elegível: NONE; TASK-002 foi concluída; TASK-003 e TASK-004 permanecem BLOCKED por suas próprias pendências.
+
 ## TASK-002 — Definir infraestrutura, ambientes e observabilidade
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-001`
-**Relacionados:** RNF-011, RNF-012, RNF-018, PD-001, PD-002, PD-003, PD-004, ADR-003
+**Relacionados:** RNF-011, RNF-012, RNF-018, PD-009, PD-010, PD-011, ADR-003, ADR-014
 **Objetivo:** Definir ambientes, estratégia de configuração, segredos, persistência, backups, monitoramento e recuperação.
 **Artefatos esperados:** ADRs necessários, documentação de ambientes, estratégia de backup/restore, observabilidade e configuração.
 **ALLOWED_CHANGES:** `docs/adr/**`; `docs/architecture/**`; configuração de ambientes; infraestrutura de desenvolvimento/homologação; `TASKS.md`.
@@ -65,7 +96,27 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **Critérios de aceitação/Testes:** decisões de infraestrutura registradas; estratégia de backup e restauração definida; RPO/RTO documentados ou explicitamente pendentes.
 **DoD específico:** nenhuma decisão crítica de infraestrutura permanece oculta.
 
-**Bloqueio:** decisões de provedores e ambientes ainda precisam ser aprovadas.
+**Baseline aprovado por delegação do responsável (2026-10-21):** escopo atual somente front-end local; não contratar serviços nem publicar em produção. Ambientes compartilhados e provedores externos não serão provisionados nesta etapa. Persistência relacional fica para etapa futura; mecanismo/provedor continuam pendentes. RPO/RTO permanecem `PENDING_APPROVAL`.
+
+**Execução dos prompts (2026-10-21):**
+
+- Etapa 001 — Recontextualização e prontidão: GATE-001 **APROVADO** após autorização explícita para corrigir a rastreabilidade e formalizar o baseline sem contratação nem produção. TASK-001 está `DONE`; seus artefatos e a evidência manual existem.
+- Etapa 002 — Planejamento: GATE-002 **APROVADO**. Mudanças planejadas: corrigir referências para PD-009–PD-011; aceitar ADR-003 e ADR-014 no escopo do baseline; documentar ambientes, configuração, secrets, persistência futura, backup/restore, observabilidade e incidentes em `docs/architecture/infrastructure-baseline.md`; atualizar a visão da arquitetura e registrar execução/evidências nesta TASK e na especificação detalhada.
+- Rastreabilidade anterior corrigida: `PD-001–PD-004` tratam de domínio comercial; a TASK-002 agora referencia `PD-009–PD-011`, que cobrem stack, hospedagem/ambientes e metas de desempenho/disponibilidade.
+- Branch: `chore/TASK-002-infraestrutura-observabilidade`. Transições registradas: `BLOCKED → READY → IN_PROGRESS`, com prontidão revalidada após a autorização do responsável.
+- Etapa 003 — Implementação documental controlada: GATE-003 **APROVADO**. Alterações PRIMARY: correção de rastreabilidade em `TASKS.md` e `docs/TASKS/TASK002.MD`; aceite/atualização de ADR-003 e ADR-014; baseline em `docs/architecture/infrastructure-baseline.md`; atualização de `docs/architecture/overview.md`. Nenhuma alteração de código, provedor, credencial, banco ou ambiente remoto.
+- Etapa 004 — Revisão e validação automatizada: GATE-004 **APROVADO**. `npm run quality` (execução elevada após `spawn EPERM` no sandbox) terminou com exit code 0: Prettier, oxlint, typecheck, 3 testes Vitest e build Vite passaram. `git diff --check` passou. `.env` está ignorado, não existe arquivo `.env` local e busca por padrões de credenciais em `.env.example`/`src` não encontrou correspondências.
+- Etapa 005 — Testes manuais: GATE-005 **APROVADO**. MAN-001: `npm run dev -- --host 127.0.0.1`; `Invoke-WebRequest http://127.0.0.1:5173/` retornou HTTP 200, HTML contém `#root` e `/src/main.tsx`; servidor foi encerrado. MAN-002: `git check-ignore .env` retornou `.env`; `Test-Path .env` retornou False; busca de padrões de secrets não encontrou resultados. MAN-003: revisão manual do runbook confirmou procedimento e checklist de restore testável; restore real NÃO EXECUTADO, pois não existe banco/dado persistente nesta etapa.
+- Etapa 006 — Conclusão: GATE-006 **APROVADO**. Revisão final confirmou critérios atendidos, pendências futuras identificadas e sem bloqueio ao baseline local; Definition of Done PASS. Contagem: 6 Gates; 6 aprovados; 0 pendentes; 0 bloqueados.
+
+**Revisão final / Definition of Done:** PASS.
+
+- PRIMARY: baseline operacional e matriz de ambientes; estratégias de configuração/secrets, persistência futura, backup/restore e observabilidade; atualização dos ADRs 003/014; correção da rastreabilidade PD-009–PD-011; atualização da arquitetura e registros da TASK.
+- INCIDENTAL: nenhuma. FORBIDDEN: nenhuma.
+- Quality Gates: Build PASS; Lint PASS; Unit PASS; Integration N/A; API N/A; Security PASS (verificação de secrets/configuração); Acceptance PASS; Regression N/A (nenhum código alterado).
+- Escopo: ALLOWED_CHANGES PASS; mudanças incidentais PASS; FORBIDDEN_CHANGES PASS; Scope Creep NONE.
+- RPO/RTO, mecanismo/provedor do banco e provedores dos ambientes hospedados seguem `PENDING_APPROVAL`; nenhuma decisão foi mascarada nem serviço foi provisionado.
+- Próxima TASK elegível: NONE; TASK-003 e TASK-004 continuam BLOCKED por decisões próprias.
 
 ## TASK-003 — Identidade, autenticação e autorização
 

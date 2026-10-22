@@ -87,7 +87,7 @@ Requisitos de catálogo, estoque, pedidos, pagamentos e administração; RNF de 
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Contexto
 
@@ -105,7 +105,9 @@ Definir uma estratégia de persistência que preserve integridade referencial e 
 
 ## Decisão
 
-Adotar um banco de dados relacional como fonte principal dos dados transacionais. O mecanismo específico será escolhido durante a definição da stack.
+Adotar um banco de dados relacional como fonte principal dos dados transacionais quando a persistência for introduzida. A entrega atual é somente o front-end local e não inclui backend, banco conectado ou armazenamento de dados comerciais.
+
+O mecanismo, versão, provedor e hospedagem serão aprovados antes da implementação da persistência. PostgreSQL foi considerado pelo responsável, mas permanece candidato, sem seleção formal.
 
 O modelo deverá contemplar chaves, restrições, índices, migrações e transações.
 
@@ -116,6 +118,8 @@ As relações e invariantes do comércio eletrônico se beneficiam de transaçõ
 ## Consequências
 
 O esquema deverá evoluir por migrações versionadas. Operações críticas de estoque e pedidos deverão usar transações apropriadas. Cache ou mecanismos de busca adicionais não poderão substituir a fonte transacional sem uma decisão arquitetural específica.
+
+Backup, restore e metas de recuperação deverão ser configurados antes de armazenar dados persistentes, conforme `docs/architecture/infrastructure-baseline.md`.
 
 ## RF/RN/RNF/UC relacionados
 
@@ -529,7 +533,7 @@ RF de pagamentos, pedidos, logística e notificações; RN de processamento e id
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Contexto
 
