@@ -6,7 +6,7 @@ const allowedEnvironments = ['development', 'test', 'production'] as const
 function parseEnvironment(
   value: string | undefined,
 ): (typeof allowedEnvironments)[number] {
-  const environment = value || import.meta.env.MODE
+  const environment = value || process.env.NODE_ENV || 'development'
 
   if (
     allowedEnvironments.includes(
@@ -16,7 +16,7 @@ function parseEnvironment(
     return environment as (typeof allowedEnvironments)[number]
   }
 
-  throw new Error('VITE_APP_ENV must be development, test, or production.')
+  throw new Error('NODE_ENV must be development, test, or production.')
 }
 
 function parseLogLevel(value: string | undefined): LogLevel {
@@ -26,10 +26,10 @@ function parseLogLevel(value: string | undefined): LogLevel {
     return logLevel as LogLevel
   }
 
-  throw new Error('VITE_LOG_LEVEL must be debug, info, warn, or error.')
+  throw new Error('LOG_LEVEL must be debug, info, warn, or error.')
 }
 
 export const appConfig = {
-  environment: parseEnvironment(import.meta.env.VITE_APP_ENV),
-  logLevel: parseLogLevel(import.meta.env.VITE_LOG_LEVEL),
+  environment: parseEnvironment(process.env.NODE_ENV),
+  logLevel: parseLogLevel(process.env.LOG_LEVEL),
 } as const

@@ -4,13 +4,13 @@
 
  - **ID:** TASK-003
 - **Título:** Identidade, autenticação e autorização
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-01
 - **Priority:** CRITICAL
 - **Tipo:** Identity / Authentication / Authorization / Security / Backend
 - **Dependência:** TASK-001
 - **Bloqueia:** TASK-004 e TASK-005
-- **Relacionados:** RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001, ADR-004
+- **Relacionados:** RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001, ADR-003, ADR-011, ADR-012, ADR-019
 
 ---
 
@@ -66,21 +66,7 @@ TASK-003
 
  # 5\. Bloqueio atual
 
- Status inicial:
-
-```
-BLOCKED
-```
-
- O bloqueio está relacionado às decisões de identidade/autenticação ainda dependentes da aprovação correspondente, especialmente:
-
- - estratégia de autenticação;
-- mecanismo de sessão/token;
-- estratégia de recuperação de acesso;
-- definição final de roles/permissions;
-- ADR-004.
-
- A implementação não deve transformar uma decisão pendente em uma decisão arquitetural permanente.
+ As decisões antes pendentes foram aprovadas pelo responsável em 2026-10-22 e registradas nos ADR-003, ADR-011, ADR-012 e ADR-019. O escopo local foi ampliado para esta TASK por autorização explícita; não há autorização para provisionar serviço remoto nem enviar e-mail real.
 
 ---
 
@@ -88,16 +74,17 @@ BLOCKED
 
  Antes de iniciar a implementação, confirmar:
 
- - [ ] TASK-001 está DONE.
-- [ ] ADR-004 está aprovado ou possui decisões suficientemente definidas para implementação.
-- [ ] Estratégia de autenticação está definida.
-- [ ] Estratégia de sessão está definida.
-- [ ] Estratégia de recuperação de acesso está definida.
-- [ ] Roles iniciais estão definidas.
-- [ ] Permissions iniciais estão definidas.
-- [ ] Regras de segurança estão aprovadas.
-- [ ] Política de senha está definida.
-- [ ] Política de expiração de sessão está definida ou explicitamente pendente.
+ - [x] TASK-001 está DONE e seus artefatos existem.
+- [x] O escopo Next.js, backend e PostgreSQL local foi aprovado para esta TASK.
+- [x] ADR-012 aprovado: autenticação própria no servidor Next.js e política de sessão definida.
+- [x] ADR-011 aprovado: papéis e permissões de identidade definidos para esta TASK.
+- [x] Recuperação definida: token de uso único por e-mail por porta substituível, validade de 30 minutos e revogação de sessões após redefinição; sem provedor real.
+- [x] Cadastro ativa a conta imediatamente; confirmação de e-mail não é exigida nesta TASK.
+- [x] Roles definidas: Administrador Geral, Customer e Gestor de Catálogo.
+- [x] Permissions desta TASK definidas: Administrador Geral possui todas as permissões de identidade; Customer acessa apenas o próprio perfil; Gestor de Catálogo não recebe permissões de identidade.
+- [x] Regras de segurança aprovadas; criação do primeiro Administrador Geral via comando local de uso único.
+- [x] Política de senha definida: 8–128 caracteres, com maiúscula, minúscula, número e símbolo.
+- [x] Política de sessão definida: registro revogável no PostgreSQL, cookie HttpOnly/Secure/SameSite=Lax, 12 horas, sem renovação.
 
 ---
 
@@ -123,7 +110,8 @@ BLOCKED
 
  ## Arquitetura
 
- - ADR-004
+ - ADR-011
+- ADR-012
 
 ---
 
@@ -189,13 +177,18 @@ BLOCKED
  Permitido alterar:
 
 ```
+app/**
 src/modules/identity/**
 src/modules/auth/**
 src/modules/authorization/**
 src/modules/users/**
 persistência correspondente
 tests/**
-configuração necessária
+configuração/dependências necessárias à migração para Next.js
+docs/adr/ADRs.md
+docs/architecture/**
+README.md
+docs/TASKS/TASK003.MD
 documentação
 TASKS.md
 ```
@@ -258,7 +251,7 @@ orders.read
 users.manage
 ```
 
- Os nomes definitivos devem seguir as decisões aprovadas no ADR-004.
+ Os nomes definitivos devem seguir as decisões aprovadas no ADR-011 e no ADR-012, conforme papéis e mecanismos abrangidos.
 
 ---
 
@@ -1021,7 +1014,7 @@ atribuição de roles
 
  # 50\. Rate limiting
 
- Se previsto pelo ADR-004 ou infraestrutura aprovada, aplicar proteção especialmente em:
+ Se previsto pelas decisões de segurança aprovadas ou infraestrutura aprovada, aplicar proteção especialmente em:
 
 ```
 /login
@@ -1420,38 +1413,38 @@ SCOPE                    = PASS
 
  TASK-003 somente poderá ser marcada como `DONE` quando:
 
- - [ ] Cadastro implementado.
-- [ ] Login implementado.
-- [ ] Logout implementado.
-- [ ] Sessões implementadas.
-- [ ] Recuperação de acesso implementada.
-- [ ] Redefinição de senha implementada.
-- [ ] Perfil implementado.
-- [ ] User implementado.
-- [ ] Customer implementado.
-- [ ] AdminUser implementado.
-- [ ] Roles implementadas.
-- [ ] Permissions implementadas.
-- [ ] RBAC implementado.
-- [ ] Guards implementados.
-- [ ] Rotas administrativas protegidas.
-- [ ] Ownership validado.
-- [ ] Senhas armazenadas somente como hash.
-- [ ] Nenhum segredo aparece em logs.
-- [ ] Testes unitários passam.
-- [ ] Testes de integração passam.
-- [ ] Testes de API passam.
-- [ ] Testes E2E passam.
-- [ ] Testes de segurança passam.
-- [ ] Build passa.
-- [ ] Lint passa.
-- [ ] Type check passa.
-- [ ] Documentação atualizada.
-- [ ] ADR-004 atualizado.
-- [ ] TASKS.md atualizado.
-- [ ] Nenhuma funcionalidade comercial foi implementada.
-- [ ] Nenhum bypass de autorização existe.
-- [ ] Nenhuma alteração fora do escopo foi realizada.
+ - [x] Cadastro implementado.
+- [x] Login implementado.
+- [x] Logout implementado.
+- [x] Sessões implementadas.
+- [x] Recuperação de acesso implementada.
+- [x] Redefinição de senha implementada.
+- [x] Perfil implementado.
+- [x] User implementado.
+- [x] Customer implementado.
+- [x] AdminUser implementado.
+- [x] Roles implementadas.
+- [x] Permissions implementadas.
+- [x] RBAC implementado.
+- [x] Guards implementados.
+- [x] Rotas administrativas protegidas.
+- [x] Ownership validado.
+- [x] Senhas armazenadas somente como hash.
+- [x] Nenhum segredo aparece em logs.
+- [x] Testes unitários passam.
+- [x] Testes de integração passam.
+- [x] Testes de API passam.
+- [x] Testes E2E passam.
+- [x] Testes de segurança passam.
+- [x] Build passa.
+- [x] Lint passa.
+- [x] Type check passa.
+- [x] Documentação atualizada.
+- [x] ADR-011 e ADR-012 atualizados.
+- [x] TASKS.md atualizado.
+- [x] Nenhuma funcionalidade comercial foi implementada.
+- [x] Nenhum bypass de autorização existe.
+- [x] Nenhuma alteração fora do escopo foi realizada.
 
 ---
 
@@ -1514,7 +1507,7 @@ PASS
 | Gerenciar roles | ❌ | \[conforme permission\] | ❌ |
 | Gerenciar usuários | ❌ | \[conforme permission\] | ❌ |
 
-As permissões finais devem refletir o ADR-004.
+As permissões finais devem refletir o ADR-011.
 
 ---
 
@@ -1551,7 +1544,7 @@ Os comportamentos devem ser explicitamente definidos antes do fechamento da TASK
 
  | ID | Risco | Impacto | Mitigação | Status |
 | --- | --- | --- | --- | --- |
-| RISK-001 | Estratégia de sessão indefinida | Alto | Aprovar ADR-004 | OPEN |
+| RISK-001 | Estratégia de sessão indefinida | Alto | Aprovar ADR-012 | OPEN |
 | RISK-002 | RBAC incompleto | Alto | Definir permissions mínimas | OPEN |
 | RISK-003 | Recuperação insegura | Alto | Token expirável e controlado | OPEN |
 | RISK-004 | Enumeração de usuários | Médio/Alto | Respostas uniformes | OPEN |
@@ -1592,27 +1585,60 @@ OPEN
 
 ---
 
+ # 67.1 Registro de execução e evidências
+
+ - Branch: `feature/TASK-003-identidade-autenticacao`.
+ - Decisões: aprovações do responsável registradas em ADR-003, ADR-011, ADR-012 e ADR-019; cadastro ativo imediatamente, sem confirmação de e-mail.
+ - Migration: `npm run db:migrate` aplicada com sucesso em PostgreSQL 18 temporário e isolado (porta 55439); serviço existente do computador não foi alterado.
+ - Unit: Vitest, 5 arquivos/9 testes aprovados antes dos testes integrados.
+ - Integration/API: Vitest com `DATABASE_URL` do banco temporário; 6 arquivos/10 testes aprovados, incluindo registro, login, sessão, logout, perfil, 401/403, recuperação com porta fake, uso único e revogação de sessões.
+ - Build/typecheck: `npm run build` aprovado; Next.js gerou as rotas esperadas.
+ - Lint: `npm run lint` terminou com código 0; permanece um aviso `react(only-export-components)` em `app/layout.tsx` devido ao export obrigatório `metadata` do Next.js.
+ - Format/diff: `npm run format:check` and `git diff --check` passed.
+ - Dependências: `npm audit --omit=dev` reportou 0 vulnerabilidades.
+ - Pre-condicoes manuais: configure `.env.local` conforme README, inicie PostgreSQL local, execute `npm run db:migrate`, mantenha `npm run dev` ativo e use `http://localhost:3000`. O responsavel executa cada caso. Nao envie senhas ou tokens como evidencia.
+ - Casos manuais. Resultados declarados pelo responsável em 2026-10-22 foram registrados sem extrapolar o que foi observado; casos sem confirmação permanecem pendentes:
+
+ | ID | Objetivo e passos | Esperado | Obtido | Evidencia | Status |
+ |---|---|---|---|---|---|
+ | MAN-001 | Cadastrar novo e-mail e senha conforme politica em `/register`; observar resposta em DevTools > Network. | HTTP 201; ACTIVE; sem senha/hash na resposta; role CUSTOMER. | Responsavel confirmou HTTP 201 e corpo com id, email e status ACTIVE; sem campos de senha ou hash. | Relato do responsavel | PASS |
+ | MAN-002 | Cadastrar o mesmo e-mail novamente. | HTTP 409; nenhuma segunda conta. | Responsável confirmou que o cadastro duplicado foi rejeitado. | Relato do responsável | PASS |
+ | MAN-003 | Tentar senha incorreta e correta em `/login`; inspecionar cookie. | Senha incorreta: 401, sem sessao. Sucesso: `HttpOnly`, `Secure`, `SameSite=Lax`, cookie de 12h. | Responsavel confirmou login valido e rejeicao de credencial invalida; observou HttpOnly, Secure, SameSite=Lax e expiracao aproximadamente 12h apos o login. | Relato do responsavel | PASS |
+ | MAN-004 | Abrir `/profile`, verificar dados proprios, sair e consultar `/api/me`. | Perfil proprio sem hash; logout invalida sessao; `/api/me` retorna 401. | Responsavel confirmou perfil e logout; apos sair, `/api/me` exibiu `Authentication required.`. | Relato do responsavel | PASS |
+ | MAN-005 | Consultar `/api/admin/identity/roles` sem sessao e depois como Customer. | Sem sessao: 401; Customer: 403. | Responsavel confirmou 401 sem login e 403 com Customer. | Relato do responsavel | PASS |
+ | MAN-006 | Apos o bootstrap, acessar `/api/admin/identity/roles` enquanto admin estiver logado; depois executar `npm run identity:create-admin` novamente. | Endpoint retorna HTTP 200 com CUSTOMER, GENERAL_ADMIN e CATALOG_MANAGER; segunda execucao do bootstrap e recusada. | Responsavel confirmou resposta do endpoint com as tres roles e que o segundo bootstrap foi recusado. | Relato do responsavel | PASS |
+ | MAN-007 | Solicitar recuperacao na interface e enviar token invalido para redefinicao. | Resposta generica; token invalido retorna 400; nenhum token na resposta/log. | Responsavel confirmou HTTP 400, resposta sem token e ausencia do token nos logs do servidor. | Relato do responsavel | PASS |
+
+ A redefinicao bem-sucedida e revogacao de sessoes estao cobertas pelo teste de integracao com porta de e-mail fake. Nenhum provedor real de e-mail foi aprovado nesta TASK.
+ - GATE-001: prontidão confirmada (TASK-001 DONE e artefatos presentes; decisões aprovadas e registradas).
+ - GATE-002: planejamento e escopo autorizados registrados nesta especificação e em ADR-003/011/012/019.
+ - GATE-003: implementação e testes de integração/API preparados dentro do escopo autorizado.
+ - GATE-004: APROVADO em 2026-10-22: `npm run quality` passou; lint emitiu apenas aviso do export `metadata`. Testes com DATABASE_URL: 6 arquivos/10 testes aprovados. `npm audit --omit=dev`: 0 vulnerabilidades. `git diff --check` passou.
+ - GATE-005: APROVADO; MAN-001 a MAN-007 passaram conforme a matriz acima, incluindo cadastro seguro, sessao, RBAC, bootstrap e recuperacao sem exposicao do token.
+ - GATE-006: APROVADO em 2026-10-22; Definition of Done, criterios, evidencias, diff, rastreabilidade e Scope Guard revisados.
+ - Política de perfil aprovada em 2026-10-22: Customer consulta somente o próprio perfil nesta TASK; edição de perfil fica fora do escopo e foi registrada no ADR-011.
+ - Contagem: 6 gates no total; 6 concluidos; 0 pendentes; 0 bloqueados.
+ - Status da TASK: `DONE`; Definition of Done PASS. Parar aqui; nao iniciar automaticamente TASK-004.
+
  # 68\. Verificação de escopo
 
  ## ALLOWED\_CHANGES
 
- - [ ] Alterações somente em identidade/autenticação/autorização.
-- [ ] Persistência somente correspondente ao módulo.
-- [ ] Testes correspondentes.
-- [ ] Configuração necessária.
-- [ ] Documentação atualizada.
-
+ - [x] Migracao React/Vite para Next.js e configuracoes/dependencias necessarias, autorizadas para esta TASK.
+- [x] Modulos de identidade/autenticacao/autorizacao e persistencia PostgreSQL local somente de identidade.
+- [x] Testes unitarios, de integracao e API correspondentes.
+- [x] ADRs, arquitetura, README e TASKS.md necessarios para registrar as decisoes aprovadas.
  ## FORBIDDEN\_CHANGES
 
- - [ ] Nenhum catálogo.
-- [ ] Nenhum carrinho.
-- [ ] Nenhum checkout.
-- [ ] Nenhum pagamento.
-- [ ] Nenhum pedido.
-- [ ] Nenhum estoque comercial.
-- [ ] Nenhuma integração externa não aprovada.
-- [ ] Nenhum secret real.
-- [ ] Nenhum bypass de RBAC.
+ - [x] Nenhum catálogo.
+- [x] Nenhum carrinho.
+- [x] Nenhum checkout.
+- [x] Nenhum pagamento.
+- [x] Nenhum pedido.
+- [x] Nenhum estoque comercial.
+- [x] Nenhuma integração externa não aprovada.
+- [x] Nenhum secret real.
+- [x] Nenhum bypass de RBAC.
 
 ---
 
@@ -1620,13 +1646,14 @@ OPEN
 
  | Referência | Tipo | Implementação/Teste |
 | --- | --- | --- |
-| RF-001 | Funcional | \[ \] |
-| RN-001 | Regra | \[ \] |
-| RN-002 | Regra | \[ \] |
-| RNF-004 | Segurança | \[ \] |
-| RNF-005 | Segurança | \[ \] |
-| UC-001 | Caso de uso | \[ \] |
-| ADR-004 | Arquitetura | \[ \] |
+| RF-001 | Funcional | \[x\] |
+| RN-001 | Regra | \[x\] |
+| RN-002 | Regra | \[x\] |
+| RNF-004 | Segurança | \[x\] |
+| RNF-005 | Segurança | \[x\] |
+| UC-001 | Caso de uso | \[x\] |
+| ADR-011 | Autorização/RBAC | \[x\] |
+| ADR-012 | Autenticação/sessão | \[x\] |
 
 ---
 

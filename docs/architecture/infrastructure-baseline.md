@@ -4,26 +4,30 @@
 
 Em 2026-10-21, o responsável autorizou formalizar um baseline sem contratar serviços e sem publicar em produção. A entrega atual é somente o front React/TypeScript executado localmente. Não existe backend, banco conectado, dado persistente da aplicação ou provedor externo de runtime.
 
+### Aditivo aprovado para TASK-003 (2026-10-22)
+
+O responsável autorizou migrar a aplicação local de Vite para Next.js e executar o backend de identidade no mesmo processo da aplicação, usando PostgreSQL local. Esta autorização se limita à TASK-003: não inclui banco hospedado, ambiente compartilhado, produção, contratação ou envio real de e-mail. As declarações de baseline abaixo descrevem a conclusão da TASK-002 e são supersedidas somente para o desenvolvimento local desta TASK.
+
 O ambiente local é o único ambiente provisionado nesta etapa. Ambientes compartilhados, staging e produção ficam registrados para evolução futura; sua criação depende de nova autorização e de escolhas de provedor. Nenhum serviço ou custo é assumido por este documento.
 
 ## Ambientes
 
 | Ambiente | Estado e finalidade | Configuração e dados | Acesso e publicação |
 | --- | --- | --- | --- |
-| Local | Ativo; desenvolvimento e validação individual com Node.js 24, npm e Vite. | `.env` local a partir de `.env.example`; somente valores públicos `VITE_*`; sem dados reais, backend ou banco. | Desenvolvedor local; iniciar com `npm run dev`; não é publicação externa. |
+| Local | Ativo; desenvolvimento individual com Node.js 24, npm, Next.js e PostgreSQL local. | `.env.local` fora do Git; configuração pública e secrets de servidor separados; dados de identidade locais. | Desenvolvedor local; iniciar com `npm run dev`; não é publicação externa. |
 | Development compartilhado | Não provisionado; integração da equipe será reavaliada quando existir backend ou necessidade de colaboração remota. | Sem persistência ou secrets configurados. | Provedor e processo de publicação pendentes de autorização. |
 | Staging / homologação | Não provisionado; deve validar o conjunto aprovado antes da produção, com dados sintéticos e isolamento. | Persistência, secrets, monitoramento e retenção serão configurados quando os respectivos provedores forem aprovados. | Provedor, acesso e publicação pendentes de autorização. |
 | Production | `PENDING_APPROVAL`; não criar infraestrutura, configurar credenciais, assumir custos ou publicar. | Dados reais e políticas de operação não aprovados. | Acesso restrito e publicação exigem aprovação específica. |
 
 ## Configuração e secrets
 
-Configuração pública do front fica fora do código em variáveis `VITE_*`, documentadas em `.env.example`. O arquivo `.env` local é ignorado pelo Git. Valores `VITE_*` são incorporados ao bundle do navegador e nunca podem conter secrets.
+No baseline inicial (TASK-001/TASK-002), configuração pública do front usava variáveis `VITE_*`. Para TASK-003, `.env.local` configura `DATABASE_URL` e `LOG_LEVEL`; `DATABASE_URL` contém credenciais e é lida somente no servidor Next.js. O arquivo `.env.local` é ignorado pelo Git. Não adicionar segredos a variáveis públicas ou bundles do navegador.
 
 O front atual não precisa de credenciais. Quando um backend for aprovado, secrets deverão ser fornecidos em tempo de execução por um mecanismo de secrets do ambiente hospedado escolhido; não serão persistidos no repositório, bundle, logs ou artefatos. O provedor ainda não está escolhido. Acesso deverá seguir menor privilégio, segregação por ambiente, rotação após suspeita de exposição e revogação ao encerrar a necessidade. A periodicidade e auditoria automatizada serão definidas junto ao provedor.
 
 ## Persistência
 
-Não há persistência nesta entrega. A estratégia arquitetural para dados transacionais futuros é relacional, conforme ADR-003. O mecanismo específico, versão, provedor, localização e parâmetros de disponibilidade permanecem `PENDING_APPROVAL`; PostgreSQL foi mencionado como candidato, mas não é uma escolha aprovada nem está instalado/conectado pelo front.
+Para TASK-003, PostgreSQL local foi aprovado pelo responsável e está conectado somente à aplicação local para dados de identidade. Banco hospedado, ambientes compartilhados, produção e persistência comercial permanecem fora de escopo e `PENDING_APPROVAL`.
 
 Não guardar dados comerciais ou pessoais em armazenamento do navegador como substituto de persistência do sistema. Quando banco for autorizado, acesso ocorrerá pelo backend, nunca diretamente do browser.
 

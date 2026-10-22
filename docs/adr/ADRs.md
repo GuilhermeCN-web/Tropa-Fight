@@ -119,6 +119,8 @@ As relações e invariantes do comércio eletrônico se beneficiam de transaçõ
 
 O esquema deverá evoluir por migrações versionadas. Operações críticas de estoque e pedidos deverão usar transações apropriadas. Cache ou mecanismos de busca adicionais não poderão substituir a fonte transacional sem uma decisão arquitetural específica.
 
+**Aditivo aprovado em 2026-10-22 para TASK-003:** PostgreSQL local está aprovado para persistir identidade, sessões e tokens de recuperação durante esta TASK. Esta decisão não autoriza banco hospedado, ambiente compartilhado ou produção.
+
 Backup, restore e metas de recuperação deverão ser configurados antes de armazenar dados persistentes, conforme `docs/architecture/infrastructure-baseline.md`.
 
 ## RF/RN/RNF/UC relacionados
@@ -411,7 +413,7 @@ RF de endereço, frete, checkout, pedidos e rastreamento; RN de cálculo e sele�
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Contexto
 
@@ -431,7 +433,7 @@ Restringir o acesso a operações administrativas conforme a responsabilidade do
 
 Adotar controle de acesso baseado em papéis e permissões, validado no servidor. A V1 deverá contemplar, no mínimo, os perfis administrativos já identificados: administrador geral e gestor de catálogo.
 
-As permissões específicas de cada papel deverão ser documentadas e aprovadas antes da implementação.
+Para TASK-003, o Administrador Geral possui todas as permissões de identidade/autorização implementadas nesta TASK; Customer pode consultar somente o próprio perfil; Gestor de Catálogo não recebe permissões de identidade. Em 2026-10-22, o responsável aprovou explicitamente que a edição de perfil fique fora da TASK-003. Permissões de catálogo serão definidas e concedidas pela TASK-006, quando o módulo existir. Esta decisão não antecipa permissões comerciais.
 
 ## Justificativa
 
@@ -451,7 +453,7 @@ RF de administração, catálogo, estoque, pedidos e usuários administrativos; 
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Contexto
 
@@ -469,9 +471,13 @@ Estabelecer autenticação segura e impedir acesso indevido a dados pessoais ou 
 
 ## Decisão
 
-Adotar um mecanismo centralizado de autenticação e autorização. Cada operação que envolva dados pessoais, endereços ou pedidos deverá verificar a identidade e a autorização do solicitante.
+Adotar um mecanismo centralizado de autenticação e autorização. Para TASK-003, a aplicação implementará autenticação própria no servidor Next.js, sem provedor externo ou biblioteca de autenticação. A autorização será verificada no servidor.
 
-A tecnologia de autenticação, o provedor de identidade e as políticas específicas de sessão serão definidos durante a escolha da stack e o detalhamento de segurança.
+Sessões serão persistidas no PostgreSQL local, revogáveis pelo servidor e transportadas em cookie `HttpOnly`, `Secure` e `SameSite=Lax`, com validade de 12 horas e sem renovação automática. Senhas terão entre 8 e 128 caracteres e exigirão ao menos uma letra maiúscula, uma minúscula, um número e um caractere especial.
+
+A recuperação usará token aleatório de uso único, válido por 30 minutos, enviado por uma porta de e-mail substituível. A redefinição revogará todas as sessões ativas. Nenhum provedor real de e-mail está aprovado nesta TASK.
+
+O cadastro ativa a conta imediatamente; confirmação de e-mail não é exigida nesta TASK.
 
 ## Justificativa
 
@@ -730,3 +736,43 @@ Alterações relevantes deverão ser registradas e testadas. Migrações de dado
 ## RF/RN/RNF/UC relacionados
 
 Requisitos transversais; RNF de manutenibilidade, compatibilidade e confiabilidade; UC que dependam de integrações ou contratos entre módulos.
+
+---
+
+# ADR-019 — Next.js para a aplicação web e backend local de identidade
+
+## Status
+
+ACCEPTED
+
+## Contexto
+
+TASK-003 exige executar autenticação, autorização e persistência no servidor. A base atual usa React com Vite exclusivamente no navegador. Em 2026-10-22, o responsável aprovou migrar a aplicação para Next.js e incluir backend e PostgreSQL local nesta TASK.
+
+## Decisão
+
+Adotar Next.js com App Router como framework React da aplicação, substituindo Vite e preservando a organização modular em camadas aprovada. Route Handlers/API e código de servidor executarão os casos de uso; domínio e aplicação permanecerão independentes do framework. A autenticação será própria, sem biblioteca ou provedor externo de identidade.
+
+Usar PostgreSQL local para usuários, papéis, permissões, sessões e tokens de recuperação. A persistência será acessada exclusivamente no servidor. Nenhum ambiente remoto, serviço hospedado ou publicação é autorizado.
+
+O envio de e-mail ficará atrás de uma porta substituível, sem integração real nesta TASK. O primeiro Administrador Geral será criado por comando local de uso único que solicita os dados interativamente e não os imprime ou registra.
+
+## Alternativas consideradas
+
+1. Manter Vite e criar backend separado.
+2. Migrar para Next.js e usar suas capacidades de servidor na mesma aplicação.
+3. Manter front-end sem autenticação persistente nesta TASK.
+
+## Justificativa
+
+Next.js mantém React e atende à necessidade aprovada de código de servidor no mesmo projeto, sem introduzir um serviço distribuído separado. PostgreSQL local oferece persistência relacional para identidade e sessões, conforme ADR-003.
+
+## Consequências
+
+A migração altera scripts e configuração de desenvolvimento/build e exige adaptar o ponto de entrada da interface existente. Segredos passam a ser configuração somente de servidor. A documentação de instalação local deverá cobrir PostgreSQL e variáveis de ambiente sem valores secretos. Operação remota continua fora do escopo.
+
+## RF/RN/RNF/UC relacionados
+
+RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001; TASK-003.
+
+\n
