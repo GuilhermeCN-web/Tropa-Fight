@@ -1,4 +1,5 @@
 import type { LogLevel } from './config'
+import { sanitizeLogMessage } from '../modules/privacy/domain/sensitive-data'
 
 const priorities: Record<LogLevel, number> = {
   debug: 10,
@@ -18,7 +19,7 @@ export function createLogger(minimumLevel: LogLevel) {
   function write(level: LogLevel, message: string): void {
     if (priorities[level] < priorities[minimumLevel]) return
 
-    console[methods[level]](`[Tropa Fight] ${message}`)
+    console[methods[level]](`[Tropa Fight] ${sanitizeLogMessage(message)}`)
   }
 
   return {

@@ -9,6 +9,9 @@ import * as repository from '../infrastructure/identity-repository'
 import { hashPassword, verifyPassword } from '../infrastructure/password-hasher'
 import type { RecoveryEmailPort } from './recovery-email-port'
 import { createLogger } from '../../../infrastructure/logger'
+import { randomUUID } from 'node:crypto'
+import { createAuditEvent } from '../../audit/domain/audit-event'
+import { recordAuditEvent } from '../../audit/application/audit-service'
 
 const logger = createLogger('warn')
 
@@ -35,8 +38,9 @@ export async function registerCustomer(emailInput: string, password: string) {
     throw new IdentityInputError(passwordErrors.join(' '))
 
   const passwordHash = await hashPassword(password)
+  const userId = randomUUID()
   try {
-    return await repository.createCustomer(email, passwordHash)
+    return await repository.createCustomer(email, passwordHash, userId)
   } catch (error) {
     if (
       typeof error === 'object' &&
@@ -58,6 +62,14 @@ export async function authenticate(emailInput: string, password: string) {
     : false
 
   if (!credential || credential.status !== 'ACTIVE' || !matches) {
+    await recordAuditEvent(
+      createAuditEvent({
+        actorId: null,
+        action: 'AUTH_LOGIN_FAILED',
+        result: 'FAILURE',
+        source: 'identity.login',
+      }),
+    )
     throw new InvalidCredentialsError()
   }
   return repository.createSession(credential.id)
@@ -74,6 +86,14 @@ export async function requestPasswordRecovery(
 ): Promise<void> {
   const email = normalizeEmail(emailInput)
   if (!isValidEmail(email)) return
+
+  await recordAuditEvent({
+    actorId: null,
+    action: 'AUTH_PASSWORD_RESET_REQUESTED',
+    resourceType: 'IdentityUser',
+    result: 'SUCCESS',
+    source: 'identity.password-recovery',
+  })
 
   const userId = await repository.findUserIdByEmail(email)
   if (!userId) return

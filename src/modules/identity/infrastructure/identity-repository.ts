@@ -3,6 +3,8 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import type { PoolClient } from 'pg'
 import type { IdentityPrincipal } from '../domain/identity-user'
 import { getDatabasePool } from '../../../infrastructure/database/pool'
+import { createAuditEvent } from '../../audit/domain/audit-event'
+import { insertAuditEvent } from '../../audit/infrastructure/audit-repository'
 
 const sessionLifetimeMilliseconds = 12 * 60 * 60 * 1000
 const recoveryLifetimeMilliseconds = 30 * 60 * 1000
@@ -53,9 +55,9 @@ async function loadPrincipal(
 export async function createCustomer(
   email: string,
   passwordHash: string,
+  userId: string,
 ): Promise<string> {
   const client = await getDatabasePool().connect()
-  const userId = randomUUID()
   try {
     await client.query('BEGIN')
     await client.query(
@@ -66,6 +68,17 @@ export async function createCustomer(
     await client.query(
       "INSERT INTO identity_user_roles (user_id, role_code) VALUES ($1, 'CUSTOMER')",
       [userId],
+    )
+    await insertAuditEvent(
+      client,
+      createAuditEvent({
+        actorId: null,
+        action: 'USER_CREATED',
+        resourceType: 'IdentityUser',
+        resourceId: userId,
+        result: 'SUCCESS',
+        source: 'identity.register',
+      }),
     )
     await client.query('COMMIT')
     return userId
@@ -98,12 +111,34 @@ export async function findCredentialByEmail(email: string): Promise<{
 
 export async function createSession(userId: string): Promise<string> {
   const token = randomBytes(32).toString('base64url')
-  await getDatabasePool().query(
-    `INSERT INTO identity_sessions (id, user_id, token_hash, expires_at)
-     VALUES ($1, $2, $3, now() + ($4 * interval '1 millisecond'))`,
-    [randomUUID(), userId, hashOpaqueToken(token), sessionLifetimeMilliseconds],
-  )
-  return token
+  const sessionId = randomUUID()
+  const client = await getDatabasePool().connect()
+  try {
+    await client.query('BEGIN')
+    await client.query(
+      `INSERT INTO identity_sessions (id, user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3, now() + ($4 * interval '1 millisecond'))`,
+      [sessionId, userId, hashOpaqueToken(token), sessionLifetimeMilliseconds],
+    )
+    await insertAuditEvent(
+      client,
+      createAuditEvent({
+        actorId: userId,
+        action: 'AUTH_LOGIN',
+        resourceType: 'Session',
+        resourceId: sessionId,
+        result: 'SUCCESS',
+        source: 'identity.login',
+      }),
+    )
+    await client.query('COMMIT')
+    return token
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 export async function findPrincipalBySession(
@@ -127,11 +162,36 @@ export async function findPrincipalBySession(
 }
 
 export async function revokeSession(token: string): Promise<void> {
-  await getDatabasePool().query(
-    `UPDATE identity_sessions SET revoked_at = now()
-     WHERE token_hash = $1 AND revoked_at IS NULL`,
-    [hashOpaqueToken(token)],
-  )
+  const client = await getDatabasePool().connect()
+  try {
+    await client.query('BEGIN')
+    const result = await client.query<{ id: string; user_id: string }>(
+      `UPDATE identity_sessions SET revoked_at = now()
+       WHERE token_hash = $1 AND revoked_at IS NULL
+       RETURNING id, user_id`,
+      [hashOpaqueToken(token)],
+    )
+    const session = result.rows[0]
+    if (session) {
+      await insertAuditEvent(
+        client,
+        createAuditEvent({
+          actorId: session.user_id,
+          action: 'AUTH_LOGOUT',
+          resourceType: 'Session',
+          resourceId: session.id,
+          result: 'SUCCESS',
+          source: 'identity.logout',
+        }),
+      )
+    }
+    await client.query('COMMIT')
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 export async function createPasswordResetToken(
@@ -178,6 +238,17 @@ export async function resetPassword(
     await client.query(
       'UPDATE identity_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL',
       [userId],
+    )
+    await insertAuditEvent(
+      client,
+      createAuditEvent({
+        actorId: null,
+        action: 'AUTH_PASSWORD_RESET',
+        resourceType: 'IdentityUser',
+        resourceId: userId,
+        result: 'SUCCESS',
+        source: 'identity.password-recovery',
+      }),
     )
     await client.query('COMMIT')
     return true

@@ -847,6 +847,14 @@ customer:read
 
 ---
 
+ # Adendo à Rodada 12 — decisões TASK-004 aprovadas (2026-10-22)
+
+- Gerar auditoria para login bem-sucedido/falho, logout, criação de conta, mudanças administrativas de contas/permissões e eventos de recuperação de senha exigidos pela matriz da TASK-004.
+- Se a persistência da auditoria falhar durante alteração crítica, reverter a alteração.
+- Auditoria somente leitura, imutável e consultável apenas por `GENERAL_ADMIN`.
+- Retenção permanece `PENDING`; não implementar exclusão automática.
+- Notificações ficam limitadas à abstração interna e adapter mock; sem envio/provedor externo aprovado.
+- Exclusão de conta, tratamento de pedidos históricos e consentimento promocional continuam pendentes e fora da TASK-004.
  # Rodada 13 — Imagens, armazenamento e arquivos
 
  ## 1\. Onde serão armazenadas as imagens?
