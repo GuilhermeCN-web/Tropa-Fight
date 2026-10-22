@@ -17,7 +17,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | DONE    |
 |     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | DONE |
 |     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | DONE |
-|     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | BLOCKED |
+|     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | DONE |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | BLOCKED |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | BLOCKED |
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
@@ -139,7 +139,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-004 — Auditoria, privacidade e notificações base
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-003`
 **Relacionados:** RF-023, RF-024, RF-026, RNF-006, RNF-007, RNF-008
@@ -149,6 +149,13 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** políticas jurídicas inventadas, exclusão definitiva sem regra aprovada, integrações reais de e-mail sem decisão.
 **Critérios de aceitação/Testes:** ações administrativas relevantes podem ser auditadas; segredos não aparecem em logs; notificações possuem abstração substituível.
 **DoD específico:** tratamento de dados pessoais segue os requisitos aprovados.
+**Prontidão aprovada (2026-10-22):** auditar login bem-sucedido/falho, logout, criação de conta e alterações administrativas de contas/permissões; também registrar eventos de recuperação de senha previstos na matriz da TASK-004. Cancelar operações críticas com auditoria obrigatória se a persistência do log falhar; logs imutáveis, consultáveis apenas por GENERAL_ADMIN. Retenção permanece PENDING e não haverá exclusão automática. Notificações usam somente abstração/adaptador mock; nenhum envio externo está aprovado.
+**Execução:** concluída na branch `feature/TASK-004-auditoria-privacidade-notificacoes`. Implementados AuditLog imutável, eventos de identidade/recuperação, API administrativa paginada restrita a GENERAL_ADMIN, sanitização, port e mock de notificações. Retenção permanece PENDING; nenhuma exclusão automática ou integração externa foi criada.
+**Validação:** `npm run quality` PASS (17 testes passaram; 1 integração foi ignorada por não carregar `.env.local`); Vitest com `.env.local` PASS (18/18); migrações locais PASS; `npm audit --omit=dev` PASS (0 vulnerabilidades); API, segurança e regressão cobertas na suíte PostgreSQL. Lint manteve um aviso preexistente em `app/layout.tsx`.
+**Arquivos PRIMARY:** módulos de audit/notifications/privacy, integração de auditoria nos fluxos de identidade, migração `002_audit_logs.sql`, endpoint `/api/admin/audit-logs`, testes e documentação da TASK.
+**Arquivo INCIDENTAL:** `.prettierignore`, para excluir `next-env.d.ts` gerado pelo Next e manter o gate de formatação compatível com o arquivo gerado.
+**Scope Validation:** Allowed Changes PASS; Incidental Changes PASS; Forbidden Changes PASS; Scope Creep NONE. DoD PASS.
+**Próxima TASK elegível:** NONE; TASK-005 permanece BLOCKED e não foi iniciada.
 
 ## TASK-005 — Checkpoint PHASE-01
 

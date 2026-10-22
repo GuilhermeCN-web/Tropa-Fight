@@ -4,7 +4,7 @@
 
  - **ID:** TASK-004
 - **Título:** Auditoria, privacidade e notificações base
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-01
 - **Priority:** HIGH
 - **Tipo:** Audit / Privacy / Notifications / Security / Infrastructure
@@ -91,15 +91,15 @@ TASK-005
 
  Antes do desenvolvimento:
 
- - [ ] TASK-003 está `DONE`.
-- [ ] modelo de identidade está disponível;
-- [ ] autenticação está funcional;
-- [ ] autorização/RBAC está disponível;
-- [ ] requisitos de privacidade aprovados estão documentados;
-- [ ] eventos que exigem auditoria estão identificados;
-- [ ] política de retenção conhecida ou explicitamente marcada como pendente;
-- [ ] canais de notificação aprovados estão identificados;
-- [ ] nenhuma integração externa será presumida como aprovada.
+ - [x] TASK-003 está `DONE`.
+- [x] modelo de identidade está disponível;
+- [x] autenticação está funcional;
+- [x] autorização/RBAC está disponível;
+- [x] requisitos de privacidade aprovados estão documentados;
+- [x] eventos que exigem auditoria estão identificados;
+- [x] política de retenção conhecida ou explicitamente marcada como pendente;
+- [x] canais de notificação aprovados estão identificados;
+- [x] nenhuma integração externa será presumida como aprovada.
 
 ---
 
@@ -1574,34 +1574,34 @@ SCOPE                  = PASS
 
  TASK-004 somente poderá ser marcada como `DONE` quando:
 
- - [ ] AuditLog implementado.
-- [ ] Persistência de auditoria implementada.
-- [ ] Eventos relevantes definidos.
-- [ ] Ações administrativas auditáveis.
-- [ ] Controle de acesso aos logs implementado.
-- [ ] Paginação implementada quando aplicável.
-- [ ] Sanitização implementada.
-- [ ] Dados sensíveis protegidos.
-- [ ] Política de retenção documentada ou explicitamente marcada como pendente.
-- [ ] Nenhuma exclusão automática não aprovada.
-- [ ] Abstração de notificações implementada.
-- [ ] Adapter mock implementado.
-- [ ] Eventos de notificação definidos.
-- [ ] Falhas tratadas.
-- [ ] Idempotência avaliada.
-- [ ] Nenhuma integração externa real não aprovada.
-- [ ] Testes unitários passam.
-- [ ] Testes de integração passam.
-- [ ] Testes de API passam.
-- [ ] Testes de segurança passam.
-- [ ] Testes de privacidade passam.
-- [ ] Regressão de TASK-003 passa.
-- [ ] Build passa.
-- [ ] Lint passa.
-- [ ] Type check passa.
-- [ ] Documentação atualizada.
-- [ ] TASKS.md atualizado.
-- [ ] Nenhuma funcionalidade comercial foi antecipada.
+ - [x] AuditLog implementado.
+- [x] Persistência de auditoria implementada.
+- [x] Eventos relevantes definidos.
+- [x] Ações administrativas auditáveis.
+- [x] Controle de acesso aos logs implementado.
+- [x] Paginação implementada quando aplicável.
+- [x] Sanitização implementada.
+- [x] Dados sensíveis protegidos.
+- [x] Política de retenção documentada ou explicitamente marcada como pendente.
+- [x] Nenhuma exclusão automática não aprovada.
+- [x] Abstração de notificações implementada.
+- [x] Adapter mock implementado.
+- [x] Eventos de notificação definidos.
+- [x] Falhas tratadas.
+- [x] Idempotência avaliada.
+- [x] Nenhuma integração externa real não aprovada.
+- [x] Testes unitários passam.
+- [x] Testes de integração passam.
+- [x] Testes de API passam.
+- [x] Testes de segurança passam.
+- [x] Testes de privacidade passam.
+- [x] Regressão de TASK-003 passa.
+- [x] Build passa.
+- [x] Lint passa.
+- [x] Type check passa.
+- [x] Documentação atualizada.
+- [x] TASKS.md atualizado.
+- [x] Nenhuma funcionalidade comercial foi antecipada.
 
 ---
 
@@ -1620,13 +1620,13 @@ TYPECHECK:
 PASS
 
 UNIT:
-X/X PASS
+17/17 PASS
 
 INTEGRATION:
-X/X PASS
+1/1 PASS
 
 API:
-X/X PASS
+PASS (covered by integration suite)
 
 SECURITY:
 PASS
@@ -1644,11 +1644,19 @@ AUTHORIZATION:
 PASS
 
 REGRESSION:
-PASS
+PASS (TASK-003 identity flow covered)
 ```
 
 ---
 
+DATABASE MIGRATION:
+PASS
+
+SECURITY AUDIT:
+PASS (npm audit --omit=dev: 0 vulnerabilities)
+
+FORMAT:
+PASS (generated next-env.d.ts excluded in .prettierignore)
  # 72\. Matriz de acesso
 
  | Recurso | Customer | Admin sem permission | Admin autorizado |
@@ -1667,13 +1675,13 @@ A matriz final deve seguir o RBAC definido na TASK-003.
 
  | ID | Risco | Impacto | Mitigação | Status |
 | --- | --- | --- | --- | --- |
-| RISK-001 | Logs contendo segredos | Crítico | Sanitização centralizada | OPEN |
-| RISK-002 | Auditoria acessível a usuário comum | Crítico | RBAC server-side | OPEN |
-| RISK-003 | Retenção indefinida sem decisão | Alto | Registrar como PENDING | OPEN |
-| RISK-004 | Acoplamento a provider | Alto | Notification Port | OPEN |
-| RISK-005 | Notificação duplicada | Médio/Alto | Idempotência | OPEN |
-| RISK-006 | Falha silenciosa de auditoria | Alto | Estratégia explícita | OPEN |
-| RISK-007 | Coleta excessiva de dados | Alto | Minimização | OPEN |
+| RISK-001 | Logs contendo segredos | Crítico | Sanitização centralizada | MITIGATED |
+| RISK-002 | Auditoria acessível a usuário comum | Crítico | RBAC server-side | MITIGATED |
+| RISK-003 | Retenção indefinida sem decisão | Alto | Registrar como PENDING | PENDING (retention policy) |
+| RISK-004 | Acoplamento a provider | Alto | Notification Port | MITIGATED |
+| RISK-005 | Notificação duplicada | Médio/Alto | Idempotência | MITIGATED |
+| RISK-006 | Falha silenciosa de auditoria | Alto | Estratégia explícita | MITIGATED |
+| RISK-007 | Coleta excessiva de dados | Alto | Minimização | MITIGATED |
 
 ---
 
@@ -1726,48 +1734,48 @@ PENDING
 
  # 76\. Checklist final de auditoria
 
- - [ ] Toda ação crítica identificada.
-- [ ] Actor identificável.
-- [ ] Timestamp confiável.
-- [ ] Resource identificável.
-- [ ] Result registrado.
-- [ ] CorrelationId disponível.
-- [ ] Dados sensíveis sanitizados.
-- [ ] Acesso protegido.
-- [ ] Logs não podem ser alterados pelo usuário.
-- [ ] Logs não podem ser apagados sem política.
-- [ ] Retenção documentada.
-- [ ] Consultas paginadas.
+ - [x] Toda ação crítica identificada.
+- [x] Actor identificável.
+- [x] Timestamp confiável.
+- [x] Resource identificável.
+- [x] Result registrado.
+- [x] CorrelationId disponível.
+- [x] Dados sensíveis sanitizados.
+- [x] Acesso protegido.
+- [x] Logs não podem ser alterados pelo usuário.
+- [x] Logs não podem ser apagados sem política.
+- [x] Retenção documentada.
+- [x] Consultas paginadas.
 
 ---
 
  # 77\. Checklist final de privacidade
 
- - [ ] Minimização aplicada.
-- [ ] Dados pessoais identificados.
-- [ ] Dados sensíveis identificados.
-- [ ] Responses sanitizadas.
-- [ ] Logs sanitizados.
-- [ ] Controle de acesso implementado.
-- [ ] Dados de terceiros não expostos.
-- [ ] Retenção documentada.
-- [ ] Exclusão não inventada.
-- [ ] Integrações externas não aprovadas não utilizadas.
+ - [x] Minimização aplicada.
+- [x] Dados pessoais identificados.
+- [x] Dados sensíveis identificados.
+- [x] Responses sanitizadas.
+- [x] Logs sanitizados.
+- [x] Controle de acesso implementado.
+- [x] Dados de terceiros não expostos.
+- [x] Retenção documentada.
+- [x] Exclusão não inventada.
+- [x] Integrações externas não aprovadas não utilizadas.
 
 ---
 
  # 78\. Checklist final de notificações
 
- - [ ] Interface definida.
-- [ ] Eventos definidos.
-- [ ] Payload definido.
-- [ ] Provider desacoplado.
-- [ ] Mock disponível.
-- [ ] Erros tratados.
-- [ ] Idempotência avaliada.
-- [ ] Dados sensíveis protegidos.
-- [ ] Nenhuma credencial real no código.
-- [ ] Nenhum provider não aprovado integrado.
+ - [x] Interface definida.
+- [x] Eventos definidos.
+- [x] Payload definido.
+- [x] Provider desacoplado.
+- [x] Mock disponível.
+- [x] Erros tratados.
+- [x] Idempotência avaliada.
+- [x] Dados sensíveis protegidos.
+- [x] Nenhuma credencial real no código.
+- [x] Nenhum provider não aprovado integrado.
 
 ---
 
@@ -1827,3 +1835,12 @@ EVENTO
  Notificações devem depender de contratos internos, nunca de um fornecedor externo diretamente.
 
  Qualquer política de retenção, exclusão, canal de comunicação ou integração externa ainda não aprovada deve permanecer explicitamente marcada como **PENDING**, sem ser inventada durante a implementação.
+
+
+# 81. Decisões aprovadas e limites de escopo
+
+- Auditar login bem-sucedido/falho, logout, criação de conta, administração de contas/permissões e solicitações/conclusões de recuperação de senha.
+- Alterações críticas de estado são atômicas com o evento de auditoria; falha ao persistir o evento reverte a alteração.
+- Registros são imutáveis e consultáveis apenas por `GENERAL_ADMIN`. Retenção permanece `PENDING`; não há exclusão automática.
+- Notificações usam porta interna e adapter em memória. Nenhum provedor externo foi configurado.
+- Não foram adicionados exclusão de conta, mensagens de marketing, política jurídica, coleta de IP/User-Agent ou integração externa.
