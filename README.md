@@ -13,10 +13,10 @@ Este diretório reúne a documentação de apoio do Tropa Fight, organizada por 
 
 ## Documentos principais
 
-- [`docs/adr/ADRs.md`](adr/ADRs.md)
-- [`architecture/overview.md`](architecture/overview.md)
-- [`planning/development-plan.md`](planning/development-plan.md)
-- [`planning/answered-questions.md`](planning/answered-questions.md)
-- [`TASKS/`](TASKS/)
+- [`docs/adr/ADRs.md`](docs/adr/ADRs.md)
+- [`docs/architecture/overview.md`](docs/architecture/overview.md)
+- [`docs/planning/development-plan.md`](docs/planning/development-plan.md)
+- [`docs/planning/answered-questions.md`](docs/planning/answered-questions.md)
+- [`docs/TASKS/`](docs/TASKS/)
 
 Os documentos operacionais e de governança `AGENTS.md`, `README.md` e `TASKS.md` permanecem na raiz do repositório.
