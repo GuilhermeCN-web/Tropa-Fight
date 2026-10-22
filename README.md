@@ -13,7 +13,7 @@ Este diretório reúne a documentação de apoio do Tropa Fight, organizada por 
 
 ## Documentos principais
 
-- [`adr/ADRs.md`](adr/ADRs.md)
+- [`docs/adr/ADRs.md`](adr/ADRs.md)
 - [`architecture/overview.md`](architecture/overview.md)
 - [`planning/development-plan.md`](planning/development-plan.md)
 - [`planning/answered-questions.md`](planning/answered-questions.md)
