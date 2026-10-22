@@ -29,6 +29,76 @@ a {
   background: radial-gradient(ellipse at top, #29292e, #111113 60%);
 }
 
+.identity-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.auth-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1rem;
+  background: radial-gradient(ellipse at top, #29292e, #111113 60%);
+}
+
+.auth-card {
+  width: min(100%, 30rem);
+}
+
+.identity-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.identity-form label {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.identity-form input {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #71717a;
+  border-radius: 0.35rem;
+}
+
+.identity-form button,
+.auth-card > button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 0.35rem;
+  color: #111113;
+  background: #f4f4f5;
+  cursor: pointer;
+}
+
+.identity-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.form-message {
+  min-height: 1.5rem;
+}
+
+.profile-data {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 1rem;
+  text-align: left;
+}
+
+.profile-data dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .status-card {
   width: min(100%, 36rem);
   padding: clamp(2rem, 7vw, 4rem);

@@ -16,7 +16,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 | ----: | -------- | -------- | ---------- | -------------------------- | ------- |
 |     1 | TASK-001 | PHASE-01 | CRITICAL   | NONE                       | DONE    |
 |     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | DONE |
-|     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | BLOCKED |
+|     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | DONE |
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | BLOCKED |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | BLOCKED |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | BLOCKED |
@@ -120,16 +120,22 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-003 — Identidade, autenticação e autorização
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / CRITICAL
 **Dependências:** `DEPENDS_ON: TASK-001`
-**Relacionados:** RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001, ADR-004
+**Relacionados:** RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001, ADR-003, ADR-011, ADR-012, ADR-019
 **Objetivo:** Implementar cadastro, login, logout, recuperação de acesso, perfil, sessões e base de autorização.
 **Artefatos esperados:** User, Customer, AdminUser, roles/permissions, autenticação e guardas de autorização.
-**ALLOWED_CHANGES:** módulos de identidade/autenticação/autorização; persistência correspondente; testes; `TASKS.md`.
-**FORBIDDEN_CHANGES:** catálogo, carrinho, checkout, pagamento, estoque comercial.
+**ALLOWED_CHANGES:** migração da aplicação React/Vite para Next.js autorizada pelo responsável; configuração e dependências necessárias; módulos de identidade/autenticação/autorização; persistência PostgreSQL local; testes; ADRs e documentação de arquitetura necessários; README e `TASKS.md`.
+**FORBIDDEN_CHANGES:** catálogo e permissões comerciais; carrinho, checkout, pagamento, estoque comercial; provedor externo de autenticação/e-mail; infraestrutura remota ou publicação.
 **Critérios de aceitação/Testes:** autenticação funciona; senha não é armazenada em texto puro; usuário só acessa recursos autorizados; rotas administrativas exigem autorização adequada.
 **DoD específico:** testes unitários e de API de autenticação/RBAC passam.
+
+**Decisões aprovadas pelo responsável (2026-10-22):** migrar React/Vite para Next.js e usar suas funções de servidor para autenticação própria; banco PostgreSQL local, sem serviço remoto; sessão revogável em cookie `HttpOnly`, `Secure`, `SameSite=Lax`, validade de 12 horas, sem renovação; senha entre 8 e 128 caracteres com maiúscula, minúscula, número e símbolo; cadastro ativa a conta sem confirmação de e-mail; recuperação por e-mail através de interface substituível, token de uso único válido por 30 minutos e revogação das sessões após redefinição; criação inicial de Administrador Geral por comando local de uso único; papéis Administrador Geral (todas as permissões de identidade desta TASK), Customer (somente o próprio perfil) e Gestor de Catálogo (sem permissões de identidade; permissões de catálogo ficam para TASK-006). Sem envio real de e-mail.
+
+**Registro de prontidão:** o baseline local foi ampliado mediante autorização explícita do responsável para esta TASK; ADRs e artefatos de arquitetura registram o aditivo. Transição: `BLOCKED → READY → IN_PROGRESS`. ADR-004 trata de catálogo e não se aplica.
+
+**Execucao:** TASK-003 concluida na branch `feature/TASK-003-identidade-autenticacao`; GATE-001 a GATE-006 aprovados. `npm run quality` passou (format, lint, typecheck, testes e build; lint com um aviso `metadata`); Vitest com `.env.local`: 6 arquivos/10 testes passaram; `npm audit --omit=dev`: 0 vulnerabilidades; `git diff --check` passou. MAN-001 a MAN-007 passaram, incluindo verificacoes de cadastro, sessoes, RBAC, bootstrap e recuperacao. DoD PASS; Scope Guard respeitado; sem scope creep. Nenhuma TASK seguinte iniciada. TASK-004 permanece BLOCKED, aguardando avaliacao de prontidao propria.
 
 ## TASK-004 — Auditoria, privacidade e notificações base
 

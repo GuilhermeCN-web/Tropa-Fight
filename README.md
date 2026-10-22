@@ -27,7 +27,7 @@ Os documentos operacionais e de governança `AGENTS.md`, `README.md` e `TASKS.md
 
 - Node.js 24.x (versão indicada em `.nvmrc`)
 - npm 11.x
-- PostgreSQL e Docker não são necessários para a fundação do front-end
+- PostgreSQL local 18 para persistência de identidade da TASK-003
 
 ### Instalação e configuração
 
@@ -38,20 +38,30 @@ npm ci
 Crie o arquivo local de ambiente a partir do exemplo:
 
 ```sh
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-No PowerShell, use `Copy-Item .env.example .env`.
+No PowerShell, use `Copy-Item .env.example .env.local`.
 
-O front usa somente variáveis não sensíveis com prefixo `VITE_`. A TASK-001 não inclui backend, persistência nem conexão a banco. PostgreSQL continua uma possibilidade para uma etapa futura, sem decisão de integração.
+Com o serviço PostgreSQL local ativo, configure em `.env.local` a URL de conexão (o arquivo é ignorado pelo Git) e crie um banco vazio chamado `tropa_fight`. Depois aplique o esquema:
+
+```sh
+npm run db:migrate
+```
+
+O primeiro Administrador Geral deve ser criado uma única vez pelo comando interativo `npm run identity:create-admin`. Ele não imprime a senha e recusa uma segunda execução quando já existe um administrador.
+
+A aplicação usa Next.js, mantendo React para a interface e executando autenticação no servidor. A TASK-003 usa PostgreSQL local para identidade; não configure banco hospedado nem publique a aplicação. `DATABASE_URL` e demais valores sem prefixo público são lidos somente no servidor e não devem receber credenciais reais no repositório. A recuperação de acesso usa uma porta de e-mail sem provedor real nesta etapa.
 
 ### Comandos
 
 | Comando | Finalidade |
 | --- | --- |
-| `npm run dev` | Iniciar o servidor local em `http://localhost:5173` |
+| `npm run dev` | Iniciar o servidor local em `http://localhost:3000` |
 | `npm run build` | Verificar tipos e gerar a versão de produção |
 | `npm run start` | Servir a versão gerada localmente |
+| `npm run db:migrate` | Aplicar o esquema de identidade no PostgreSQL local |
+| `npm run identity:create-admin` | Criar o primeiro administrador de forma interativa e única |
 | `npm run lint` | Verificar problemas estáticos em código e testes |
 | `npm test` | Executar testes unitários e arquiteturais uma vez |
 | `npm run test:watch` | Executar testes em modo de observação |
@@ -65,7 +75,7 @@ O front usa somente variáveis não sensíveis com prefixo `VITE_`. A TASK-001 n
 - Componentes React usam arquivos `.tsx` e ficam em `src/presentation/`.
 - Casos de uso ficam em `src/application/`; tipos e invariantes sem dependências externas ficam em `src/domain/`.
 - Configuração de runtime e adaptadores técnicos ficam em `src/infrastructure/`.
-- O ponto de composição da aplicação fica em `src/bootstrap.tsx`.
+- O ponto de entrada web fica em `app/`; páginas e Route Handlers delegam aos casos de uso em `src/application/`.
 - Importe módulos por caminhos relativos; mantenha as dependências apontando para dentro: apresentação → aplicação → domínio. Infraestrutura pode depender de aplicação/domínio; as demais camadas não dependem dela.
 - Testes usam arquivos `*.test.ts` em `tests/unit/` ou `tests/architecture/`.
 - Erros de configuração devem ser identificados no bootstrap; logs registram somente mensagens operacionais, nunca segredos.
@@ -75,5 +85,7 @@ O front usa somente variáveis não sensíveis com prefixo `VITE_`. A TASK-001 n
 
 | Dependência | Camada | Finalidade |
 | --- | --- | --- |
-| Vitest | Desenvolvimento/testes | Executar testes unitários e arquiteturais usando a configuração Vite já adotada |
+| Next.js | Aplicação | Renderização React e handlers de servidor no mesmo processo local |
+| PostgreSQL (`pg`) | Infraestrutura | Persistência local de identidade, sessões e recuperação |
+| Vitest | Desenvolvimento/testes | Executar testes unitários e arquiteturais em ambiente Node |
 | Prettier | Desenvolvimento/qualidade | Formatar e verificar o código de forma reproduzível |

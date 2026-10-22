@@ -1,5 +1,4 @@
 import { getApplicationHealth } from '../application/get-application-health'
-import './app.css'
 
 type AppProps = {
   environment: string
@@ -20,6 +19,11 @@ export function App({ environment }: AppProps) {
           Estado: {health.status}
         </p>
         <p className="environment">Ambiente: {environment}</p>
+        <nav className="identity-links" aria-label="Conta">
+          <a href="/login">Entrar</a>
+          <a href="/register">Criar conta</a>
+          <a href="/forgot-password">Recuperar acesso</a>
+        </nav>
       </section>
     </main>
   )

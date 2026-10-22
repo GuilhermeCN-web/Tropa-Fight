@@ -55,7 +55,7 @@ Backups, monitoramento e procedimentos de recuperação devem ser definidos e te
 ## Restrições arquiteturais
 
 * A V1 parte de uma arquitetura de monólito modular em camadas.
-* A persistência transacional principal será relacional, com tecnologia a definir.
+* A persistência transacional principal será relacional; PostgreSQL local foi aprovado para identidade na TASK-003. Hospedagem e ambientes remotos permanecem pendentes.
 * A apresentação não acessa diretamente banco de dados, gateways ou transportadoras.
 * O domínio não depende de frameworks ou SDKs externos.
 * Pagamentos e logística são acessados por portas e adaptadores.
@@ -64,11 +64,11 @@ Backups, monitoramento e procedimentos de recuperação devem ser definidos e te
 
 ## Baseline de infraestrutura
 
-A etapa atual executa somente o front React/TypeScript em ambiente local, conforme [`infrastructure-baseline.md`](infrastructure-baseline.md). Não há backend, persistência conectada, provedor externo ou publicação. O ADR-003 aprova persistência relacional como estratégia futura; mecanismo, versão, provedor e hospedagem permanecem pendentes. Produção segue `PENDING_APPROVAL`.
+A etapa inicial (TASK-001/TASK-002) executou somente o front React/TypeScript em ambiente local. Por autorização explícita na TASK-003 e conforme ADR-019, a aplicação agora usa Next.js para executar código de servidor e autenticação, com PostgreSQL local para dados de identidade. Nenhum provedor externo ou publicação foi autorizado. Banco hospedado e produção seguem `PENDING_APPROVAL`.
 
 ## Decisões pendentes
 
-* Stack e hospedagem do backend; mecanismo, versão e provedor do banco relacional.
+* Hospedagem remota do backend e do banco relacional.
 * Provedores e configuração de development compartilhado e staging, quando necessários.
 * Metas de RPO, RTO, disponibilidade e thresholds de alertas.
 * Gateway e meios de pagamento.
