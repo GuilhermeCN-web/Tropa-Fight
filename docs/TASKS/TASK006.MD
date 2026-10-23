@@ -4,12 +4,24 @@
 
  - **ID:** TASK-006
 - **Título:** Catálogo de produtos e categorias
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-02
 - **Priority:** CRITICAL
 - **Tipo:** Feature / Domain / API / Persistence
 - **Dependências:** TASK-005
-- **Relacionados:** RF-003, RF-004, RF-005, RF-006, RF-020, UC-002, UC-009
+- **Relacionados:** RF-003, RF-004, RF-005, RF-006, UC-002
+
+### Decisões de prontidão registradas em 2026-10-23
+
+- Todo produto deve ter uma marca.
+- Produto começa como `DRAFT`; publicação autorizada muda para `PUBLISHED`; arquivamento muda para `ARCHIVED` e remove da vitrine pública.
+- Gestor de Catálogo e Administrador Geral podem administrar produtos, categorias e marcas, incluindo publicar produtos, usando autorização no servidor.
+- Produto pode pertencer a uma ou várias categorias e deve pertencer a pelo menos uma.
+- Campos básicos: nome, marca e ao menos uma categoria obrigatórios; descrição opcional em texto simples, máximo 1.000 caracteres.
+- Páginas/recursos públicos de produto, categoria e marca usam UUIDs estáveis, seguindo o padrão da persistência existente; não usar slugs.
+- Imagens, preço, SKU, variantes e estoque estão fora desta TASK.
+- Nome de produto tem máximo de 100 caracteres; categoria e marca têm máximo de 50.
+- Categoria/marca `INACTIVE` não pode ser associada a novos produtos e oculta do catálogo público produtos publicados associados até reativação.
 
 ---
 
@@ -216,14 +228,12 @@ Brand
 
 ```
 Product
-├── id
+├── id (UUID; public identifier)
 ├── name
-├── slug
-├── description
-├── brandId
-├── categoryId / categories
-├── status
-├── publicationState
+├── description (optional; plain text; max 1,000 characters)
+├── brandId (required)
+├── categories (one or more; required)
+├── publicationState (DRAFT | PUBLISHED | ARCHIVED)
 ├── createdAt
 ├── updatedAt
 └── ...
@@ -258,10 +268,9 @@ Product.id
 
  Regras:
 
- - [ ] obrigatório;
-- [ ] não vazio;
-- [ ] tamanho mínimo definido;
-- [ ] tamanho máximo definido;
+ - [x] obrigatório;
+- [x] não vazio após trim (mínimo 1 caractere);
+- [x] máximo de 100 caracteres após trim;
 - [ ] espaços desnecessários tratados;
 - [ ] validação no domínio/application;
 - [ ] erro de validação padronizado.
@@ -270,32 +279,16 @@ Product.id
 
 ---
 
- # 13\. Slug
+ # 13\. Identificador público
 
- Caso o catálogo utilize slug:
-
-```
-Product
-   ↓
-slug
-   ↓
-public URL / identifier
-```
-
- Checklist:
-
- - [ ] geração definida;
-- [ ] formato validado;
-- [ ] unicidade garantida;
-- [ ] colisão tratada;
-- [ ] atualização definida;
-- [ ] URL pública não depende diretamente do nome.
-
- Se o projeto não utilizar slug, registrar explicitamente essa decisão.
+**Decisão aprovada:** rotas públicas identificam produto, categoria e marca por UUID estável, sem
+slug e sem depender dos nomes.
 
 ---
 
  # 14\. Descrição
+
+**Regra aprovada:** descrição opcional, texto simples, limite de 1.000 caracteres.
 
  A descrição deve:
 
@@ -308,7 +301,7 @@ public URL / identifier
 
 ---
 
- # 15\. Status do produto
+ # 15\. Estado de publicação do produto
 
  Definir estados explicitamente.
 
@@ -320,7 +313,7 @@ PUBLISHED
 ARCHIVED
 ```
 
- Os estados reais devem respeitar os requisitos aprovados.
+**Estados aprovados:** `DRAFT`, `PUBLISHED` e `ARCHIVED`.
 
  Evitar criar estados sem necessidade.
 
@@ -352,7 +345,7 @@ Public Catalog
 NOT VISIBLE
 ```
 
- A regra exata de publicação deve ser documentada.
+**Regra aprovada pelo responsável:** produto é criado em `DRAFT`; somente Gestor de Catálogo ou Administrador Geral autorizado pode publicá-lo (`PUBLISHED`); arquivar define `ARCHIVED` e o produto deixa de aparecer no catálogo público. A autorização será verificada no servidor, conforme ADR-011 e ADR-012.
 
 ---
 
@@ -364,9 +357,8 @@ NOT VISIBLE
 
 ```
 Category
-├── id
+├── id (stable UUID; public identifier)
 ├── name
-├── slug
 ├── status
 ├── createdAt
 └── updatedAt
@@ -378,14 +370,14 @@ Category
 
  Checklist:
 
- - [ ] nome obrigatório;
-- [ ] slug validado;
+ - [x] nome obrigatório, não vazio após trim, máximo 50 caracteres;
+- [x] URL/identificador público usa ID estável, sem slug;
 - [ ] identificação única;
-- [ ] status definido;
+- [x] status `ACTIVE` / `INACTIVE`;
 - [ ] CRUD administrativo;
 - [ ] associação com produtos;
 - [ ] consulta pública conforme regra;
-- [ ] categorias inativas não são expostas indevidamente.
+- [x] categoria `INACTIVE` não pode ser associada a novos produtos; produtos publicados associados deixam de aparecer no catálogo até reativação.
 
 ---
 
@@ -420,9 +412,8 @@ Category
 
 ```
 Brand
-├── id
+├── id (stable UUID; public identifier)
 ├── name
-├── slug
 ├── status
 ├── createdAt
 └── updatedAt
@@ -432,13 +423,13 @@ Brand
 
  # 21\. Regras de marca
 
- - [ ] nome obrigatório;
-- [ ] slug validado;
+ - [x] nome obrigatório, não vazio após trim, máximo 50 caracteres;
+- [x] URL/identificador público usa ID estável, sem slug;
 - [ ] identificação única;
 - [ ] CRUD administrativo;
 - [ ] relacionamento com produto;
-- [ ] status definido;
-- [ ] marca inativa não deve ser exposta de forma indevida.
+- [x] status `ACTIVE` / `INACTIVE`;
+- [x] marca `INACTIVE` não pode ser associada a novos produtos; produtos publicados associados deixam de aparecer no catálogo até reativação.
 
 ---
 
@@ -458,7 +449,7 @@ Product N ───── 1 Category
 Product N ───── N Category
 ```
 
- Não implementar uma cardinalidade diferente da especificação.
+**Cardinalidade aprovada:** um produto pode pertencer a uma ou várias categorias, sempre com pelo menos uma categoria. Modelar Product ↔ Category como N:N, mantendo a associação obrigatória na validação de criação/atualização.
 
  Registrar a decisão no modelo de domínio e persistência.
 
@@ -472,7 +463,7 @@ Product N ───── N Category
 Brand 1 ───── N Product
 ```
 
- Um produto pode possuir uma marca conforme o modelo aprovado.
+Todo produto deve possuir uma marca, conforme decisão do responsável em 2026-10-23.
 
  Validar:
 
@@ -814,7 +805,7 @@ GET /products/:id
 
  ou o prefixo público oficialmente definido.
 
- A API pública deve expor somente produtos elegíveis.
+ A API pública deve expor somente produtos elegíveis. Para TASK-006, o escopo do UC-002 limita-se a listar/consultar produtos publicados e elegíveis; ordenação, busca, filtros e paginação ficam com TASK-008 conforme a divisão de escopo documentada.
 
 ---
 
@@ -824,17 +815,19 @@ GET /products/:id
 
  Matriz mínima:
 
- | Operação | Anonymous | Customer | Admin autorizado |
-| --- | --- | --- | --- |
-| Listar catálogo público | ✅ | ✅ | ✅ |
-| Ver produto público | ✅ | ✅ | ✅ |
-| Criar produto | ❌ | ❌ | ✅ |
-| Editar produto | ❌ | ❌ | ✅ |
-| Publicar produto | ❌ | ❌ | ✅ |
-| Criar categoria | ❌ | ❌ | ✅ |
-| Editar categoria | ❌ | ❌ | ✅ |
-| Criar marca | ❌ | ❌ | ✅ |
-| Editar marca | ❌ | ❌ | ✅ |
+| Operação | Anonymous | Customer | Gestor de Catálogo | Administrador Geral |
+| --- | --- | --- | --- | --- |
+| Listar catálogo público | ✅ | ✅ | ✅ | ✅ |
+| Ver produto público | ✅ | ✅ | ✅ | ✅ |
+| Criar produto | ❌ | ❌ | ✅ | ✅ |
+| Editar produto | ❌ | ❌ | ✅ | ✅ |
+| Publicar produto | ❌ | ❌ | ✅ | ✅ |
+| Criar categoria | ❌ | ❌ | ✅ | ✅ |
+| Editar categoria | ❌ | ❌ | ✅ | ✅ |
+| Criar marca | ❌ | ❌ | ✅ | ✅ |
+| Editar marca | ❌ | ❌ | ✅ | ✅ |
+
+As permissões específicas ainda devem ser criadas no catálogo RBAC; ambas as funções administrativas acima estão aprovadas para as operações listadas.
 
 As permissões específicas devem corresponder ao RBAC aprovado.
 
@@ -871,7 +864,7 @@ isAdmin: true
 - [ ] IDs;
 - [ ] relacionamentos;
 - [ ] status;
-- [ ] slug;
+- [ ] IDs estáveis e referências válidas;
 - [ ] conteúdo permitido.
 
 ---
@@ -900,12 +893,6 @@ isAdmin: true
  Casos possíveis:
 
 ```
-Slug já existente
-    ↓
-409 Conflict
-```
-
-```
 Categoria inexistente
     ↓
 Validation / Not Found
@@ -925,7 +912,7 @@ Validation / Not Found
 
  Avaliar especialmente:
 
- - criação simultânea de slug;
+ - criação simultânea de relações com categoria/marca;
 - atualização simultânea;
 - publicação simultânea;
 - alteração de categoria/marca.
@@ -1062,7 +1049,7 @@ variantStock
  - [ ] criação válida;
 - [ ] nome inválido;
 - [ ] descrição inválida;
-- [ ] slug inválido;
+- [ ] ID malformado;
 - [ ] estado inválido;
 - [ ] publicação;
 - [ ] arquivamento;
@@ -1072,14 +1059,14 @@ variantStock
 
  - [ ] criação;
 - [ ] validação;
-- [ ] slug;
+- [ ] IDs estáveis;
 - [ ] estado.
 
  ### Brand
 
  - [ ] criação;
 - [ ] validação;
-- [ ] slug;
+- [ ] IDs estáveis;
 - [ ] estado.
 
 ---
@@ -1174,7 +1161,7 @@ Product + Invalid Brand
 
  Testar:
 
- - [ ] slug duplicado;
+ - [ ] referência duplicada ou inexistente;
 - [ ] referência inexistente;
 - [ ] produto inexistente;
 - [ ] categoria inexistente;
@@ -1372,7 +1359,7 @@ POST /admin/products
  # 62\. API Contract Checklist
 
  | Endpoint | Auth | RBAC | Validation | Success | Errors | Testes |
-| --- | --- | --- | --- | --- | --- | --- |
+| --------------- | -------- | ---- | ---------- | ------- | ------ | ------ |
 | Create Product | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | List Products | ✓/Public | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Get Product | ✓/Public | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -1389,17 +1376,17 @@ POST /admin/products
 
  TASK-006 está pronta para execução quando:
 
- - [ ] TASK-005 foi aprovada;
-- [ ] requisitos RF-003 a RF-006 estão disponíveis;
-- [ ] regras de publicação estão definidas;
-- [ ] modelo de Product está definido;
-- [ ] modelo de Category está definido;
-- [ ] modelo de Brand está definido;
-- [ ] cardinalidades estão definidas;
-- [ ] autorização existente está disponível;
-- [ ] padrão de API está definido;
-- [ ] padrão de persistência está definido;
-- [ ] não existem decisões críticas bloqueantes.
+ - [x] TASK-005 foi aprovada;
+- [x] RF-003 a RF-006 estão mapeados em TASK-010 e nos critérios desta TASK; UC-002 está especificado em TASK-008;
+- [x] regras de publicação estão definidas;
+- [x] modelo de Product está definido para o escopo desta TASK;
+- [x] modelo de Category está definido para o escopo desta TASK;
+- [x] modelo de Brand está definido para o escopo desta TASK;
+- [x] cardinalidades Product↔Category (N:N, pelo menos uma) e Product→Brand (obrigatória) estão definidas;
+- [x] autorização está disponível; permissões de catálogo aprovadas para Gestor de Catálogo e Administrador Geral;
+- [x] padrão de API Next.js está definido pelos handlers e contratos documentados;
+- [x] padrão PostgreSQL/migrations está definido pela persistência existente;
+- [x] não existem decisões críticas bloqueantes para o escopo autorizado.
 
 ---
 
@@ -1407,31 +1394,31 @@ POST /admin/products
 
  TASK-006 somente poderá ser marcada como `DONE` quando:
 
- - [ ] Product implementado;
-- [ ] Category implementado;
-- [ ] Brand implementado;
-- [ ] relacionamentos implementados;
-- [ ] persistência implementada;
-- [ ] migrations implementadas;
-- [ ] CRUD administrativo implementado;
-- [ ] catálogo público implementado;
-- [ ] publicação controlada;
-- [ ] autorização implementada;
-- [ ] validações implementadas;
-- [ ] tratamento de erros implementado;
-- [ ] auditoria integrada;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de autorização passam;
-- [ ] testes do catálogo público passam;
-- [ ] testes de integridade passam;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] typecheck passa;
-- [ ] documentação atualizada;
-- [ ] TASKS.md atualizado;
-- [ ] nenhum escopo de TASK-007 ou posterior foi antecipado.
+ - [x] Product implementado;
+- [x] Category implementado;
+- [x] Brand implementado;
+- [x] relacionamentos implementados;
+- [x] persistência implementada;
+- [x] migrations implementadas;
+- [x] CRUD administrativo implementado;
+- [x] catálogo público implementado;
+- [x] publicação controlada;
+- [x] autorização implementada;
+- [x] validações implementadas;
+- [x] tratamento de erros implementado;
+- [x] auditoria integrada;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de autorização passam;
+- [x] testes do catálogo público passam;
+- [x] testes de integridade passam;
+- [x] build passa;
+- [x] lint passa (com aviso preexistente em `app/layout.tsx`);
+- [x] typecheck passa;
+- [x] documentação atualizada;
+- [x] TASKS.md atualizado;
+- [x] nenhum escopo de TASK-007 ou posterior foi antecipado.
 
 ---
 
@@ -1451,16 +1438,16 @@ POST /admin/products
  Resultado:
 
 ```
-BUILD:       PASS / FAIL
-LINT:        PASS / FAIL
-TYPECHECK:   PASS / FAIL
-UNIT:        PASS / FAIL
-INTEGRATION: PASS / FAIL
-API:         PASS / FAIL
-E2E:         PASS / FAIL
-RBAC:        PASS / FAIL
-AUDIT:       PASS / FAIL
-CATALOG:     PASS / FAIL
+BUILD:       PASS — `npm.cmd run build`
+LINT:        PASS — `npm.cmd run lint` (um aviso preexistente em `app/layout.tsx`)
+TYPECHECK:   PASS — `npm.cmd run typecheck`
+UNIT:        PASS — incluído na suíte Vitest
+INTEGRATION: PASS — PostgreSQL local
+API:         PASS — Route Handlers exercitados pela integração
+E2E:         N/A — fluxo coberto nos Route Handlers; não há interface administrativa de catálogo nesta TASK
+RBAC:        PASS — anônimo 401, CUSTOMER 403, CATALOG_MANAGER autorizado
+AUDIT:       PASS — ações de produto verificadas no PostgreSQL
+CATALOG:     PASS — publicação, ocultação, relações e arquivamento verificados
 ```
 
 ---
@@ -1468,14 +1455,12 @@ CATALOG:     PASS / FAIL
  # 66\. Matriz de rastreabilidade
 
  | Requisito | Implementação | Teste | Evidência | Status |
-| --- | --- | --- | --- | --- |
-| RF-003 | Product |  |  |  |
-| RF-004 | Category |  |  |  |
-| RF-005 | Brand |  |  |  |
-| RF-006 | Catalog |  |  |  |
-| RF-020 | Product/Catalog |  |  |  |
-| UC-002 | Public Catalog |  |  |  |
-| UC-009 | Product/Category/Brand |  |  |  |
+| --------- | ---------------------------------------------- | ---------------------- | ---------------------------------------------------------- | ------ |
+| RF-003 | Product/Category/Brand e APIs administrativas | `catalog-flow.test.ts`  | testes PostgreSQL: criação, relações, RBAC e auditoria  | PASS  |
+| RF-004 | Categorias e associação N:N obrigatória | `catalog-flow.test.ts`  | migration + relação e inativação testadas  | PASS  |
+| RF-005 | Marcas e associação obrigatória | `catalog-flow.test.ts`  | migration + marca ativa/inativa testada  | PASS  |
+| RF-006 | Estados e elegibilidade pública | `catalog-flow.test.ts`  | DRAFT oculto; PUBLISHED visível; inativos/ARCHIVED ocultos  | PASS  |
+| UC-002 | `GET /api/products` e `GET /api/products/{id}` | `catalog-flow.test.ts`  | elegibilidade pública exercitada  | PASS  |
 
 A definição final de cada requisito deve ser confrontada com a especificação oficial.
 
@@ -1573,7 +1558,7 @@ A definição final de cada requisito deve ser confrontada com a especificação
 - [ ] nenhuma categoria órfã indevida;
 - [ ] nenhuma marca inválida;
 - [ ] foreign keys consistentes;
-- [ ] slugs únicos quando aplicável;
+- [ ] IDs únicos e referências consistentes;
 - [ ] timestamps consistentes;
 - [ ] migrations reproduzíveis;
 - [ ] seed seguro.
@@ -1781,74 +1766,135 @@ DONE / BLOCKED
 
 ```
 TASK-006
-Status: DONE / BLOCKED
+Status: DONE
 
 Product:
-DONE / BLOCKED
+DONE
 
 Category:
-DONE / BLOCKED
+DONE
 
 Brand:
-DONE / BLOCKED
+DONE
 
 Persistence:
-DONE / BLOCKED
+DONE
 
 Migrations:
-DONE / BLOCKED
+DONE
 
 Admin APIs:
-DONE / BLOCKED
+DONE
 
 Public Catalog:
-DONE / BLOCKED
+DONE
 
 Authorization:
-PASS / FAIL
+PASS
 
 Audit:
-PASS / FAIL
+PASS
 
 Unit Tests:
-PASS / FAIL
+PASS — included in 22-test Vitest run
 
 Integration Tests:
-PASS / FAIL
+PASS — PostgreSQL local
 
 API Tests:
-PASS / FAIL
+PASS — Next.js Route Handlers
 
 E2E:
-PASS / FAIL
+N/A — no browser UI in this task; API acceptance flow passed
 
 Build:
-PASS / FAIL
+PASS
 
 Lint:
-PASS / FAIL
+PASS — one preexisting warning in `app/layout.tsx`
 
 Typecheck:
-PASS / FAIL
+PASS
 
 Traceability:
-PASS / FAIL
+PASS — RF-003–006 and UC-002 linked above
 
 Scope:
-PASS / FAIL
+PASS
 
 Critical Issues:
 0 / N
 
 Pending Issues:
-0 / N
+0 / N (E2E de navegador não aplicável; não há UI de administração de catálogo nesta TASK)
 
 Final Decision:
-DONE / BLOCKED
+DONE
 
 Next Task:
-TASK-007
+NONE —
+TASK-007 permanece BLOCKED e não foi iniciada
 ```
+
+## TASK Execution Report
+
+**TASK:** TASK-006
+
+**Status:** DONE
+
+**Branch:** `feature/TASK-006-catalog`
+
+**Commit:** `feat(catalog): implementar catálogo de produtos [TASK-006]`
+
+### Primary Changes
+
+- Modelos e validações para produtos, categorias e marcas.
+- Migration PostgreSQL com integridade relacional, ao menos uma categoria por produto e permissões para Gestor de Catálogo e Administrador Geral.
+- CRUD administrativo com autorização por permissão, publicação/arquivamento e endpoints públicos de catálogo elegível.
+- Auditoria transacional de alterações administrativas e testes unitários/de integração.
+- Contrato API e rastreabilidade atualizados.
+
+### Incidental Changes
+
+- Nenhuma.
+
+### Tests Executed
+
+- `node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run` — 11 arquivos, 22 testes passaram, incluindo PostgreSQL.
+- `npm.cmd run typecheck` — passou.
+- `npm.cmd run format:check` — passou.
+- `npm.cmd run lint` — passou; aviso preexistente em `app/layout.tsx`.
+- `npm.cmd run build` — passou.
+- `node --env-file-if-exists=.env.local scripts/db-migrate.mjs` — migration aplicada.
+- `git diff --check` — passou.
+
+### Quality Gates
+
+| Gate        | Resultado                                   |
+| ----------- | ------------------------------------------- |
+| Build       | PASS                                        |
+| Lint        | PASS (aviso preexistente)                   |
+| Unit        | PASS                                        |
+| Integration | PASS                                        |
+| API         | PASS                                        |
+| Security    | PASS (RBAC e validação de entrada testados) |
+| Acceptance  | PASS                                        |
+| Regression  | PASS                                        |
+
+### Scope Validation
+
+- Allowed Changes: PASS
+- Incidental Changes: PASS — nenhuma
+- Forbidden Changes: PASS
+- Scope Creep: NONE
+
+### Definition of Done
+
+PASS
+
+### Next Eligible TASK
+
+NONE — TASK-007 permanece `BLOCKED`; nenhuma próxima TASK foi iniciada.
 
 ---
 

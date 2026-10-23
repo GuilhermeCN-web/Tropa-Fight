@@ -221,7 +221,7 @@ Luva de Boxe
 ├── 14 oz / Preto
 ├── 10 oz / Vermelho
 └── 12 oz / Vermelho
-````
+```
 
  ## 3\. Cada variante terá seu próprio SKU?
 
@@ -1133,6 +1133,20 @@ Infraestrutura
 ---
 
  # Regra da elicitação
+
+## Decisões específicas de prontidão da TASK-006 (2026-10-23)
+
+- Todo produto deve ter uma marca.
+- Produto começa como `DRAFT`; o Gestor de Catálogo ou Administrador Geral autorizado pode publicar (`PUBLISHED`); arquivar (`ARCHIVED`) oculta o produto da vitrine pública.
+- Gestor de Catálogo e Administrador Geral podem criar/editar produtos, categorias e marcas e publicar produtos, com permissão validada no servidor.
+- Produto pode pertencer a uma ou várias categorias e deve ter pelo menos uma; relação N:N aprovada.
+- Campos básicos aprovados: nome, marca e ao menos uma categoria obrigatórios; descrição opcional, texto simples, até 1.000 caracteres.
+- Produto, categoria e marca usam IDs estáveis nas referências/URLs, sem slugs.
+- Imagens, preço, SKU, variantes e estoque ficam fora da TASK-006.
+- Nomes de categoria e marca têm máximo de 50 caracteres; nomes obrigatórios não podem ficar vazios após trim.
+- Categoria/marca `INACTIVE` não pode ser associada a novos produtos e oculta do catálogo produtos publicados ligados a ela até reativação.
+- Nome do produto tem máximo de 100 caracteres após trim; nomes de categoria/marca têm máximo de 50.
+- IDs públicos são UUIDs conforme o padrão de persistência existente; a estratégia de slug não se aplica.
 
  Durante a elicitação:
 

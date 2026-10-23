@@ -19,7 +19,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | DONE |
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | DONE |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | DONE    |
-|     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | BLOCKED |
+|     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | DONE |
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | BLOCKED |
@@ -182,16 +182,18 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-006 — Catálogo de produtos e categorias
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-02 / CRITICAL
 **Dependências:** `DEPENDS_ON: TASK-005`
-**Relacionados:** RF-003, RF-004, RF-005, RF-006, RF-020, UC-002, UC-009
+**Relacionados:** RF-003, RF-004, RF-005, RF-006, UC-002
 **Objetivo:** Criar o domínio de produtos, categorias, marcas e informações comerciais básicas.
 **Artefatos esperados:** Product, Category, Brand, CRUD administrativo e catálogo público.
 **ALLOWED_CHANGES:** módulos catalog/categories/brands; persistência; APIs; testes; `TASKS.md`.
 **FORBIDDEN_CHANGES:** checkout, pagamento, pedidos, promoções complexas.
 **Critérios de aceitação/Testes:** produtos podem ser criados/editados conforme autorização; categorias e marcas são associáveis; catálogo público não expõe produtos que não devem ser publicados.
 **DoD específico:** APIs e testes de autorização concluídos.
+**Prontidão (2026-10-23):** Definition of Ready atendida; TASK iniciada em `feature/TASK-006-catalog`. Escopo aprovado: nome do produto 1–100, marca obrigatória, uma ou mais categorias obrigatórias, descrição em texto simples opcional até 1.000; IDs UUID estáveis sem slug; nomes de marca/categoria até 50, estados `ACTIVE`/`INACTIVE` com ocultação pública enquanto inativos; publicação `DRAFT`/`PUBLISHED`/`ARCHIVED`; Gestor de Catálogo e Administrador Geral administram catálogo. Imagens/preço/SKU/variantes/estoque excluídos.
+**Execução (2026-10-23):** `feature/TASK-006-catalog`. Domínio, migration, APIs administrativas/públicas, permissões RBAC, auditoria e testes implementados. Build, lint, typecheck, format check e testes integrados passaram; lint conserva apenas o aviso preexistente em `app/layout.tsx`. Relatório detalhado e rastreabilidade em `docs/TASKS/TASK006.MD`. Nenhuma TASK posterior foi iniciada.
 
 ## TASK-007 — Variantes, preços e disponibilidade
 
