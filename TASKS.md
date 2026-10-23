@@ -21,7 +21,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | DONE    |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | DONE |
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | DONE    |
-|     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
+|     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | DONE |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | BLOCKED |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | BLOCKED |
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | BLOCKED |
@@ -212,7 +212,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-008 — Busca, filtros, ordenação e experiência de catálogo
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-02 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-006`
 **Relacionados:** RF-009, RF-010, RF-011, RF-012, UC-002, UC-003
@@ -222,6 +222,9 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** recomendação por IA, checkout, wishlist, avaliações.
 **Critérios de aceitação/Testes:** filtros combinados retornam resultados corretos; paginação é consistente; ordenação respeita critérios definidos.
 **DoD específico:** testes de API e acessibilidade dos controles aplicáveis.
+**Prontidão (2026-10-23):** Definition of Ready atendida após aprovação dos critérios de busca, filtros, ordenação e paginação; contrato registrado em `docs/catalog-api.md` e `docs/TASKS/TASK008.MD`.
+**Execução iniciada (2026-10-23):** branch `feature/TASK-008-catalog-search`.
+**Execução concluída (2026-10-23):** implementação, 34 testes unitários e 5 de integração aprovados; build, lint, typecheck, formatação e documentação validados. Relatório e rastreabilidade em `docs/TASKS/TASK008.MD`.
 
 ## TASK-009 — Estoque e movimentações
 

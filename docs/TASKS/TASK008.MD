@@ -1,12 +1,18 @@
  # TASK-008 — Busca, filtros, ordenação e experiência de catálogo
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-02 / HIGH\
  **Dependências:** `DEPENDS_ON: TASK-006`\
- **Estado de entrada esperado:** `BLOCKED` até `TASK-006 = DONE`\
+ **Estado de entrada esperado:** `READY` após `TASK-006 = DONE` e critérios aprovados\
  **Estado de execução permitido:** `READY → IN_PROGRESS → IN_REVIEW → DONE | FAILED | CANCELLED`
 
  **Relacionados:** RF-009, RF-010, RF-011, RF-012, UC-002, UC-003
+
+> **Critérios aprovados pelo responsável (2026-10-23):** busca parcial, sem diferenciar maiúsculas/minúsculas, nos campos nome, descrição, marca e nomes das categorias; filtros combináveis por um `categoryId`, um `brandId` e faixa inclusiva `minPriceCents`/`maxPriceCents`; produto pertence à faixa se alguma variante `ACTIVE` estiver nela. Ordenação permitida: `name_asc` (padrão), `name_desc`, `price_asc`, `price_desc`; ordenação por preço usa o menor preço de variante `ACTIVE`; empates são desempatados por ID crescente. Paginação por `page` (padrão 1) e `pageSize` (padrão 20, máximo 100); argumentos inválidos retornam HTTP 400; página válida após o total retorna `items: []` e metadados `page`, `pageSize`, `totalItems`, `totalPages`.
+>
+> **Execução iniciada (2026-10-23):** Definition of Ready atendida. Branch: `feature/TASK-008-catalog-search`.
+>
+> **Implementação concluída (2026-10-23):** consulta SQL paginada com filtros, busca e ordenação determinística; API pública; interface de catálogo; testes unitários e integrados. Gates aprovados e resultados registrados abaixo.
 
 ---
 
@@ -47,6 +53,8 @@
 
  Se qualquer pré-condição acima não puder ser comprovada, a TASK permanece `BLOCKED`.
 
+ **Definition of Ready verificada (2026-10-23): PASS.** TASK-006 e seus artefatos estão `DONE` e disponíveis; publicação/visibilidade e campos Product/Brand/Category estão definidos; os critérios de busca, filtros, ordenação e paginação acima foram aprovados; contrato API/UI e Scope Guard estão definidos; não há decisão comercial pendente para esta TASK.
+
 ---
 
  ## 3\. Resultado esperado
@@ -79,16 +87,14 @@ Resultado + metadados de paginação
 
  ### 4.1 Busca
 
- Implementar busca textual sobre os campos de produto explicitamente aprovados.
-
- Campos candidatos, somente se confirmados pelos contratos de `TASK-006`:
+ Implementar busca textual sobre os campos aprovados:
 
  - nome do produto;
-- identificação comercial;
 - descrição;
-- marca;
-- categoria;
-- demais campos textuais explicitamente aprovados.
+- nome da marca;
+- nomes das categorias.
+
+ A correspondência é parcial e não diferencia maiúsculas/minúsculas. Espaços externos e sequências internas são normalizados.
 
  A busca deve:
 
@@ -115,12 +121,15 @@ Resultado + metadados de paginação
 
  Implementar os filtros aprovados para catálogo.
 
- Filtros mínimos previstos:
+ Filtros aprovados:
 
- - categoria;
-- marca;
-- preço mínimo;
-- preço máximo.
+ - `categoryId`: UUID de uma categoria;
+- `brandId`: UUID de uma marca;
+- `minPriceCents` e `maxPriceCents`: limites inclusivos inteiros não negativos em centavos BRL.
+
+ O produto corresponde à faixa quando pelo menos uma variante `ACTIVE` possui preço dentro dos limites. O mínimo não pode ser maior que o máximo. Os filtros são combináveis.
+
+ Na interface, os limites são informados em reais (BRL) com até duas casas decimais e convertidos para centavos antes da consulta. A API recebe somente centavos inteiros.
 
  O sistema deverá permitir combinação de filtros.
 
@@ -150,18 +159,16 @@ AND preço <= 300
 
  Implementar somente critérios de ordenação aprovados.
 
- Exemplos possíveis:
+ Critérios aprovados:
 
 ```
-relevância
-nome crescente
-nome decrescente
-menor preço
-maior preço
-mais recente
+name_asc (padrão)
+name_desc
+price_asc
+price_desc
 ```
 
- A lista definitiva deve respeitar o contrato aprovado para a TASK.
+ Os critérios de preço usam o menor preço entre variantes `ACTIVE` do produto. Empates são desempatados pelo ID crescente do produto. Campos e direções arbitrários são rejeitados.
 
  A ordenação deve ser:
 
@@ -177,16 +184,15 @@ mais recente
 
  ### 4.4 Paginação
 
- Implementar paginação conforme o padrão definido pela aplicação.
+ Implementar paginação por número de página conforme o contrato aprovado.
 
  O contrato deverá especificar:
 
- - tamanho padrão da página;
-- tamanho máximo permitido;
-- número/offset/cursor utilizado;
-- comportamento para página inexistente;
-- metadados retornados;
-- comportamento para resultado vazio.
+ - `page` começa em 1 e assume 1 quando omitido;
+- `pageSize` assume 20 quando omitido e aceita no máximo 100;
+- valores fora dos limites são rejeitados com HTTP 400;
+- página válida depois do total retorna lista vazia com a página solicitada e metadados;
+- resposta inclui `page`, `pageSize`, `totalItems` e `totalPages`; para resultado vazio, `totalPages` é 0.
 
  Exemplo conceitual de resposta:
 
@@ -202,7 +208,7 @@ mais recente
 }
 ```
 
- O formato acima é ilustrativo. O contrato definitivo deve seguir o padrão arquitetural adotado pelo projeto.
+ O formato acima é o contrato da TASK-008.
 
  A paginação deve ser consistente com a ordenação e com os filtros aplicados.
 
@@ -279,16 +285,16 @@ GET /products
 
 ```
 q
-category
-brand
-minPrice
-maxPrice
+ categoryId
+brandId
+minPriceCents
+maxPriceCents
 sort
 page
 pageSize
 ```
 
- Os nomes definitivos devem seguir os contratos aprovados.
+ Os nomes definitivos são `q`, `categoryId`, `brandId`, `minPriceCents`, `maxPriceCents`, `sort`, `page` e `pageSize`.
 
  A API deverá:
 
@@ -326,22 +332,24 @@ paginação
 
 ```
 {
-  "id": "product-id",
-  "name": "Produto",
-  "brand": {
-    "id": "brand-id",
-    "name": "Marca"
-  },
-  "category": {
-    "id": "category-id",
-    "name": "Categoria"
-  },
-  "price": 199.90,
-  "available": true
+  "items": [{
+    "id": "product-id",
+    "name": "Produto",
+    "description": null,
+    "brand": { "id": "brand-id", "name": "Marca" },
+    "categories": [{ "id": "category-id", "name": "Categoria" }],
+    "priceCents": 19990
+  }],
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "totalItems": 1,
+    "totalPages": 1
+  }
 }
 ```
 
- O contrato definitivo deve respeitar o modelo entregue pela `TASK-006`.
+ `priceCents` representa o menor preço entre variantes ativas. A resposta não expõe SKU nem afirma disponibilidade de estoque físico.
 
 ---
 
@@ -447,7 +455,7 @@ Sistema retorna resultados
 | Ordenação válida | Ordem solicitada é respeitada |
 | Ordenação inválida | Entrada rejeitada |
 | Paginação válida | Retorna página correta |
-| `pageSize` acima do limite | Entrada rejeitada ou normalizada conforme contrato |
+| `pageSize` fora de 1–100 | HTTP 400 conforme contrato |
 | Produto não publicado | Não aparece no catálogo público |
 | Empate de ordenação | Ordem final permanece determinística |
 | Catálogo vazio | Resposta válida com coleção vazia |
@@ -803,31 +811,31 @@ a11y tests aplicáveis
 
  A `TASK-008` somente poderá ser marcada como `DONE` quando:
 
- - [ ] busca implementada;
-- [ ] filtros implementados;
-- [ ] filtros combinados testados;
-- [ ] ordenação implementada;
-- [ ] ordenação determinística validada;
-- [ ] paginação implementada;
-- [ ] produtos não publicáveis não são expostos;
-- [ ] parâmetros inválidos tratados;
-- [ ] contrato API/UI atualizado;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API/contrato passam;
-- [ ] testes de acessibilidade aplicáveis passam;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação necessária atualizada;
-- [ ] rastreabilidade RF/UC atualizada;
-- [ ] Scope Guard validado;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] alterações incidentais justificadas;
-- [ ] nenhum Scope Creep identificado;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de execução produzido;
-- [ ] estado final registrado como `DONE`.
+ - [x] busca implementada;
+- [x] filtros implementados;
+- [x] filtros combinados testados;
+- [x] ordenação implementada;
+- [x] ordenação determinística validada;
+- [x] paginação implementada;
+- [x] produtos não publicáveis não são expostos;
+- [x] parâmetros inválidos tratados;
+- [x] contrato API/UI atualizado;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API/contrato passam;
+- [x] testes semânticos de acessibilidade aplicáveis passam;
+- [x] build passa;
+- [x] lint passa (aviso já existente em `app/layout.tsx`);
+- [x] documentação necessária atualizada;
+- [x] rastreabilidade RF/UC atualizada;
+- [x] Scope Guard validado;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] nenhuma alteração incidental;
+- [x] nenhum Scope Creep identificado;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de execução produzido;
+- [x] estado final registrado como `DONE`.
 
 ---
 
@@ -918,84 +926,75 @@ TASKS.md atualizado
 
 ---
 
- ## 26\. Relatório de execução — template
+ ## 26\. Relatório de execução
 
- Ao finalizar a TASK, produzir:
-
-```
 TASK: TASK-008
-TÍTULO: Busca, filtros, ordenação e experiência de catálogo
-ESTADO INICIAL: IN_PROGRESS
-ESTADO FINAL: <DONE|FAILED|CANCELLED>
+Status: DONE
+Branch: `feature/TASK-008-catalog-search`
+Commits: nenhum; alterações disponíveis na working tree para revisão.
 
-DEPENDÊNCIA:
-- TASK-006: DONE
+### Implementado
 
-OBJETIVO:
-<resumo da implementação>
+- Busca parcial e sem diferença de caixa em nome, descrição, marca e categorias.
+- Filtros combináveis por categoria, marca e faixa de preço inclusiva; busca e ordenação usam variantes ativas, sem expor SKU ou afirmar estoque físico.
+- Ordenação aprovada, paginação estável com metadados e validação HTTP 400 para parâmetros inválidos.
+- Rota pública `GET /api/products` e página responsiva `/catalog`, com campos rotulados, anúncios de estado, mensagens acessíveis e navegação por teclado nativa.
+- Testes unitários, de API/contrato, integração PostgreSQL e verificação semântica dos controles.
 
-IMPLEMENTADO:
-- <item>
-- <item>
-- <item>
+### Quality Gates
 
-ARTEFATOS ALTERADOS:
-- <arquivo/módulo>
-- <arquivo/módulo>
+| Gate | Resultado |
+| --- | --- |
+| Build | PASS — `npm.cmd run build` |
+| Lint | PASS — aviso preexistente em `app/layout.tsx` |
+| Unit | PASS — 34 testes aprovados |
+| Integration | PASS — 5 testes PostgreSQL; busca, filtros, ordenação e paginação |
+| API | PASS — contrato público e validações HTTP cobertos |
+| Security | PASS — valores parametrizados, ordenação por allowlist e teste contra injeção |
+| Accessibility | PASS — teste semântico de labels, anúncio de estado e links de paginação nativos |
+| Acceptance | PASS — critérios AC-01–AC-11 cobertos |
+| Regression | PASS — 15 arquivos e 39 testes aprovados |
+| Typecheck / Format | PASS — `npm.cmd run typecheck` e `npm.cmd run format:check` |
 
-CONTRATOS:
-- <endpoint/contrato>
-- <alteração>
+### Casos de teste
 
-TESTES EXECUTADOS:
-- Build: <PASS/FAIL>
-- Lint: <PASS/FAIL>
-- Unit: <PASS/FAIL>
-- Integration: <PASS/FAIL>
-- API/Contract: <PASS/FAIL>
-- Accessibility: <PASS/FAIL/NA>
+- Busca por nome, descrição e categoria, sem diferença de caixa — PASS.
+- Filtros combinados; faixa correspondente a qualquer variante ativa — PASS.
+- Ordenação por nome/preço e desempate determinístico por ID — PASS.
+- Limites de páginas, página além do total e conjunto vazio — PASS.
+- Produto em rascunho e produto publicado sem variante ativa — não aparecem.
+- Valores inválidos, ordenação desconhecida e tentativa de injeção — HTTP 400 ou resultado vazio, conforme contrato.
+- Controles com labels, mensagem de erro associada e paginação operável por links — PASS.
 
-CASOS DE TESTE:
-- <caso> → <resultado>
-- <caso> → <resultado>
+### Rastreabilidade
 
-RASTREABILIDADE:
-- RF-009 → <evidência>
-- RF-010 → <evidência>
-- RF-011 → <evidência>
-- RF-012 → <evidência>
-- UC-002 → <evidência>
-- UC-003 → <evidência>
+- RF-009 → busca textual no domínio, rota e teste de integração.
+- RF-010 → filtros de categoria/marca/preço no repositório e teste combinado.
+- RF-011 → allowlist de ordenação e teste de ordenação/desempate.
+- RF-012 → página `/catalog`, contrato de paginação e teste de páginas.
+- UC-002 → listagem pública ordenada/paginada e navegação da página.
+- UC-003 → busca/filtros e cenários de integração.
 
-SCOPE GUARD:
-- ALLOWED_CHANGES: PASS
-- FORBIDDEN_CHANGES: PASS
-- Scope Creep: NÃO IDENTIFICADO
+### Scope Guard
 
-ALTERAÇÕES INCIDENTAIS:
-- <nenhuma / descrição + justificativa>
+- `ALLOWED_CHANGES`: PASS.
+- `FORBIDDEN_CHANGES`: PASS.
+- Alterações incidentais: nenhuma.
+- Scope creep: não identificado.
+- Decisões comerciais: registradas conforme aprovação do responsável.
+- Bloqueios: nenhum.
+- Limitação residual: a validação de acessibilidade desta TASK cobre estrutura e operação semântica dos controles; validação transversal completa continua prevista na TASK-021.
 
-DECISÕES:
-- <decisão ou N/A>
+### Arquivos e documentação
 
-BLOQUEIOS:
-- <nenhum / descrição>
+- Código: rota de produtos, página e componentes de catálogo, domínio/aplicação/persistência de busca e estilos.
+- Testes: `catalog-search.test.ts`, `catalog-browser.test.tsx`, `catalog-search-flow.test.ts` e atualização do contrato no teste `catalog-flow.test.ts`.
+- Documentação: `docs/catalog-api.md`, esta TASK e `TASKS.md`.
+- `TASKS.md` atualizado: sim.
 
-RISCOS RESIDUAIS:
-- <nenhum / descrição>
-
-DOCUMENTAÇÃO:
-- <artefato atualizado>
-
-TASKS.md:
-- atualizado: <SIM/NÃO>
-
-CONCLUSÃO:
-<resultado factual da execução>
-
-PRÓXIMO ESTADO:
-<DONE|FAILED|CANCELLED>
-```
+Conclusão: implementação e Gates da TASK-008 aprovados.
+Próximo estado: DONE.
+Próxima TASK elegível: nenhuma; TASK-009 continua BLOCKED e não foi iniciada.
 
 ---
 

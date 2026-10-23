@@ -146,3 +146,139 @@ h1 {
 .environment {
   margin: 1.25rem 0 0;
 }
+
+.catalog-shell {
+  width: min(100%, 76rem);
+  min-height: 100vh;
+  margin-inline: auto;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+.catalog-header {
+  margin-bottom: 2rem;
+}
+
+.catalog-header h1 {
+  margin-top: 0.75rem;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+}
+
+.catalog-header p,
+.catalog-product-card > p {
+  color: #d4d4d8;
+  line-height: 1.5;
+}
+
+.catalog-home-link,
+.catalog-filters a,
+.catalog-pagination a {
+  color: #bfdbfe;
+}
+
+.catalog-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #48484f;
+  border-radius: 0.75rem;
+  background: #18181b;
+}
+
+.catalog-filters label {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+}
+
+.catalog-filters input,
+.catalog-filters select,
+.catalog-filters button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #71717a;
+  border-radius: 0.35rem;
+  color: #f4f4f5;
+  background: #27272a;
+  font: inherit;
+}
+
+.catalog-filter-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.catalog-filters button {
+  color: #111113;
+  background: #f4f4f5;
+  cursor: pointer;
+}
+
+.catalog-results-count,
+.catalog-empty-state,
+.catalog-message {
+  margin-block: 1.5rem;
+}
+
+.catalog-message {
+  color: #fecaca;
+}
+
+.catalog-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalog-product-card {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border: 1px solid #48484f;
+  border-radius: 0.75rem;
+  background: #18181b;
+}
+
+.catalog-product-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.catalog-product-card > p {
+  margin: 0.25rem 0;
+}
+
+.catalog-product-price {
+  color: #fff !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.catalog-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-block: 2rem;
+}
+
+.catalog-pagination [aria-disabled='true'] {
+  color: #a1a1aa;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
