@@ -20,7 +20,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | DONE |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | DONE    |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | DONE |
-|     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
+|     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | DONE    |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | BLOCKED |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | BLOCKED |
