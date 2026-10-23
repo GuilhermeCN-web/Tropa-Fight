@@ -139,7 +139,7 @@ Requisitos de cadastro, catálogo, estoque, carrinho, pedidos e pagamentos; RNF 
 
 ACCEPTED
 
-**Aprovação:** 2026-10-23, pelo responsável do projeto, limitada à direção descrita neste ADR. A lista de atributos obrigatórios e a política de SKU permanecem pendentes e deverão ser definidas antes das tarefas que dependam delas.
+**Aprovação:** 2026-10-23, pelo responsável do projeto. Direção e decisões complementares aprovadas para a TASK-007: atributos tamanho/cor quando aplicáveis; SKU manual obrigatório, globalmente único, com comparação ignorando espaços externos e caixa, preservando o texto informado; disponibilidade pública requer produto publicado, variante ativa e preço válido. Produto arquivado rejeita criação de variantes e preserva as existentes; unidade sem atributos aplicáveis pode ser representada por uma variante única com atributos vazios. Preço BRL obrigatório em centavos não negativos é regra de implementação da TASK-007.
 
 ## Contexto
 
@@ -157,9 +157,7 @@ Representar produtos e suas variações sem duplicar informações comerciais ou
 
 ## Decisão
 
-Adotar, como proposta, uma estrutura de produto com variantes comercializáveis. Cada variante deverá possuir identidade própria e SKU único, quando aplicável. Preço, disponibilidade e estoque deverão ser associados à unidade comercial correta.
-
-Os atributos obrigatórios, a política de SKU e as regras para produtos sem variantes precisam ser validados no levantamento do catálogo.
+Adotar uma estrutura de produto com variantes comercializáveis. Cada variante deverá possuir identidade própria e SKU manual obrigatório, único globalmente. Tamanho e cor serão atributos quando aplicáveis ao produto. Preço e disponibilidade comercial serão associados à variante; estoque físico permanece responsabilidade do módulo de estoque.
 
 ## Justificativa
 
@@ -167,7 +165,7 @@ A modelagem permite apresentar um produto de forma unificada ao cliente e contro
 
 ## Consequências
 
-O catálogo deverá distinguir produto, variante e SKU. Carrinho, pedido e estoque deverão referenciar a variante efetivamente selecionada. A lista definitiva de atributos e a política de geração de SKU permanecem pendentes.
+O catálogo deverá distinguir produto, variante e SKU. Carrinho, pedido e estoque deverão referenciar a variante efetivamente selecionada. A comparação do SKU ignora espaços externos e diferenças entre maiúsculas/minúsculas, sem reescrever o texto informado. A disponibilidade física será validada na TASK-009.
 
 ## RF/RN/RNF/UC relacionados
 

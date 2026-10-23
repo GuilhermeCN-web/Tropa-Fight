@@ -4,12 +4,18 @@
 
  - **ID:** TASK-007
 - **Título:** Variantes, preços e disponibilidade
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-02
 - **Priority:** HIGH
 - **Tipo:** Feature / Domain / Application / Persistence / API
 - **Dependências:** TASK-006
 - **Relacionados:** RF-007, RF-008, RF-021, RN-004, RN-005, UC-003
+
+> **Decisões aprovadas (2026-10-23):** atributos de tamanho e cor quando aplicáveis ao produto; SKU obrigatório, informado manualmente e globalmente único; sua comparação ignora espaços externos e diferenças entre maiúsculas/minúsculas, preservando o texto informado. Preço obrigatório por variante em BRL, em centavos inteiros e não negativo. Elegibilidade comercial pública exige produto publicado, variante ativa e preço válido; estoque físico fica para TASK-009. Para produto `ARCHIVED`, rejeitar criação de variantes e preservar as existentes sem alteração até haver regra de reativação. Quando tamanho e cor não se aplicarem, permitir uma única variante com atributos vazios.
+>
+> **Prontidão/início (2026-10-23): IN_PROGRESS.** Definition of Ready atendida. Branch: `feature/TASK-007-variants-pricing`.
+>
+> **Implementação e revisão (2026-10-23): DONE.** Modelo, migration, APIs, autorização, publicação, auditoria e testes implementados; Definition of Done atendida. Gates registrados na seção 95.
 
 ---
 
@@ -253,7 +259,7 @@ productId + nome
 
  # 12\. SKU
 
- Se SKU fizer parte do modelo aprovado:
+ O SKU é obrigatório, informado manualmente e globalmente único, conforme decisão aprovada em 2026-10-23:
 
 ```
 ProductVariant
@@ -262,14 +268,14 @@ ProductVariant
 
  Requisitos:
 
- - [ ] SKU obrigatório quando definido;
-- [ ] SKU único;
-- [ ] comparação normalizada;
+- [x] SKU obrigatório;
+- [x] SKU globalmente único;
+- [x] comparação normalizada ignorando espaços externos e diferença entre maiúsculas/minúsculas, preservando o texto informado;
 - [ ] não permitir duplicidade;
 - [ ] conflito gera erro;
 - [ ] SKU não pode ser alterado silenciosamente se houver dependências futuras.
 
- A regra definitiva de geração/edição do SKU deve seguir a especificação aprovada.
+ Não há geração automática de SKU.
 
 ---
 
@@ -293,7 +299,7 @@ color = Black
 }
 ```
 
- A representação definitiva deve ser escolhida de acordo com a arquitetura e requisitos.
+ Tamanho e cor são os atributos aprovados, quando aplicáveis ao produto. A representação enviada pela API é um objeto de atributos; detalhes de persistência seguem a arquitetura existente.
 
 ---
 
@@ -390,7 +396,7 @@ CONFLICT
 
  # 18\. Preço
 
- Cada variante deve possuir o preço aplicável conforme a regra aprovada.
+ Cada variante deve possuir preço obrigatório em BRL, não negativo, armazenado em centavos inteiros, conforme decisão aprovada em 2026-10-23.
 
  Modelo conceitual:
 
@@ -415,12 +421,12 @@ Variant C → R$ 119,90
 
  Validar:
 
- - [ ] preço obrigatório quando aplicável;
-- [ ] valor não negativo;
-- [ ] precisão monetária correta;
-- [ ] moeda definida;
-- [ ] representação determinística;
-- [ ] arredondamento definido;
+- [x] preço obrigatório por variante;
+- [x] valor não negativo;
+- [x] precisão em centavos inteiros;
+- [x] moeda BRL;
+- [x] representação determinística em centavos;
+- [x] arredondamento não se aplica a entradas em centavos;
 - [ ] atualização controlada.
 
  Não utilizar `float` para representar dinheiro se a arquitetura não definir isso explicitamente.
@@ -512,7 +518,7 @@ Availability allowed
 Commercially Available
 ```
 
- A regra exata deve ser documentada.
+ Regra aprovada em 2026-10-23: produto publicado + variante ativa + preço válido = elegível para exibição como opção comercial. Isso não confirma estoque físico nem substitui validação de estoque na TASK-009.
 
 ---
 
@@ -524,7 +530,7 @@ Commercially Available
 Product 1 ───── N ProductVariant
 ```
 
- Um produto pode possuir zero ou várias variantes, conforme regra do domínio.
+ Um produto pode possuir zero ou várias variantes. Quando tamanho e cor não se aplicarem, permitir uma única variante com atributos vazios para identificar a unidade comercial. A combinação vazia também é única por produto.
 
 ---
 
@@ -574,7 +580,7 @@ REJECTED
 
  ou outra regra explicitamente aprovada.
 
- Não assumir automaticamente que qualquer produto pode receber variantes.
+ Regra aprovada em 2026-10-23: rejeitar criação de variantes para produto `ARCHIVED` e preservar as existentes sem alteração até que uma regra de reativação seja definida.
 
 ---
 
@@ -594,13 +600,13 @@ REJECTED
  Implementar conforme convenções da aplicação:
 
 ```
-POST   /admin/products/:productId/variants
-GET    /admin/products/:productId/variants
-GET    /admin/variants/:id
-PATCH  /admin/variants/:id
+POST   /api/admin/products/:productId/variants
+GET    /api/admin/products/:productId/variants
+GET    /api/admin/variants/:id
+PATCH  /api/admin/variants/:id
 ```
 
- Endpoints reais devem seguir o padrão oficial.
+Criar variante exige `sku`, `attributes`, `priceCents` e `status` (`ACTIVE` ou `INACTIVE`). Atualizar aceita qualquer subconjunto não vazio desses campos. `priceCents` deve ser um inteiro seguro não negativo.
 
 ---
 
@@ -613,6 +619,8 @@ PATCH  /admin/variants/:id
 ```
 GET /products/:id
 ```
+
+O caminho real é `GET /api/products/:id`. A resposta inclui apenas variantes `ACTIVE` de produto `PUBLISHED`, não expõe SKU e representa o preço como `{ priceCents, currency: "BRL" }`. A elegibilidade comercial não confirma disponibilidade de estoque.
 
  Resposta conceitual:
 
@@ -904,15 +912,15 @@ products
 
  # 44\. Estratégia de atributos
 
- Escolher explicitamente entre:
-
- ### Opção A — JSON/JSONB
+Decisão de implementação: atributos são armazenados como JSONB.
 
 ```
-attributes JSON
+attributes JSONB
 ```
 
- ### Opção B — Modelo relacional
+Os atributos permitidos são `size` e `color`; objetos JSONB com propriedades em ordem diferente representam a mesma combinação. A unicidade é garantida por `UNIQUE (product_id, attributes)` no PostgreSQL.
+
+ ### Opção B — Modelo relacional (não escolhido)
 
 ```
 variant_attributes
@@ -920,7 +928,7 @@ attribute_definitions
 attribute_values
 ```
 
- ### Opção C — Modelo híbrido
+ ### Opção C — Modelo híbrido (não escolhido)
 
  Registrar a decisão arquitetural antes da implementação.
 
@@ -1565,17 +1573,17 @@ Create Variant
 
  TASK-007 está pronta para execução quando:
 
- - [ ] TASK-006 está concluída;
-- [ ] Product existe;
-- [ ] regras de variantes estão definidas;
-- [ ] atributos estão definidos;
-- [ ] regra de SKU está definida;
-- [ ] regra de preço está definida;
-- [ ] regra de disponibilidade está definida;
-- [ ] RBAC está disponível;
-- [ ] arquitetura de persistência está definida;
-- [ ] contratos de API estão definidos;
-- [ ] não existem decisões críticas pendentes.
+ - [x] TASK-006 está concluída;
+- [x] Product existe;
+- [x] regras de variantes estão definidas;
+- [x] atributos estão definidos;
+- [x] regra de SKU está definida;
+- [x] regra de preço está definida;
+- [x] regra de disponibilidade está definida;
+- [x] RBAC está disponível;
+- [x] arquitetura de persistência está definida;
+- [x] contratos de API estão definidos;
+- [x] não existem decisões críticas pendentes.
 
 ---
 
@@ -1583,33 +1591,33 @@ Create Variant
 
  TASK-007 somente poderá ser marcada como `DONE` quando:
 
- - [ ] ProductVariant implementado;
-- [ ] atributos implementados;
-- [ ] combinação de atributos validada;
-- [ ] SKU implementado, se aplicável;
-- [ ] preço implementado;
-- [ ] disponibilidade implementada;
-- [ ] estados definidos;
-- [ ] CRUD administrativo implementado;
-- [ ] consulta pública implementada;
-- [ ] autorização implementada;
-- [ ] persistência implementada;
-- [ ] migrations implementadas;
-- [ ] constraints implementadas;
-- [ ] índices necessários implementados;
-- [ ] auditoria integrada;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes RBAC passam;
-- [ ] testes de concorrência aplicáveis passam;
-- [ ] testes de catálogo passam;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] typecheck passa;
-- [ ] documentação atualizada;
-- [ ] TASKS.md atualizado;
-- [ ] nenhum escopo do TASK-008 ou TASK-009 foi antecipado.
+ - [x] ProductVariant implementado;
+- [x] atributos implementados;
+- [x] combinação de atributos validada;
+- [x] SKU implementado;
+- [x] preço implementado;
+- [x] disponibilidade implementada;
+- [x] estados definidos;
+- [x] CRUD administrativo implementado;
+- [x] consulta pública implementada;
+- [x] autorização implementada;
+- [x] persistência implementada;
+- [x] migrations implementadas;
+- [x] constraints implementadas;
+- [x] índices necessários implementados;
+- [x] auditoria integrada;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes RBAC passam;
+- [x] testes de concorrência aplicáveis passam;
+- [x] testes de catálogo passam;
+- [x] build passa;
+- [x] lint passa;
+- [x] typecheck passa;
+- [x] documentação atualizada;
+- [x] TASKS.md atualizado;
+- [x] nenhum escopo do TASK-008 ou TASK-009 foi antecipado.
 
 ---
 
@@ -1618,30 +1626,30 @@ Create Variant
  Executar os comandos oficiais do projeto:
 
 ```
-<lint-command>
-<typecheck-command>
-<unit-test-command>
-<integration-test-command>
-<api-test-command>
-<build-command>
+npm.cmd run lint
+npm.cmd run typecheck
+npm.cmd run format:check
+npm.cmd run db:migrate
+node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run
+npm.cmd run build
 ```
 
  Registrar:
 
 ```
-BUILD:               PASS / FAIL
-LINT:                PASS / FAIL
-TYPECHECK:           PASS / FAIL
-UNIT:                PASS / FAIL
-INTEGRATION:         PASS / FAIL
-API:                 PASS / FAIL
-E2E:                 PASS / FAIL
-RBAC:                PASS / FAIL
-VARIANT INTEGRITY:   PASS / FAIL
-PRICE:               PASS / FAIL
-AVAILABILITY:        PASS / FAIL
-CONCURRENCY:         PASS / FAIL
-AUDIT:               PASS / FAIL
+BUILD:               PASS — npm.cmd run build
+LINT:                PASS — npm.cmd run lint (aviso preexistente em app/layout.tsx)
+TYPECHECK:           PASS — npm.cmd run typecheck
+UNIT:                PASS — Vitest
+INTEGRATION:         PASS — PostgreSQL local
+API:                 PASS — Route Handlers
+E2E:                 N/A — sem interface administrativa/browser; fluxo API coberto por integração
+RBAC:                PASS — anônimo 401 e CUSTOMER 403
+VARIANT INTEGRITY:   PASS — constraints e combinações únicas
+PRICE:               PASS — BRL, centavos e validações
+AVAILABILITY:        PASS — estado ativo/inativo e produto publicado/arquivado
+CONCURRENCY:         PASS — combinações simultâneas não duplicam variante
+AUDIT:               PASS — criação, alteração de preço e disponibilidade
 ```
 
 ---
@@ -1650,12 +1658,12 @@ AUDIT:               PASS / FAIL
 
  | Requisito | Implementação | Teste | Evidência | Status |
 | --- | --- | --- | --- | --- |
-| RF-007 | ProductVariant |  |  |  |
-| RF-008 | Attributes/Pricing |  |  |  |
-| RF-021 | Availability |  |  |  |
-| RN-004 | Variant rules |  |  |  |
-| RN-005 | Price/Availability |  |  |  |
-| UC-003 | Variant selection |  |  |  |
+| RF-007 | ProductVariant | domain model; migration 004 | integration create/list test | PASS |
+| RF-008 | Attributes/Pricing | domain validators; migration 004 | unit + integration tests | PASS |
+| RF-021 | Availability | public eligibility query and detail route | active/inactive integration test | PASS |
+| RN-004 | Variant rules | validators and uniqueness constraints | unit + concurrent integration test | PASS |
+| RN-005 | Price/Availability | cents validation and eligibility query | integration test | PASS |
+| UC-003 | Variant selection | public product detail returns eligible variants | integration test | PASS |
 
 A implementação final deve ser confrontada com a definição oficial de cada requisito.
 
@@ -1890,7 +1898,7 @@ infraestrutura
  Criar ou atualizar o artefato oficial:
 
 ```
-docs/tasks/TASK-007.md
+docs/TASKS/TASK007.MD
 ```
 
  Estrutura:
@@ -2084,3 +2092,59 @@ Cart / Checkout / Orders
 ```
 
  **Regra principal:** o TASK-007 deve tornar cada variante comercial individualmente identificável, precificável e controlável, mas **não deve transformar disponibilidade em estoque, nem antecipar carrinho, checkout ou pagamento**.
+
+---
+
+## TASK Execution Report
+
+TASK: TASK-007
+Status: DONE
+
+Branch: `feature/TASK-007-variants-pricing`
+Commits: `feat(catalog): add variants, pricing and availability [TASK-007]`
+
+### Primary Changes
+- Implementado modelo de variantes no catálogo, com tamanho/cor, SKU obrigatório, preço em BRL por centavos e estado comercial.
+- Adicionada migration `004_catalog_variants.sql`, constraints para atributos, preço e combinação, índice para SKU normalizado globalmente único.
+- Criadas APIs administrativas de criação, consulta e atualização; detalhe público agora retorna apenas variantes ativas de produto publicado, sem expor SKU.
+- Integrada auditoria para criação, alteração de preço e disponibilidade; regras de produto arquivado respeitadas.
+- Atualizados ADR-004, TASK-007 e TASKS.md com decisões e rastreabilidade.
+
+### Incidental Changes
+- Nenhuma.
+
+### Tests Executed
+- `node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run` — 13 arquivos, 26 testes PASS, incluindo testes PostgreSQL locais.
+- `npm.cmd run typecheck` — PASS.
+- `npm.cmd run lint` — PASS; permanece aviso preexistente em `app/layout.tsx`.
+- `npm.cmd run format:check` — PASS.
+- `npm.cmd run build` — PASS.
+- `npm.cmd run db:migrate` — migration aplicada ao PostgreSQL local; execução repetida sem erro.
+
+### Quality Gates
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (aviso preexistente em `app/layout.tsx`) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS (RBAC, validação e não exposição do SKU cobertos) |
+| Acceptance | PASS |
+| Regression | PASS |
+
+### Scope Validation
+
+Allowed Changes: PASS
+Incidental Changes: PASS
+Forbidden Changes: PASS
+Scope Creep: NONE
+
+### Definition of Done
+
+PASS
+
+### Next Eligible TASK
+
+NONE — TASK-008 permanece BLOCKED.

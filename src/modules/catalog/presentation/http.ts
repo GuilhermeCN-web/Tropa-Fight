@@ -3,9 +3,14 @@ import { requirePermission } from '../../auth/presentation/request-identity'
 import { CatalogError } from '../domain/catalog'
 import { CatalogService } from '../application/catalog-service'
 import { PostgresCatalogRepository } from '../infrastructure/postgres-catalog-repository'
+import { ProductVariantService } from '../application/product-variant-service'
+import { PostgresProductVariantRepository } from '../infrastructure/postgres-product-variant-repository'
 
 export const catalogService = new CatalogService(
   new PostgresCatalogRepository(),
+)
+export const productVariantService = new ProductVariantService(
+  new PostgresProductVariantRepository(),
 )
 
 export async function authorizeCatalog(

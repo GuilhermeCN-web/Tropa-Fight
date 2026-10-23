@@ -20,7 +20,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | DONE |
 |     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | DONE    |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | DONE |
-|     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
+|     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | DONE    |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | BLOCKED |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | BLOCKED |
@@ -197,16 +197,18 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-007 — Variantes, preços e disponibilidade
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-02 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-006`
 **Relacionados:** RF-007, RF-008, RF-021, RN-004, RN-005, UC-003
 **Objetivo:** Implementar variantes de produtos, preços e disponibilidade comercial.
-**Artefatos esperados:** ProductVariant, atributos de variante, preço e relacionamento com estoque.
+**Artefatos esperados:** ProductVariant, atributos de variante, preço e ponto de integração com estoque para TASK-009 (sem implementar estoque físico).
 **ALLOWED_CHANGES:** módulos catalog/variants/pricing; persistência; APIs; testes; `TASKS.md`.
 **FORBIDDEN_CHANGES:** reserva definitiva de estoque no checkout, pagamentos, transportadoras.
 **Critérios de aceitação/Testes:** variantes são identificáveis individualmente; preço corresponde à variante; produto sem disponibilidade não pode ser vendido indevidamente.
 **DoD específico:** testes de combinação, preço e disponibilidade passam.
+**Prontidão/início (2026-10-23):** Definition of Ready atendida após aprovações do responsável: tamanho/cor quando aplicáveis; SKU manual obrigatório globalmente único, comparação sem espaços externos e sem diferença entre caixa; preço obrigatório em BRL, centavos e não negativo; elegibilidade pública exige produto publicado, variante ativa e preço válido; produto arquivado rejeita criação e preserva variantes; produto sem atributos aplicáveis pode ter uma única variante vazia. TASK-006 e seus artefatos confirmados. Branch: `feature/TASK-007-variants-pricing`.
+**Execução (2026-10-23):** variantes, validação de atributos/SKU/preço, APIs administrativas e públicas, migration 004, restrições de unicidade, auditoria e testes implementados. Build, lint, typecheck, formatação e suíte PostgreSQL passaram; 13 arquivos/26 testes PASS. Nenhum escopo de TASK-008/009 antecipado. Relatório em `docs/TASKS/TASK007.MD`.
 
 ## TASK-008 — Busca, filtros, ordenação e experiência de catálogo
 
