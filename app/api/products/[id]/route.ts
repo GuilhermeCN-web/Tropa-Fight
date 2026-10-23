@@ -3,6 +3,7 @@ import {
   catalogErrorResponse,
   catalogService,
   notFoundResponse,
+  productVariantService,
 } from '../../../../src/modules/catalog/presentation/http'
 import { CatalogError } from '../../../../src/modules/catalog/domain/catalog'
 
@@ -15,7 +16,10 @@ export async function GET(
     const product = await catalogService.getPublicProduct(id)
     return product
       ? NextResponse.json(
-          { product },
+          {
+            product,
+            variants: await productVariantService.listPublicByProduct(id),
+          },
           { headers: { 'Cache-Control': 'no-store' } },
         )
       : notFoundResponse()
