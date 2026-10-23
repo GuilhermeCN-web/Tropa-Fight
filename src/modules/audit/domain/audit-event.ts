@@ -9,6 +9,14 @@ export const auditActions = [
   'USER_CREATED',
   'USER_UPDATED',
   'USER_ROLE_CHANGED',
+  'PRODUCT_CREATED',
+  'PRODUCT_UPDATED',
+  'PRODUCT_PUBLISHED',
+  'PRODUCT_ARCHIVED',
+  'CATEGORY_CREATED',
+  'CATEGORY_UPDATED',
+  'BRAND_CREATED',
+  'BRAND_UPDATED',
 ] as const
 
 export type AuditAction = (typeof auditActions)[number]
