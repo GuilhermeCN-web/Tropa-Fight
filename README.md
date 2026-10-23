@@ -81,6 +81,20 @@ A aplicação usa Next.js, mantendo React para a interface e executando autentic
 - Erros de configuração devem ser identificados no bootstrap; logs registram somente mensagens operacionais, nunca segredos.
 - Erros esperados e de validação são diferenciados por `ApplicationError` e `ValidationError`; a camada técnica pode lançar `InfrastructureError`. Erros inesperados recebem log genérico sem imprimir payloads ou dados sensíveis.
 
+### Requisitos não funcionais aprovados
+
+Os requisitos abaixo foram definidos e aprovados pelo responsável em 2026-10-23 para suprir a ausência de descrições canônicas anteriores:
+
+| ID | Requisito | Critério aprovado |
+| --- | --- | --- |
+| RNF-010 | Disponibilidade | Meta mensal de 99% em futuro ambiente hospedado. Não constitui SLA contratado; ainda não há ambiente ou medição hospedada. |
+| RNF-014 | Acessibilidade | Fluxos críticos devem atender WCAG 2.2 nível AA ([W3C](https://www.w3.org/TR/WCAG22/)). |
+| RNF-015 | Responsividade | Fluxos críticos devem permanecer utilizáveis de 360 px até desktop, sem perda de funcionalidade. |
+| RNF-016 | Desempenho | p95 de APIs ≤ 2 s e carregamento das páginas críticas ≤ 3 s em ambiente de referência. Ambiente e método de medição devem ser registrados antes da validação. |
+| RNF-017 | Compatibilidade | Suporte às duas versões estáveis mais recentes de Chrome, Edge, Firefox e Safari. |
+
+As definições aprovadas não significam que os critérios já foram implementados ou validados. A validação deve ocorrer nas TASKs e fases aplicáveis, com evidências rastreáveis.
+
 ### Dependências adicionadas nesta fundação
 
 | Dependência | Camada | Finalidade |

@@ -4,7 +4,7 @@
 
  - **ID:** TASK-005
 - **Título:** Checkpoint PHASE-01
-- **Status:** BLOCKED
+- **Status:** DONE
 - **Phase:** PHASE-01
 - **Priority:** HIGH
 - **Tipo:** Quality Gate / Architecture Review / Security Validation / Release Checkpoint
@@ -865,34 +865,34 @@ run
 
 ```
 # instalação
-<COMMAND>
+npm ci
 
 # desenvolvimento
-<COMMAND>
+npm run dev
 
 # lint
-<COMMAND>
+npm run lint
 
 # typecheck
-<COMMAND>
+npm run typecheck
 
 # testes
-<COMMAND>
+npm test
 
 # testes de integração
-<COMMAND>
+node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run
 
 # build
-<COMMAND>
+npm run build
 
 # migrations
-<COMMAND>
+npm run db:migrate
 
 # seed
-<COMMAND>
+N/A — não há seed de desenvolvimento aprovado; o bootstrap local de identidade é `npm run identity:create-admin`.
 
 # aplicação
-<COMMAND>
+npm run start
 ```
 
  Os placeholders devem ser substituídos pelos comandos oficiais do projeto.
@@ -914,14 +914,14 @@ run
 | RNF-007 | TASK-004 | \[ \] | \[ \] | \[ \] |  |
 | RNF-008 | TASK-004 | \[ \] | \[ \] | \[ \] |  |
 | RNF-009 | PHASE posterior | \[ \] | \[ \] | \[ \] | N/A |
-| RNF-010 | Conforme matriz | \[ \] | \[ \] | \[ \] |  |
+| RNF-010 | README.md / TASK-002 | \[ \] | \[ \] | \[ \] | Definição aprovada: disponibilidade mensal 99% em futuro ambiente hospedado; não medida localmente |
 | RNF-011 | TASK-002 | \[ \] | \[ \] | \[ \] |  |
 | RNF-012 | TASK-002 | \[ \] | \[ \] | \[ \] |  |
 | RNF-013 | TASK-001 | \[ \] | \[ \] | \[ \] |  |
-| RNF-014 | Conforme matriz | \[ \] | \[ \] | \[ \] |  |
-| RNF-015 | Conforme matriz | \[ \] | \[ \] | \[ \] |  |
-| RNF-016 | Conforme matriz | \[ \] | \[ \] | \[ \] |  |
-| RNF-017 | Conforme matriz | \[ \] | \[ \] | \[ \] |  |
+| RNF-014 | README.md / TASK-021 | \[ \] | \[ \] | \[ \] | Definição aprovada: WCAG 2.2 AA nos fluxos críticos; validação posterior |
+| RNF-015 | README.md / TASK-021 | \[ \] | \[ \] | \[ \] | Definição aprovada: responsividade 360 px a desktop; validação posterior |
+| RNF-016 | README.md / TASK-021 | \[ \] | \[ \] | \[ \] | Definição aprovada: APIs p95 ≤ 2 s e páginas críticas ≤ 3 s; ambiente de referência pendente antes da validação |
+| RNF-017 | README.md / TASK-021 | \[ \] | \[ \] | \[ \] | Definição aprovada: duas versões estáveis recentes de Chrome, Edge, Firefox e Safari; validação posterior |
 | RNF-018 | TASK-002 | \[ \] | \[ \] | \[ \] |  |
 
 A matriz definitiva deve ser compatível com os requisitos oficiais do projeto.
@@ -1502,26 +1502,26 @@ ELIGIBLE / NOT_ELIGIBLE
 
  | Gate | Resultado | Evidência | Bloqueante |
 | --- | --- | --- | --- |
-| Build |  |  | Sim |
-| Lint |  |  | Sim |
-| Typecheck |  |  | Sim |
-| Unit |  |  | Sim |
-| Integration |  |  | Sim |
-| API |  |  | Sim |
-| Authentication |  |  | Sim |
-| Authorization |  |  | Sim |
-| Security |  |  | Sim |
-| Privacy |  |  | Sim |
-| Audit |  |  | Sim |
-| Notifications |  |  | Não/Conforme |
-| Infrastructure |  |  | Sim |
-| Backup |  |  | Conforme requisito |
-| Restore |  |  | Conforme requisito |
-| Architecture |  |  | Sim |
-| ADRs |  |  | Sim |
-| Documentation |  |  | Não/Conforme |
-| Traceability |  |  | Sim |
-| Scope Control |  |  | Sim |
+| Build | PASS | `npm.cmd run quality`; Next.js build passou | Sim |
+| Lint | PASS (aviso não bloqueante) | oxlint; aviso `react(only-export-components)` em `app/layout.tsx` | Sim |
+| Typecheck | PASS | `tsc --noEmit` via quality | Sim |
+| Unit | PASS | suíte completa com `.env.local`: 18 testes passaram | Sim |
+| Integration | PASS | Vitest com `.env.local`: 9 arquivos/18 testes passaram | Sim |
+| API | PASS | testes existentes e MAN-002/003 (403/401 esperados) | Sim |
+| Authentication | PASS | MAN-001 e teste de integração | Sim |
+| Authorization | PASS | MAN-002/003 e testes existentes | Sim |
+| Security | PASS | revisão de controles e verificação de secrets registrada | Sim |
+| Privacy | PASS | testes existentes de privacidade/logging; dados sintéticos no restore | Sim |
+| Audit | PASS | testes existentes e controle de acesso observado | Sim |
+| Notifications | PASS | testes existentes do adapter base/mock | Não/Conforme |
+| Infrastructure | PASS | baseline local e ambientes futuros documentados | Sim |
+| Backup | PASS | bucket Supabase privado; dump sintético enviado | Conforme requisito |
+| Restore | PASS | SHA-256 igual; dump baixado restaurado em banco isolado (8 tabelas) | Conforme requisito |
+| Architecture | PASS | teste de dependências entre camadas e revisão registrados | Sim |
+| ADRs | PASS | aprovações registradas; detalhes futuros do ADR-004 preservados como pendentes | Sim |
+| Documentation | PASS | README, baseline, matriz e checkpoint atualizados | Não/Conforme |
+| Traceability | PASS | RNFs e evidências mapeados no checkpoint | Sim |
+| Scope Control | PASS | autorização aplicada; sem funcionalidade comercial de PHASE-02 | Sim |
 
 ---
 
@@ -1600,37 +1600,37 @@ PHASE-02 ELIGIBLE
 
  TASK-005 somente poderá ser marcada como `DONE` quando:
 
- - [ ] TASK-002 validada.
-- [ ] TASK-003 validada.
-- [ ] TASK-004 validada.
-- [ ] Build passa.
-- [ ] Lint passa.
-- [ ] Typecheck passa.
-- [ ] Testes unitários passam.
-- [ ] Testes de integração passam.
-- [ ] Testes de API passam.
-- [ ] Autenticação validada.
-- [ ] Autorização validada.
-- [ ] Segurança validada.
-- [ ] Privacidade validada.
-- [ ] Auditoria validada.
-- [ ] Notificações base validadas.
-- [ ] Configuração validada.
-- [ ] Ambientes documentados.
-- [ ] Backup documentado.
-- [ ] Restore validado ou pendência formalmente registrada.
-- [ ] ADRs revisados.
-- [ ] Arquitetura validada.
-- [ ] Secrets verificados.
-- [ ] Documentação atualizada.
-- [ ] Rastreabilidade atualizada.
-- [ ] Riscos registrados.
-- [ ] Pendências registradas.
-- [ ] Correções do checkpoint testadas.
-- [ ] Nenhuma funcionalidade comercial da PHASE-02 foi antecipada.
-- [ ] Relatório de checkpoint criado.
-- [ ] Decisão final registrada.
-- [ ] PHASE-02 declarada elegível somente se os gates permitirem.
+ - [x] TASK-002 validada.
+- [x] TASK-003 validada.
+- [x] TASK-004 validada.
+- [x] Build passa.
+- [x] Lint passa (com aviso não bloqueante registrado).
+- [x] Typecheck passa.
+- [x] Testes unitários passam.
+- [x] Testes de integração passam.
+- [x] Testes de API passam.
+- [x] Autenticação validada.
+- [x] Autorização validada.
+- [x] Segurança validada.
+- [x] Privacidade validada.
+- [x] Auditoria validada.
+- [x] Notificações base validadas.
+- [x] Configuração validada.
+- [x] Ambientes documentados.
+- [x] Backup documentado e ciclo sintético validado.
+- [x] Restore validado em ambiente isolado.
+- [x] ADRs revisados.
+- [x] Arquitetura validada.
+- [x] Secrets verificados.
+- [x] Documentação atualizada.
+- [x] Rastreabilidade atualizada.
+- [x] Riscos registrados.
+- [x] Pendências registradas.
+- [x] Correções do checkpoint testadas.
+- [x] Nenhuma funcionalidade comercial da PHASE-02 foi antecipada.
+- [x] Relatório de checkpoint criado.
+- [x] Decisão final registrada.
+- [x] PHASE-02 declarada elegível conforme os gates.
 
 ---
 
@@ -1640,83 +1640,69 @@ PHASE-02 ELIGIBLE
 
 ```
 TASK-005
-Status: DONE / BLOCKED
+Status: DONE
 
-Build:
-PASS / FAIL
+Build: PASS — `npm.cmd run quality`; Next.js build
 
-Lint:
-PASS / FAIL
+Lint: PASS — oxlint; aviso não bloqueante em `app/layout.tsx`
 
-Typecheck:
-PASS / FAIL
+Typecheck: PASS — `tsc --noEmit`
 
-Unit:
-PASS / FAIL
+Unit: PASS — 18 testes com `.env.local`
 
-Integration:
-PASS / FAIL
+Integration: PASS — Vitest com `.env.local`, 9 arquivos/18 testes
 
-API:
-PASS / FAIL
+API: PASS — testes existentes e MAN-002/003
 
-Authentication:
-PASS / FAIL
+Authentication: PASS — MAN-001 e integração
 
-Authorization:
-PASS / FAIL
+Authorization: PASS — MAN-002/003
 
-Security:
-PASS / FAIL
+Security: PASS — revisão e verificação de secrets registradas
 
-Privacy:
-PASS / FAIL
+Privacy: PASS — testes de privacidade/logging; restore com dados sintéticos
 
-Audit:
-PASS / FAIL
+Audit: PASS — testes existentes e controle de acesso
 
-Notifications:
-PASS / FAIL
+Notifications: PASS — testes do adapter base/mock
 
-Infrastructure:
-PASS / FAIL
+Infrastructure: PASS — baseline local e futuro documentados
 
-Backup:
-PASS / FAIL / PENDING
+Backup: PASS — bucket privado e upload sintético
 
-Restore:
-PASS / FAIL / PENDING
+Restore: PASS — SHA-256 conferido e restore isolado do arquivo baixado
 
-Architecture:
-PASS / FAIL
+Architecture: PASS — teste de camadas e revisão
 
-ADRs:
-PASS / FAIL
+ADRs: PASS — decisões registradas; pendências futuras explicitadas
 
-Documentation:
-PASS / FAIL
+Documentation: PASS — documentação e checkpoint atualizados
 
-Traceability:
-PASS / FAIL
+Traceability: PASS — matriz do checkpoint atualizada
 
-Scope:
-PASS / FAIL
+Scope: PASS — nenhuma funcionalidade comercial de PHASE-02 antecipada
 
-Critical Blockers:
-0 / N
+Critical Blockers: 0
 
-Accepted Pendencies:
-0 / N
+Accepted Pendencies: 0 — validações futuras atribuídas às TASKs aplicáveis
 
-Final Decision:
-PASS / PASS_WITH_ACCEPTED_PENDENCY / BLOCKED
+Final Decision: PASS
 
-PHASE-02:
-ELIGIBLE / NOT_ELIGIBLE
+PHASE-02: ELIGIBLE
 
 Report:
 docs/checkpoints/PHASE-01-CHECKPOINT.md
 ```
+
+## Registro de execução — 2026-10-23
+
+- GATE-001: APROVADO após confirmar dependências/artefatos e registrar as aprovações fornecidas pelo responsável.
+- GATE-002: APROVADO; plano e matriz de rastreabilidade estão em `docs/checkpoints/PHASE-01-CHECKPOINT.md`.
+- GATE-003: APROVADO após PostgreSQL local ser configurado, migrações aplicadas, teste de integração executado, `npm run quality` passar com 18 testes e build passar.
+- GATE-004: APROVADO em 2026-10-23; smoke test HTTP e casos manuais MAN-001–003 passaram. Dump sintético de 17.674 bytes restaurado em banco PostgreSQL local isolado.
+- GATE-005: APROVADO em 2026-10-23. Bucket privado `tropa-fight-backups` criado; upload/download verificados pelo SHA-256 idêntico; restore do arquivo baixado passou em banco isolado (8 tabelas públicas), removido após validação. `npm.cmd run quality` passou; 17 testes passaram e 1 integração foi ignorada por falta de ambiente nesse comando; a suíte completa com `.env.local` passou (9 arquivos/18 testes). `git diff --check` passou. Um aviso de lint não bloqueante permanece em `app/layout.tsx`.
+- Decisões operacionais registradas: RPO máximo de 24 horas; RTO máximo de 8 horas; disponibilidade mensal de 99% para futuro ambiente hospedado. Restore periódico previsto no baseline: antes de produção e, depois, pelo menos anualmente.
+- TASK-005 concluída como `DONE`; PHASE-02 elegível. TASK-006 continua `BLOCKED` e não foi iniciada automaticamente.
 
 ---
 
