@@ -940,7 +940,7 @@ customer:read
 
  **R:**
 
- A documentação exige backup, mas não define frequência.
+Backup lógico diário e antes de mudanças de esquema, com retenção de 30 dias, conforme baseline aprovado em `docs/architecture/infrastructure-baseline.md`. Supabase Storage foi escolhido como destino separado; ciclo sintético de upload, download e restore isolado validado em 2026-10-23. A rotina operacional automatizada segue para as TASKs aplicáveis antes de produção.
 
  **Pergunta:** devemos trabalhar com:
 
@@ -952,7 +952,7 @@ customer:read
 
  **R:**
 
- Ainda não definido.
+ RPO máximo de 24 horas, aprovado pelo responsável em 2026-10-23. A frequência diária de backup pode resultar em perda próxima desse limite; a meta depende da execução e integridade das cópias.
 
  **Pergunta:** qual perda máxima aceitável de dados em caso de desastre?
 
@@ -966,7 +966,7 @@ RPO = 24 horas
 
  **R:**
 
- Ainda não definido.
+ RTO máximo de 8 horas, aprovado pelo responsável em 2026-10-23. A meta ainda depende de teste real de restauração.
 
  **Pergunta:** em caso de desastre, em quanto tempo o sistema deverá estar novamente operacional?
 
@@ -974,7 +974,7 @@ RPO = 24 horas
 
  **R:**
 
- A documentação indica que a restauração deve ser testável.
+Sim. Testar em ambiente isolado antes de produção e, depois, pelo menos anualmente, conforme baseline aprovado. Em 2026-10-23, o dump sintético baixado do bucket privado Supabase Storage foi restaurado com sucesso em banco PostgreSQL local isolado; esse teste valida o fluxo do arquivo de teste, não a rotina futura de backup de produção.
 
  **Pergunta:** devemos estabelecer testes periódicos de restauração como requisito obrigatório?
 
@@ -982,7 +982,7 @@ RPO = 24 horas
 
  **R:**
 
- Ainda não existe uma meta numérica.
+ Meta de disponibilidade mensal de 99% para um futuro ambiente hospedado, aprovada em 2026-10-23. Não há ambiente hospedado nem medição neste baseline local; a meta não constitui SLA contratado.
 
  **Pergunta:** qual será a meta da V1?
 
@@ -998,7 +998,7 @@ RPO = 24 horas
 
  **R:**
 
- A documentação determina que as metas sejam mensuráveis, mas ainda não define números.
+ Em 2026-10-23, o responsável aprovou p95 de APIs ≤ 2 segundos e carregamento de páginas críticas ≤ 3 segundos em ambiente de referência. Ambiente e método de medição deverão ser registrados antes da validação.
 
  **Pergunta:** você quer definir metas específicas para:
 
@@ -1011,6 +1011,20 @@ RPO = 24 horas
 - painel administrativo?
 
 ---
+
+ ## Decisão adicional — RNFs ausentes na matriz (2026-10-23)
+
+ Como não havia descrições canônicas para RNF-010 e RNF-014–017 no repositório, o responsável aprovou os seguintes textos propostos:
+
+ - RNF-010: disponibilidade mensal de 99% em futuro ambiente hospedado; não constitui SLA contratado.
+- RNF-014: fluxos críticos devem atender WCAG 2.2 nível AA.
+- RNF-015: fluxos críticos utilizáveis de 360 px até desktop, sem perda de funcionalidade.
+- RNF-016: p95 de APIs ≤ 2 s e carregamento de páginas críticas ≤ 3 s em ambiente de referência.
+- RNF-017: suporte às duas versões estáveis mais recentes de Chrome, Edge, Firefox e Safari.
+
+As definições são decisões de requisito, não evidência de implementação ou validação. O ambiente e método para medir RNF-016 devem ser registrados antes da validação.
+
+ ---
 
  # Rodada 16 — Arquitetura e tecnologia
 

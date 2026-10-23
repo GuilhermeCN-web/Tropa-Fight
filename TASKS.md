@@ -18,7 +18,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     2 | TASK-002 | PHASE-01 | HIGH       | TASK-001                   | DONE |
 |     3 | TASK-003 | PHASE-01 | CRITICAL   | TASK-001                   | DONE |
 |     4 | TASK-004 | PHASE-01 | HIGH       | TASK-003                   | DONE |
-|     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | BLOCKED |
+|     5 | TASK-005 | PHASE-01 | HIGH       | TASK-002,TASK-003,TASK-004 | DONE    |
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | BLOCKED |
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | BLOCKED |
@@ -115,7 +115,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 - INCIDENTAL: nenhuma. FORBIDDEN: nenhuma.
 - Quality Gates: Build PASS; Lint PASS; Unit PASS; Integration N/A; API N/A; Security PASS (verificação de secrets/configuração); Acceptance PASS; Regression N/A (nenhum código alterado).
 - Escopo: ALLOWED_CHANGES PASS; mudanças incidentais PASS; FORBIDDEN_CHANGES PASS; Scope Creep NONE.
-- RPO/RTO, mecanismo/provedor do banco e provedores dos ambientes hospedados seguem `PENDING_APPROVAL`; nenhuma decisão foi mascarada nem serviço foi provisionado.
+- Em decisão posterior registrada na TASK-005 (2026-10-23), RPO foi definido como máximo de 24 horas e RTO como máximo de 8 horas; disponibilidade mensal alvo foi definida como 99% para futuro ambiente hospedado. Mecanismo/provedor do banco, provedores de ambientes e destino de backup seguem pendentes; nenhum serviço foi provisionado.
 - Próxima TASK elegível: NONE; TASK-003 e TASK-004 continuam BLOCKED por decisões próprias.
 
 ## TASK-003 — Identidade, autenticação e autorização
@@ -159,7 +159,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-005 — Checkpoint PHASE-01
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-01 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-002,TASK-003,TASK-004`
 **Relacionados:** RNF-001–018, ADR-001–004
@@ -169,6 +169,14 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** funcionalidades comerciais das fases seguintes.
 **Critérios de aceitação/Testes:** build/lint/testes passam; decisões críticas estão registradas; nenhum bloqueio relevante foi ignorado.
 **DoD específico:** PHASE-02 torna-se elegível.
+
+**GATE-001 (2026-10-23):** APROVADO. Dependências TASK-002, TASK-003 e TASK-004 confirmadas como DONE, com artefatos presentes. ADR-001/002 aprovados conforme texto atual e ADR-004 aprovado em sua direção, com atributos obrigatórios e política de SKU pendentes, conforme decisão do responsável. Lacunas RNF serão mapeadas sem inferências. Branch: `chore/TASK-005-phase-01-checkpoint`.
+**GATE-002 (2026-10-23):** APROVADO. Plano e matriz de rastreabilidade registrados em `docs/checkpoints/PHASE-01-CHECKPOINT.md`.
+**GATE-003 (2026-10-23):** APROVADO. PostgreSQL 18 local configurado; banco `tropa_fight` criado; migrações TASK-003 aplicadas; autenticação por senha verificada; teste de integração passou. `npm run quality` passou com `.env.local` carregado: 9 arquivos/18 testes, build, lint, typecheck e formatação; lint mantém aviso em `app/layout.tsx`. Evidências em `docs/checkpoints/PHASE-01-CHECKPOINT.md`.
+**GATE-004 (2026-10-23):** APROVADO. Smoke test HTTP passou; responsável confirmou MAN-001 (cadastro/login/perfil/logout), MAN-002 (403 para CUSTOMER) e MAN-003 (401 após logout). O dump sintético também passou restore local isolado.
+**Decisões operacionais (2026-10-23):** RPO máximo 24 horas; RTO máximo 8 horas; meta de disponibilidade mensal 99% para futuro ambiente hospedado. O responsável aprovou os textos propostos para RNF-010 e RNF-014–017; definições registradas em `README.md` e rastreadas no checkpoint. Supabase Storage foi selecionado sob condição de bucket privado, sem upgrade, arquivo de até 50 MB e uso dentro da cota de 1 GB.
+**Validação de backup/restore (2026-10-23):** responsável criou o bucket privado `tropa-fight-backups`, enviou o dump sintético e baixou o objeto. SHA-256 original e baixado coincide (`210F4DB2769FB974F90BEFDB4C5CA787BA140AC5722ED0A85E994B8623BB4675`); restore do arquivo baixado passou em banco PostgreSQL local isolado (8 tabelas públicas), depois removido. Critério técnico de destino/restore satisfeito e evidência incorporada ao relatório final.
+**GATE-005 (2026-10-23):** APROVADO. Bucket Supabase privado criado; upload/download do dump sintético verificados por SHA-256 idêntico; restore do arquivo baixado passou em base local isolada (8 tabelas públicas), depois removida. `npm.cmd run quality` e a suíte completa com `.env.local` passaram; `git diff --check` passou. Lint emite um aviso não bloqueante em `app/layout.tsx`. TASK-005 `DONE`; PHASE-02 elegível. TASK-006 permanece `BLOCKED` e não foi iniciada automaticamente. Evidências em `docs/checkpoints/PHASE-01-CHECKPOINT.md`.
 
 ---
 

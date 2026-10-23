@@ -37,16 +37,23 @@ Não há backup operacional enquanto não existir banco ou dado persistente. Par
 
 - gerar backup lógico diário e antes de mudanças de esquema;
 - manter cópias por 30 dias, com criptografia em trânsito e repouso e acesso restrito;
-- guardar cópia em destino separado do banco principal; selecionar o provedor/destino antes de provisionar;
+- guardar cópia em destino separado do banco principal; o responsável selecionou Supabase Storage em 2026-10-23, com bucket privado e sem upgrade de plano;
+- usar somente se o arquivo tiver até 50 MB e o armazenamento total permanecer dentro da cota aprovada de 1 GB; interromper e pedir decisão se qualquer limite for excedido;
 - verificar conclusão e integridade de cada cópia e alertar sobre ausência ou falha;
 - testar restauração em ambiente isolado antes de produção e, depois, ao menos anualmente;
 - registrar horário, versão, integridade, ambiente, duração e resultado do restore; validar estrutura, contagens e inicialização da aplicação antes de liberar o ambiente.
 
 Procedimento de restore: registrar incidente e impacto; escolher cópia íntegra anterior ao evento; preparar ambiente isolado; restaurar sem sobrescrever a origem; validar esquema e dados; executar verificações da aplicação; obter aprovação operacional antes de eventual troca; registrar duração, perdas observadas e resultado. A ferramenta e os comandos dependem do banco e do provedor aprovados.
 
-**RPO:** `PENDING_APPROVAL`; não inferir a partir da frequência diária de backup.
+Supabase Storage guarda os dados do objeto como arquivo em armazenamento de objetos, com metadados registrados no projeto Supabase; a cópia do PostgreSQL será um arquivo de dump, não conteúdo inserido em uma tabela da aplicação. O responsável criou o bucket privado `tropa-fight-backups` e o ciclo sintético de envio, download e restore isolado passou em 2026-10-23. Referências: [Storage Quickstart](https://supabase.com/docs/guides/storage/quickstart), [limites de arquivos](https://supabase.com/docs/guides/storage/uploads/file-limits) e [preços de Storage](https://supabase.com/docs/guides/storage/pricing). Limites conferidos em 2026-10-23; revalidar antes do uso operacional.
 
-**RTO:** `PENDING_APPROVAL`; requer meta de negócio e teste de recuperação.
+**RPO:** no máximo 24 horas, aprovado pelo responsável em 2026-10-23. Com backup diário, a perda efetiva pode variar conforme o horário da última cópia íntegra.
+
+**RTO:** até 8 horas, aprovado pelo responsável em 2026-10-23. A meta ainda requer teste de recuperação para demonstrar que pode ser cumprida.
+
+**Disponibilidade:** meta mensal de 99%, aprovada pelo responsável em 2026-10-23. Aplica-se a um futuro ambiente hospedado; não há serviço hospedado nem medição de disponibilidade neste baseline local.
+
+Esta meta é rastreada como RNF-010. Não representa SLA contratado.
 
 ## Logs, métricas, saúde e alertas
 
@@ -77,7 +84,7 @@ Staging só poderá ser criado após escolha e autorização explícita do prove
 | AC-003 — Configuração | `.env.example`, `.env` ignorado e seção Configuração |
 | AC-004 — Secrets | Seção Configuração e secrets; nenhuma credencial no front |
 | AC-005/006 — Backup e restore | Seção Backup e restauração |
-| AC-007/008 — RPO/RTO | Ambos explicitamente `PENDING_APPROVAL` |
+| AC-007/008 — RPO/RTO | RPO de até 24 horas e RTO de até 8 horas, aprovados em 2026-10-23; restore ainda não testado |
 | AC-009/010 — Observabilidade e dados sensíveis | Seção Logs, métricas, saúde e alertas |
 | AC-011 — Decisões | ADR-003, ADR-014 e matriz de decisões |
 | AC-012 — Infraestrutura aprovada | Nenhum provedor ou ambiente remoto provisionado |
@@ -92,8 +99,9 @@ Staging só poderá ser criado após escolha e autorização explícita do prove
 | Produção | `PENDING_APPROVAL` | Sem infraestrutura, custo ou deploy |
 | Persistência futura | Estratégia relacional aprovada; motor/provedor pendentes | ADR-003 |
 | Secrets | Estratégia provider-neutral aprovada; ferramenta pendente | Este baseline |
-| Backup/restore futuro | Baseline aprovado; ferramenta/destino pendentes | Este baseline |
-| RPO / RTO | `PENDING_APPROVAL` | Decisão de negócio ainda necessária |
+| Backup/restore futuro | Supabase Storage selecionado; bucket privado e ciclo de arquivo sintético validado; automação/rotina operacional futura | Decisão e validação do responsável em 2026-10-23 e este baseline |
+| RPO / RTO | RPO ≤ 24h; RTO ≤ 8h | Metas aprovadas em 2026-10-23; execução de restore pendente |
+| Disponibilidade | Meta mensal de 99% | Aplicável a ambiente hospedado futuro; não mensurada no baseline local |
 | Observabilidade | Controles locais definidos; provedor/thresholds pendentes | ADR-014 e este baseline |
 
 Pendências futuras não autorizam provisionamento ou gasto. Elas bloqueiam somente os ambientes, dados e operações que dependam das escolhas ainda não aprovadas.

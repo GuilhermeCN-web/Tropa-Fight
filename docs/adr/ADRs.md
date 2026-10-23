@@ -2,7 +2,9 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-10-23, pelo responsável do projeto, conforme o texto atual.
 
 ## Contexto
 
@@ -42,7 +44,9 @@ RF de catálogo, comércio, estoque, pedidos e administração; RNF de manutenib
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-10-23, pelo responsável do projeto, conforme o texto atual.
 
 ## Contexto
 
@@ -133,7 +137,9 @@ Requisitos de cadastro, catálogo, estoque, carrinho, pedidos e pagamentos; RNF 
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-10-23, pelo responsável do projeto, limitada à direção descrita neste ADR. A lista de atributos obrigatórios e a política de SKU permanecem pendentes e deverão ser definidas antes das tarefas que dependam delas.
 
 ## Contexto
 
