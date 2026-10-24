@@ -1,6 +1,6 @@
 # TASK-010 — Checkpoint PHASE-02
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-02 / HIGH\
  **Dependências:** `DEPENDS_ON: TASK-009`\
  **Estado de entrada esperado:** `BLOCKED` até `TASK-009 = DONE`\
@@ -73,6 +73,8 @@ Movimentações
 - Scope Guard da TASK-010 estiver validado.
 
  Se alguma dependência não estiver realmente concluída, a TASK permanece `BLOCKED`.
+
+ **Definition of Ready verificada (2026-10-24): PASS.** TASK-006/007/008/009 estão `DONE`; os respectivos relatórios, contratos de catálogo/estoque e rastreabilidade estão disponíveis; os registros de execução anteriores reportam build, lint e testes aplicáveis aprovados; o Scope Guard exclui funcionalidades da PHASE-03. Decisão do responsável para Gate 10/AC-12: disponibilidade comercial pública permanece independente do saldo físico. O checkpoint validará elegibilidade comercial do catálogo e, separadamente, saldo/movimentações do inventário para a mesma variante; movimentações não devem alterar os resultados públicos. Nenhuma regra comercial ou contrato público foi ampliado. Branch: `feature/TASK-010-phase-02-checkpoint`; transição `BLOCKED → READY → IN_PROGRESS`.
 
 ---
 
@@ -379,6 +381,8 @@ PUBLIC_CATALOG_VISIBILITY = PASS
  ## Gate 10 — Disponibilidade
 
  Validar que a informação de disponibilidade permanece consistente com o domínio de variantes e estoque.
+
+ **Interpretação aprovada para esta TASK:** disponibilidade comercial pública é independente do saldo físico. A API pública continua sem expor saldo nem afirmar disponibilidade física; a elegibilidade comercial segue publicação, variante ativa e preço válido. Validar a associação correta da variante ao inventário e a integridade de saldo/movimentações separadamente. Uma saída/entrada/ajuste não altera por si só os resultados do catálogo público.
 
  Exemplo conceitual:
 
@@ -942,24 +946,24 @@ A correção evita introduzir funcionalidade nova?
  # 26\. Checklist de Quality Gates
 
 ```
-[ ] Build
-[ ] Lint
-[ ] Unit tests
-[ ] Integration tests
-[ ] API/contract tests
-[ ] Authorization tests
-[ ] Catalog visibility tests
-[ ] Search/filter tests
-[ ] Sorting/pagination tests
-[ ] Inventory integrity tests
-[ ] Concurrency tests
-[ ] Transaction/atomicity tests
-[ ] Accessibility tests
-[ ] Security checks
-[ ] Migration/database validation
-[ ] Regression suite
-[ ] Traceability review
-[ ] Scope Guard
+[x] Build
+[x] Lint
+[x] Unit tests
+[x] Integration tests
+[x] API/contract tests
+[x] Authorization tests
+[x] Catalog visibility tests
+[x] Search/filter tests
+[x] Sorting/pagination tests
+[x] Inventory integrity tests
+[x] Concurrency tests
+[x] Transaction/atomicity tests
+[x] Accessibility tests
+[x] Security checks
+[x] Migration/database validation
+[x] Regression suite
+[x] Traceability review
+[x] Scope Guard
 ```
 
  Todos os Gates obrigatórios devem possuir evidência.
@@ -1034,37 +1038,37 @@ A correção evita introduzir funcionalidade nova?
 
  A `TASK-010` somente poderá ser marcada como `DONE` quando:
 
- - [ ] TASK-006 validada;
-- [ ] TASK-007 validada;
-- [ ] TASK-008 validada;
-- [ ] TASK-009 validada;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de autorização passam;
-- [ ] testes de catálogo público passam;
-- [ ] testes de busca/filtros passam;
-- [ ] testes de ordenação/paginação passam;
-- [ ] testes de estoque passam;
-- [ ] testes de concorrência passam;
-- [ ] testes transacionais passam;
-- [ ] testes de acessibilidade passam;
-- [ ] validações de segurança passam;
-- [ ] migrations/banco validados;
-- [ ] regressão da PHASE-02 executada;
-- [ ] inconsistências críticas resolvidas;
-- [ ] pendências restantes registradas;
-- [ ] rastreabilidade atualizada;
-- [ ] Scope Guard validado;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] nenhum Scope Creep identificado;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de checkpoint produzido;
-- [ ] decisão formal de encerramento da PHASE-02 registrada;
-- [ ] estado final registrado como `DONE`.
+ - [x] TASK-006 validada;
+- [x] TASK-007 validada;
+- [x] TASK-008 validada;
+- [x] TASK-009 validada;
+- [x] build passa;
+- [x] lint passa;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de autorização passam;
+- [x] testes de catálogo público passam;
+- [x] testes de busca/filtros passam;
+- [x] testes de ordenação/paginação passam;
+- [x] testes de estoque passam;
+- [x] testes de concorrência passam;
+- [x] testes transacionais passam;
+- [x] testes de acessibilidade passam;
+- [x] validações de segurança passam;
+- [x] migrations/banco validados;
+- [x] regressão da PHASE-02 executada;
+- [x] inconsistências críticas resolvidas;
+- [x] pendências restantes registradas;
+- [x] rastreabilidade atualizada;
+- [x] Scope Guard validado;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] nenhum Scope Creep identificado;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de checkpoint produzido;
+- [x] decisão formal de encerramento da PHASE-02 registrada;
+- [x] estado final registrado como `DONE`.
 
 ---
 
@@ -1371,3 +1375,81 @@ PRÓXIMO ESTADO:
 8. marcar a TASK como `DONE`, somente se todos os critérios forem atendidos;
 9. **não iniciar automaticamente a `TASK-011`**;
 10. aguardar autorização explícita para iniciar a próxima TASK.
+
+---
+
+## 36. Relatório de execução — checkpoint PHASE-02
+
+TASK: TASK-010
+Status: DONE
+Branch: `feature/TASK-010-phase-02-checkpoint`
+Commits: nenhum; alterações mantidas na working tree para revisão.
+
+### Escopo validado
+
+- TASK-006: PASS — produto, categoria, marca, publicação/visibilidade, relações, RBAC e auditoria cobertos por `catalog-flow.test.ts` e relatório TASK-006.
+- TASK-007: PASS — variante, SKU, preço, estado comercial e publicação cobertos por `product-variant-flow.test.ts` e relatório TASK-007.
+- TASK-008: PASS — busca, filtros combinados, ordenação determinística, paginação e visibilidade cobertos por `catalog-search-flow.test.ts`, `catalog-search.test.ts` e `catalog-browser.test.tsx`; relatório TASK-008 revisado.
+- TASK-009: PASS — saldo, entradas/saídas/ajustes, histórico imutável, atomicidade, autorização e concorrência cobertos por `inventory-flow.test.ts`, `inventory-api.test.ts` e relatório TASK-009.
+
+### Quality Gates
+
+| Gate | Resultado | Evidência |
+|---|---|---|
+| Build | PASS | `npm run build` dentro de `npm run quality`; Next.js compilou e gerou as rotas. `next start --port 3100` iniciou após correção da colisão de segmentos. |
+| Lint | PASS | `npm run lint`; permanece somente o aviso preexistente de `react(only-export-components)` em `app/layout.tsx`. |
+| Unit | PASS | Suíte Vitest completa: 19 arquivos, 53 testes aprovados. |
+| Integration | PASS | Suíte PostgreSQL completa; inclui migrations 001–005 em schema isolado, catálogo/variante/estoque e novo cenário antes/depois de movimentações. |
+| API/Contract | PASS | Testes de API/contrato de catálogo, variantes, busca e inventário; rota de variantes preserva o caminho HTTP existente. |
+| Authorization | PASS | Testes de RBAC em catálogo, variantes e inventário; permissão `inventory.manage` limitada aos papéis aprovados. |
+| Catalog visibility | PASS | Testes de produto não publicado/arquivado, marca/categoria inativa e variante inelegível nas consultas públicas. |
+| Search/filters | PASS | Busca e combinação de categoria, marca e faixa de preço; validação de parâmetros inválidos/injeção. |
+| Sorting/pagination | PASS | Ordenação com desempate estável, páginas consecutivas, última página, página além do total e conjunto vazio. |
+| Inventory integrity | PASS | Saldo e histórico conferidos; constraints, FK, imutabilidade e rejeição de saldo insuficiente cobertos. |
+| Concurrency | PASS | Duas saídas sobre saldo 1: uma confirmada, uma rejeitada, saldo zero e uma movimentação de saída. |
+| Atomicity | PASS | Atualização do saldo e movimento transacionais; rollback de falha de persistência coberto. |
+| Availability consistency | PASS | Teste integrado comprova que variante comercialmente elegível continua no catálogo sem alteração após entrada, saída e ajuste, mesmo com estoque final zero; a consulta de estoque permanece consistente e separada. |
+| Accessibility | PASS | `catalog-browser.test.tsx` confere labels, status anunciado e paginação via links nativos; renderização de `/catalog` inspecionada em HTTP 200 com controles rotulados. Controles HTML nativos preservam operação por teclado e foco padrão do navegador. |
+| Security | PASS | RBAC, validação/allowlist de ordenação, parâmetros SQL e tentativa de injeção cobertos pelos testes aplicáveis. |
+| Migrations/database | PASS | Migrations 001–005 aplicadas em schema PostgreSQL isolado pela suíte de integração; constraints e relacionamentos exercitados. |
+| Regression | PASS | `npm run quality`: 19 arquivos e 53 testes aprovados após as correções, build/lint/typecheck/formatação aprovados. |
+| Traceability | PASS | Matriz abaixo relaciona RF/RN/UC às evidências verificadas. |
+
+Comando de Quality Gate: `node --env-file-if-exists=.env.local -e "const { spawnSync } = require('node:child_process'); process.exit(spawnSync('npm.cmd', ['run', 'quality'], { stdio: 'inherit', shell: true }).status ?? 1)"`. O carregamento de `.env.local` é necessário para executar as suítes PostgreSQL; nenhum valor do arquivo foi incluído no relatório.
+
+### Correções realizadas
+
+- Resolvida colisão de roteamento Next.js entre `/api/admin/products/[id]` e `/api/admin/products/[productId]/variants`, que impedia `next start` apesar do build passar. A rota de variantes passou a usar o segmento `[id]` e o tipo de `params` correspondente; URL e contrato HTTP não mudaram. O guia local de segmentos dinâmicos do Next.js foi consultado.
+- Adicionado cenário de integração no schema isolado do PostgreSQL: confirma a elegibilidade comercial pública da variante antes e após entrada, saída e ajuste de estoque; saldo/movimentações mudam de acordo com o inventário, enquanto o resultado comercial não muda.
+
+### Integração e disponibilidade aprovada
+
+- Product → Variant: PASS — vínculo e identidade validados nos testes de variantes.
+- Variant → Price: PASS — preço em centavos por variante validado nos testes de variantes e filtros.
+- Variant → Inventory: PASS — saldo e movimentos referenciam a mesma variante por FK; saldo inicial zero validado.
+- Inventory → Availability: PASS — saldo físico e disponibilidade comercial validados separadamente conforme decisão do responsável; saldo zero não remove elegibilidade comercial.
+- Catalog → Search: PASS — visibilidade, busca, filtros, ordenação e paginação validados sob contrato público.
+
+### Rastreabilidade
+
+- RF-003–006 → produto, categoria, marca, publicação e visibilidade: `catalog-flow.test.ts`.
+- RF-007–008 / RN-004–005 → variantes, preço e disponibilidade comercial: `product-variant-flow.test.ts`; decisão de separação do estoque registrada neste relatório e na prontidão.
+- RF-009–012 / UC-002–003 → busca, filtros, ordenação, paginação e apresentação acessível: `catalog-search-flow.test.ts`, `catalog-search.test.ts`, `catalog-browser.test.tsx`.
+- RF-013–014 / RN-006–007 / UC-010 → saldo, movimentos, atomicidade, concorrência e autorização: `inventory-flow.test.ts`, `inventory-api.test.ts`.
+
+### Scope Validation
+
+- Allowed Changes: PASS — teste integrado da PHASE-02, documentação do checkpoint e correção mínima da rota que impedia iniciar a aplicação.
+- Incidental Changes: nenhuma.
+- Forbidden Changes: PASS — nenhuma funcionalidade/contrato da PHASE-03 adicionada; nenhuma regra pública de disponibilidade alterada.
+- Scope Creep: NONE.
+
+Problemas encontrados: colisão de segmentos dinâmicos impedia inicializar o servidor; corrigida. A interpretação de disponibilidade foi resolvida pelo responsável antes da execução do cenário integrado. Pendências bloqueantes: nenhuma. Risco residual: aviso lint preexistente em `app/layout.tsx`, sem relação com a PHASE-02.
+
+### Decisão da PHASE-02
+
+**LIBERADA.** TASK-006, TASK-007, TASK-008, TASK-009 e todos os gates obrigatórios do checkpoint foram validados; build, lint, suíte regressiva, integridade/concorrência do estoque, visibilidade comercial, API, acessibilidade semântica/teclado e rastreabilidade estão aprovados. TASK-011 fica elegível, mas não foi iniciada.
+
+Definition of Done: PASS. Transição registrada: `IN_PROGRESS → IN_REVIEW → DONE`.
+
+Próxima TASK elegível: TASK-011 — permanece `BLOCKED` até autorização explícita e início separado.

@@ -9,7 +9,7 @@ import {
 import {
   POST as createVariantApi,
   GET as listVariantsApi,
-} from '../../app/api/admin/products/[productId]/variants/route'
+} from '../../app/api/admin/products/[id]/variants/route'
 import { PATCH as updateVariantApi } from '../../app/api/admin/variants/[id]/route'
 import { GET as getPublicProductApi } from '../../app/api/products/[id]/route'
 
@@ -121,7 +121,7 @@ describe.skipIf(!databaseConfigured)(
       customerToken = await createSession(customerId)
       const actorCookie = `tropa_session=${actorToken}`
       const customerCookie = `tropa_session=${customerToken}`
-      const routeContext = { params: Promise.resolve({ productId }) }
+      const routeContext = { params: Promise.resolve({ id: productId }) }
       const input = {
         sku: '  TF-GLOVE-M  ',
         attributes: { size: 'M', color: 'Black' },
@@ -215,7 +215,7 @@ describe.skipIf(!databaseConfigured)(
           },
           actorCookie,
         ),
-        { params: Promise.resolve({ productId: secondProductId }) },
+        { params: Promise.resolve({ id: secondProductId }) },
       )
       expect(duplicateGlobalSku.status).toBe(409)
 
@@ -226,7 +226,7 @@ describe.skipIf(!databaseConfigured)(
           { ...input, sku: 'TF-ONE-SIZE', attributes: {} },
           actorCookie,
         ),
-        { params: Promise.resolve({ productId: secondProductId }) },
+        { params: Promise.resolve({ id: secondProductId }) },
       )
       expect(emptyAttributesVariant.status).toBe(201)
       const duplicateEmptyAttributes = await createVariantApi(
@@ -236,7 +236,7 @@ describe.skipIf(!databaseConfigured)(
           { ...input, sku: 'TF-ONE-SIZE-2', attributes: {} },
           actorCookie,
         ),
-        { params: Promise.resolve({ productId: secondProductId }) },
+        { params: Promise.resolve({ id: secondProductId }) },
       )
       expect(duplicateEmptyAttributes.status).toBe(409)
 

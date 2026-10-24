@@ -4,6 +4,8 @@ import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Pool } from 'pg'
 import { getDatabasePool } from '../../src/infrastructure/database/pool'
+import { PostgresCatalogRepository } from '../../src/modules/catalog/infrastructure/postgres-catalog-repository'
+import { PostgresProductVariantRepository } from '../../src/modules/catalog/infrastructure/postgres-product-variant-repository'
 import { PostgresInventoryRepository } from '../../src/modules/inventory/infrastructure/postgres-inventory-repository'
 
 const databaseConfigured = Boolean(process.env.DATABASE_URL)
@@ -18,6 +20,8 @@ const ids = {
 }
 let testPool: Pool | undefined
 let repository: PostgresInventoryRepository
+let catalogRepository: PostgresCatalogRepository
+let variantRepository: PostgresProductVariantRepository
 
 describe.skipIf(!databaseConfigured)('inventory PostgreSQL integration', () => {
   beforeAll(async () => {
@@ -59,7 +63,7 @@ describe.skipIf(!databaseConfigured)('inventory PostgreSQL integration', () => {
       )
       await client.query(
         `INSERT INTO catalog_products (id, name, brand_id, publication_state)
-         VALUES ($1, $2, $3, 'DRAFT')`,
+         VALUES ($1, $2, $3, 'PUBLISHED')`,
         [ids.product, `Inventory ${ids.product.slice(0, 8)}`, ids.brand],
       )
       await client.query(
@@ -80,6 +84,8 @@ describe.skipIf(!databaseConfigured)('inventory PostgreSQL integration', () => {
       client.release()
     }
     repository = new PostgresInventoryRepository(testPool)
+    catalogRepository = new PostgresCatalogRepository(testPool)
+    variantRepository = new PostgresProductVariantRepository(testPool)
   })
 
   afterAll(async () => {
@@ -89,6 +95,24 @@ describe.skipIf(!databaseConfigured)('inventory PostgreSQL integration', () => {
   })
 
   it('keeps entry, exit, adjustment, audit, and balance consistent', async () => {
+    const catalogBeforeMovements = await catalogRepository.searchPublicProducts(
+      {
+        q: `Inventory ${ids.product.slice(0, 8)}`,
+        sort: 'name_asc',
+        page: 1,
+        pageSize: 20,
+      },
+    )
+    expect(catalogBeforeMovements.items.map((product) => product.id)).toEqual([
+      ids.product,
+    ])
+    const publicVariantsBeforeMovements =
+      await variantRepository.listPublicByProduct(ids.product)
+    expect(publicVariantsBeforeMovements).toMatchObject([
+      { id: ids.variant, commerciallyAvailable: true },
+    ])
+    expect(publicVariantsBeforeMovements[0]).not.toHaveProperty('sku')
+
     await expect(repository.getBalance(ids.variant)).resolves.toEqual({
       variantId: ids.variant,
       quantity: 0,
@@ -129,6 +153,21 @@ describe.skipIf(!databaseConfigured)('inventory PostgreSQL integration', () => {
       'ENTRY',
       'EXIT',
     ])
+    await expect(repository.getBalance(ids.variant)).resolves.toEqual({
+      variantId: ids.variant,
+      quantity: 0,
+    })
+    await expect(
+      catalogRepository.searchPublicProducts({
+        q: `Inventory ${ids.product.slice(0, 8)}`,
+        sort: 'name_asc',
+        page: 1,
+        pageSize: 20,
+      }),
+    ).resolves.toEqual(catalogBeforeMovements)
+    await expect(
+      variantRepository.listPublicByProduct(ids.product),
+    ).resolves.toEqual(publicVariantsBeforeMovements)
     await expect(
       testPool!.query('UPDATE inventory_movements SET reason = $1', [
         'tampered history',
