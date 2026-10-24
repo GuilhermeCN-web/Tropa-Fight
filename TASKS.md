@@ -22,7 +22,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     6 | TASK-006 | PHASE-02 | CRITICAL   | TASK-005                   | DONE |
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | DONE    |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | DONE |
-|     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | BLOCKED |
+|     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | DONE |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | BLOCKED |
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | BLOCKED |
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | BLOCKED |
@@ -228,16 +228,19 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-009 — Estoque e movimentações
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-02 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-007,TASK-008`
 **Relacionados:** RF-013, RF-014, RN-006, RN-007, UC-010, ADR-005
 **Objetivo:** Implementar estoque, movimentações e controles administrativos de inventário.
 **Artefatos esperados:** Inventory, InventoryMovement, ajustes, entradas, saídas e consulta de saldo.
-**ALLOWED_CHANGES:** módulos inventory/stock; persistência; APIs administrativas; testes; `TASKS.md`.
+**ALLOWED_CHANGES:** módulos inventory/stock; persistência; APIs administrativas; testes; documentação técnica; ADR-005; `TASKS.md`.
 **FORBIDDEN_CHANGES:** pagamento, logística externa, reserva de checkout não especificada.
 **Critérios de aceitação/Testes:** saldo é consistente; movimentações são auditáveis; alterações respeitam autorização; concorrência não produz saldo negativo indevido.
 **DoD específico:** testes de integridade e concorrência aplicáveis passam.
+**Prontidão aprovada (2026-10-24):** saldo inicial zero por variante; saídas acima do saldo são rejeitadas atomicamente; entradas/saídas usam inteiros positivos; ajustes são deltas inteiros assinados; motivo obrigatório e histórico imutável; Administrador Geral e Gestor de Catálogo podem consultar/alterar por RBAC; atualização condicional e registro da movimentação na mesma transação; reserva/baixa do checkout excluídas. ADR-005 aprovado para o escopo administrativo da TASK-009. TASK-007/008 e seus artefatos confirmados.
+**Execução iniciada (2026-10-24):** branch `feature/TASK-009-inventory`.
+**Execução concluída (2026-10-24):** migration, domínio, serviço, persistência, APIs administrativas, RBAC, auditoria imutável e documentação entregues. Transição `IN_PROGRESS → IN_REVIEW → DONE` após gates aprovados. 53 testes em 19 arquivos passaram; build, lint, typecheck e format check aprovados. Lint mantém aviso preexistente em `app/layout.tsx`. Relatório detalhado em `docs/TASKS/TASK009.MD`; TASK-010 não iniciada.
 
 ## TASK-010 — Checkpoint PHASE-02
 

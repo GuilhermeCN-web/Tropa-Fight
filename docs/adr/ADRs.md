@@ -177,7 +177,9 @@ RF de catálogo, busca, filtros e detalhe do produto; RN de identificação e se
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-10-24, pelo responsável do projeto, para o controle administrativo de estoque da TASK-009. A política de reserva e baixa no checkout continua pendente e fora desta decisão.
 
 ## Contexto
 
@@ -198,6 +200,8 @@ Definir como controlar disponibilidade e concorrência sem permitir que pedidos 
 Adotar controle de estoque por variante/SKU, com validação no momento das operações comerciais críticas. As alterações deverão ser atômicas e registrar movimentações relevantes.
 
 A política exata de reserva, expiração, baixa, cancelamento e recomposição do estoque deverá ser definida antes da implementação do checkout.
+
+Para a TASK-009, cada estoque será identificado por variante/SKU. Entradas e saídas serão movimentações transacionais e auditáveis; saídas usarão atualização condicional atômica para impedir saldo negativo concorrente. O registro da movimentação e a atualização do saldo deverão confirmar ou reverter juntos. Esta decisão não define reserva, expiração ou baixa de checkout.
 
 ## Justificativa
 
