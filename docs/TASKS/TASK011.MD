@@ -1,10 +1,11 @@
 # TASK-011 — Carrinho e cálculo comercial
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-03 / CRITICAL\
  **Dependências:** `DEPENDS_ON: TASK-010`\
  **Estado de entrada esperado:** `BLOCKED` até `TASK-010 = DONE`\
- **Estado de execução permitido:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE | FAILED | CANCELLED`
+ **Estado de execução permitido:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE | FAILED | CANCELLED`\
+ **Transições realizadas (2026-10-24):** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. Branch `feature/TASK-011-cart-pricing`.
 
  **Relacionados:** RF-015, RF-016, RF-017, RN-008, RN-009, UC-004
 
@@ -86,6 +87,10 @@ subtotal_carrinho = Σ subtotal_item
 - Scope Guard da TASK-011 estiver validado.
 
  Se alguma decisão comercial necessária estiver ausente, a TASK deve permanecer `BLOCKED`.
+
+ **Prontidão (2026-10-24): PASS.** TASK-010 está `DONE`, PHASE-02 foi formalmente liberada, os artefatos de catálogo/inventário estão presentes e os Quality Gates das fases anteriores foram registrados como aprovados em `docs/TASKS/TASK010.MD`. O responsável aprovou as regras do carrinho registradas no ADR-006 e em `docs/planning/answered-questions.md`. Branch `feature/TASK-011-cart-pricing`; transições `BLOCKED → READY → IN_PROGRESS`.
+
+ **Decisões aprovadas pelo responsável (2026-10-24):** carrinho persistente por cliente autenticado, sem visitante, mesclagem ou expiração automática; GET cria carrinho vazio; nenhuma rota administrativa de consulta/alteração. POST de variante já presente soma quantidades; PATCH substitui pela quantidade absoluta. Quantidades são inteiros positivos no limite de inteiro seguro e o subtotal deve permanecer em inteiro seguro, sem limite comercial adicional. Adicionar ou aumentar valida elegibilidade comercial e saldo atual sem reservar estoque; se o saldo cair depois, o item permanece no carrinho. O carrinho sempre apresenta o preço vigente da variante. Não aceitar preço informado pelo cliente.
 
 ---
 
@@ -1391,23 +1396,23 @@ A mudança evita introduzir funcionalidade futura?
  # 55\. Quality Gates
 
 ```
-[ ] Build
-[ ] Lint
-[ ] Unit tests
-[ ] Integration tests
-[ ] API/contract tests
-[ ] Authorization tests
-[ ] Security tests
-[ ] Calculation tests
-[ ] Monetary precision tests
-[ ] Cart invariant tests
-[ ] Concurrency tests
-[ ] Transaction/atomicity tests
-[ ] Regression tests PHASE-02
-[ ] Database/migration tests
-[ ] Observability validation
-[ ] Traceability validation
-[ ] Scope Guard
+[x] Build
+[x] Lint (aviso preexistente em app/layout.tsx)
+[x] Unit tests
+[x] Integration tests
+[x] API/contract tests
+[x] Authorization tests
+[x] Security tests
+[x] Calculation tests
+[x] Monetary precision tests
+[x] Cart invariant tests
+[x] Concurrency tests
+[x] Transaction/atomicity tests
+[x] Regression tests PHASE-02
+[x] Database/migration validation
+[N/A] Observability validation (sem requisito de logging/auditoria nesta TASK)
+[x] Traceability validation
+[x] Scope Guard
 ```
 
 ---
@@ -1492,39 +1497,39 @@ A mudança evita introduzir funcionalidade futura?
 
  A `TASK-011` somente poderá ser marcada como `DONE` quando:
 
- - [ ] carrinho implementado;
-- [ ] itens implementados;
-- [ ] adição implementada;
-- [ ] atualização implementada;
-- [ ] remoção implementada;
-- [ ] cálculo de subtotal implementado;
-- [ ] quantidade total implementada;
-- [ ] validações implementadas;
-- [ ] isolamento por cliente validado;
-- [ ] preço não é controlável pelo cliente;
-- [ ] disponibilidade é validada conforme regra aprovada;
-- [ ] invariantes implementados/testados;
-- [ ] operações relevantes são transacionais;
-- [ ] concorrência aplicável foi testada;
-- [ ] persistência validada;
-- [ ] migrations validadas;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de autorização passam;
-- [ ] testes de segurança passam;
-- [ ] testes monetários passam;
-- [ ] regressão da PHASE-02 passa;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação atualizada;
-- [ ] rastreabilidade atualizada;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] nenhum Scope Creep;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de execução produzido;
-- [ ] estado final registrado corretamente.
+- [x] carrinho implementado;
+- [x] itens implementados;
+- [x] adição implementada;
+- [x] atualização implementada;
+- [x] remoção implementada;
+- [x] cálculo de subtotal implementado;
+- [x] quantidade total implementada;
+- [x] validações implementadas;
+- [x] isolamento por cliente validado;
+- [x] preço não é controlável pelo cliente;
+- [x] disponibilidade é validada conforme regra aprovada;
+- [x] invariantes implementados/testados;
+- [x] operações relevantes são transacionais;
+- [x] concorrência aplicável foi testada;
+- [x] persistência validada;
+- [x] migrations validadas;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de autorização passam;
+- [x] testes de segurança passam;
+- [x] testes monetários passam;
+- [x] regressão da PHASE-02 passa;
+- [x] build passa;
+- [x] lint passa;
+- [x] documentação atualizada;
+- [x] rastreabilidade atualizada;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] nenhum Scope Creep;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de execução produzido;
+- [x] estado final registrado corretamente.
 
 ---
 
@@ -1586,129 +1591,73 @@ rastreabilidade
  # 60\. Relatório de execução — template
 
 ```
-TASK: TASK-011
-TÍTULO: Carrinho e cálculo comercial
-ESTADO INICIAL: IN_PROGRESS
-ESTADO FINAL: <DONE|FAILED|CANCELLED>
+TASK: TASK-011 — Carrinho e cálculo comercial
+ESTADO INICIAL: IN_PROGRESS (após transições BLOCKED → READY)
+ESTADO FINAL: DONE
+BRANCH: feature/TASK-011-cart-pricing
+COMMITS: feat(cart): implementar carrinho autenticado e cálculo comercial [TASK-011]
 
 DEPENDÊNCIA:
-- TASK-010: DONE
-
-OBJETIVO:
-<resumo>
+- TASK-010: DONE; PHASE-02 formalmente liberada.
 
 IMPLEMENTADO:
-- Cart
-- CartItem
-- Adição
-- Atualização
-- Remoção
-- Cálculo
-- Validações
-- Autorização
+- Persistência de um carrinho por cliente autenticado; GET cria um carrinho vazio.
+- API GET/POST `/api/cart` e PATCH/DELETE `/api/cart/items/{itemId}`.
+- Consolidação por variante; POST soma e PATCH substitui quantidade.
+- Validação de publicação/atividade comercial e saldo ao adicionar/aumentar, sem reserva.
+- Preço vigente e cálculo de subtotais/totais em centavos, com limite de inteiro seguro.
+- Migração `006_cart.sql`, constraints, índice e testes do domínio/API/PostgreSQL.
 
 QUALITY GATES:
-
-Build:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Lint:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Unit:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Integration:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-API/Contract:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Authorization:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Security:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Calculation:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Monetary Precision:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Invariants:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Concurrency:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Atomicity:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Regression PHASE-02:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-DATABASE:
-- migrations: <PASS/FAIL>
-- constraints: <PASS/FAIL>
-- índices: <PASS/FAIL>
+- Build: PASS — `npm run quality`, `next build` compilou e gerou as rotas.
+- Lint: PASS — `oxlint`; aviso preexistente `react(only-export-components)` em `app/layout.tsx`.
+- Unit: PASS — suíte Vitest completa.
+- Integration: PASS — 21 arquivos / 57 testes passaram com PostgreSQL local configurado.
+- API/Contract: PASS — handlers testados para GET/POST/PATCH/DELETE e validações.
+- Authorization: PASS — não autenticado 401, admin 403, item de outro cliente 404.
+- Security: PASS — proprietário vem da sessão; tentativa de preço do cliente é rejeitada.
+- Calculation: PASS — centavos, subtotais, soma do carrinho e quantidade total.
+- Monetary Precision: PASS — inteiros seguros e rejeição de overflow em testes unitários.
+- Invariants: PASS — variante única por carrinho, quantidade positiva e totais derivados.
+- Concurrency: PASS — duas adições concorrentes resultam em uma operação aceita e outra rejeitada pelo saldo, sem lost update.
+- Atomicity: PASS — operações rejeitadas não alteram o carrinho; transações cobrem mutação e leitura de resposta.
+- Regression PHASE-02: PASS — suíte completa passou.
+- Database: PASS — `npm run db:migrate` aplicou migrations; constraints e índice de unicidade definidos e exercitados.
+- Observability: N/A — TASK-011 não requer logging/auditoria de carrinho.
+- Traceability: PASS — RF-015/016/017, RN-008/009 e UC-004 mapeados abaixo.
 
 INVARIANTES:
-- quantity > 0: <PASS/FAIL>
-- subtotal item: <PASS/FAIL>
-- subtotal cart: <PASS/FAIL>
-- totalItems: <PASS/FAIL>
-- ownership: <PASS/FAIL>
-- variant integrity: <PASS/FAIL>
+- quantity > 0: PASS — domínio valida inteiros positivos seguros e banco impõe `CHECK`.
+- subtotal item: PASS — preço atual em centavos × quantidade, com overflow rejeitado.
+- subtotal cart: PASS — soma dos subtotais correntes.
+- totalItems: PASS — soma das quantidades.
+- ownership: PASS — carrinho sempre localizado pela identidade autenticada.
+- variant integrity: PASS — FK para variante existente e elegibilidade comercial ao incluir/aumentar.
 
 SEGURANÇA:
-- preço controlável pelo cliente: NÃO
-- acesso cross-customer: NÃO
-- autenticação bypass: NÃO
+- preço controlável pelo cliente: NÃO.
+- acesso cross-customer: NÃO.
+- autenticação bypass: NÃO.
+- acesso administrativo: NEGADO.
 
-PROBLEMAS ENCONTRADOS:
-- <item ou nenhum>
-
-CORREÇÕES REALIZADAS:
-- <item ou nenhuma>
-
-PENDÊNCIAS:
-- <item ou nenhuma>
+PROBLEMAS ENCONTRADOS: a primeira execução da suíte ocorreu antes da aplicação da nova migration; após `npm run db:migrate`, a suíte completa passou.
+CORREÇÕES REALIZADAS: migration local aplicada; nenhuma alteração fora do escopo.
+PENDÊNCIAS: nenhuma para TASK-011.
 
 RASTREABILIDADE:
-- RF-015: <evidência>
-- RF-016: <evidência>
-- RF-017: <evidência>
-- RN-008: <evidência>
-- RN-009: <evidência>
-- UC-004: <evidência>
+- RF-015: GET cria/retorna carrinho persistente; `cart-flow.test.ts`.
+- RF-016: POST/PATCH/DELETE e validação de quantidade; `cart-flow.test.ts` e `cart-domain.test.ts`.
+- RF-017: preço vigente, cálculo em centavos e subtotal; `cart-flow.test.ts` e `cart-domain.test.ts`.
+- RN-008: autenticação, estoque sem reserva, soma de duplicidade e isolamento; `cart-flow.test.ts`.
+- RN-009: fonte de preço no servidor e cálculo determinístico; `postgres-cart-repository.ts` e testes do domínio.
+- UC-004: fluxo integrado de leitura, inclusão, atualização e remoção; `cart-flow.test.ts`.
 
-SCOPE GUARD:
-- ALLOWED_CHANGES: PASS
-- FORBIDDEN_CHANGES: PASS
-- Scope Creep: NÃO IDENTIFICADO
+SCOPE GUARD: ALLOWED_CHANGES PASS; FORBIDDEN_CHANGES PASS; Scope Creep NONE.
+ARQUIVOS: PRIMARY — APIs, migration, módulo cart, testes, ADR-006 e documentação da TASK/decisões. INCIDENTAL — nenhum. FORBIDDEN — nenhum.
+DEFINITION OF DONE: PASS.
+TASKS.md: atualizado; TASK-012 continua BLOCKED e não foi iniciada.
 
-TASKS.md:
-- atualizado: <SIM/NÃO>
-
-CONCLUSÃO:
-<resultado factual>
-
-ESTADO FINAL:
-<DONE|FAILED|CANCELLED>
+ESTADO FINAL: DONE.
 ```
 
 ---

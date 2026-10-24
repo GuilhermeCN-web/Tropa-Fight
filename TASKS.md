@@ -24,7 +24,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | DONE |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | DONE |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | DONE    |
-|    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | BLOCKED |
+|    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | DONE |
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | BLOCKED |
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | BLOCKED |
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | BLOCKED |
@@ -261,7 +261,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-011 — Carrinho e cálculo comercial
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / CRITICAL
 **Dependências:** `DEPENDS_ON: TASK-010`
 **Relacionados:** RF-015, RF-016, RF-017, RN-008, RN-009, UC-004
@@ -271,6 +271,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** captura de pagamento, integração real com gateway, política de reembolso.
 **Critérios de aceitação/Testes:** quantidades inválidas são rejeitadas; itens indisponíveis não podem ser adicionados/confirmados indevidamente; subtotal é consistente.
 **DoD específico:** invariantes de cálculo cobertas por testes unitários e de integração.
+**Execução (2026-10-24): DONE.** Branch `feature/TASK-011-cart-pricing`; transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. Carrinho autenticado persistente, API, cálculo em centavos, validações de estoque e migration entregues. `npm run quality`: 57 testes passaram, typecheck, lint e build passaram; lint emitiu apenas aviso preexistente em `app/layout.tsx`. Relatório completo e rastreabilidade em `docs/TASKS/TASK011.MD`. TASK-012 permanece BLOCKED e não foi iniciada.
 
 ## TASK-012 — Cupons e promoções
 

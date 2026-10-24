@@ -354,17 +354,17 @@ Luva X
 
  ## 1\. O carrinho será persistente?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-24):**
 
- Ainda não definido.
+ Carrinho persistente no servidor, exclusivo de cliente autenticado, sem sessão anônima, mesclagem ou expiração automática. GET cria carrinho vazio. Administradores não consultam nem alteram carrinhos de clientes.
 
  **Pergunta:** um cliente autenticado poderá sair da aplicação e retornar posteriormente encontrando o mesmo carrinho?
 
  ## 2\. Um produto sem estoque pode permanecer no carrinho?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-24):**
 
- Ainda não definido.
+ Ao adicionar ou aumentar quantidade, validar saldo físico atual, sem reservar estoque. Se o saldo cair depois, manter o item no carrinho.
 
  **Pergunta:** se um produto ficar sem estoque depois de ser adicionado ao carrinho, o sistema deverá:
 
@@ -374,9 +374,9 @@ Luva X
 
  ## 3\. O preço do carrinho será atualizado automaticamente?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-24):**
 
- A regra RN-012 determina que pedidos confirmados preservem seus preços, mas não define o comportamento do carrinho.
+ Usar sempre o preço vigente da variante no carrinho. A regra RN-012 determina que pedidos confirmados preservem seus preços, mas não define o comportamento do carrinho.
 
  **Pergunta:** se o preço mudar enquanto o produto estiver no carrinho, o cliente verá:
 
@@ -403,6 +403,12 @@ Luva X
  O modelo atual possui contas de clientes e pedidos associados a clientes.
 
  **Pergunta:** haverá checkout como visitante ou toda compra exigirá conta?
+
+ ## 6\. Consolidação e limite de quantidade
+
+ **R (aprovado pelo responsável em 2026-10-24):**
+
+ Adicionar novamente a mesma variante soma a nova quantidade; PATCH substitui pela quantidade absoluta. Quantidade deve ser inteiro positivo até o limite técnico de inteiro seguro, sem limite comercial adicional; cálculos de subtotal também devem permanecer em inteiro seguro.
 
 ---
 
