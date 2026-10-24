@@ -217,11 +217,13 @@ RF de estoque, catálogo, carrinho, checkout e pedidos; RN de disponibilidade e 
 
 ---
 
-# ADR-006 — Carrinho persistente associado ao cliente e à sessão
+# ADR-006 — Carrinho persistente associado ao cliente autenticado
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-10-24, pelo responsável do projeto, conforme as regras registradas nesta decisão.
 
 ## Contexto
 
@@ -239,9 +241,11 @@ Definir como manter o carrinho durante a navegação, autenticação e retorno d
 
 ## Decisão
 
-Adotar um carrinho persistente no servidor, associado ao cliente autenticado ou a uma sessão identificável. A eventual mesclagem entre carrinho anônimo e autenticado deverá seguir uma regra explícita.
+Adotar um carrinho persistente no servidor associado exclusivamente ao cliente autenticado. Não haverá carrinho anônimo, mesclagem ou expiração automática. A consulta do carrinho cria um carrinho vazio quando necessário. Administradores não terão acesso aos carrinhos de clientes.
 
-O carrinho não garantirá reserva de estoque nem congelamento de preço. Preço, disponibilidade, descontos e frete deverão ser revalidados antes da confirmação do pedido.
+O carrinho não garantirá reserva de estoque nem congelamento de preço. Ao adicionar ou aumentar a quantidade, validar saldo atual sem reservar estoque; se o saldo diminuir depois, manter o item. Sempre usar o preço vigente da variante. A confirmação do pedido deverá revalidar preço, disponibilidade, descontos e frete.
+
+Ao adicionar novamente uma variante já presente, somar a quantidade. Ao atualizar item, tratar a quantidade informada como valor absoluto. Usar quantidades inteiras positivas dentro do limite de inteiro seguro, sem limite comercial adicional.
 
 ## Justificativa
 
@@ -249,7 +253,7 @@ A persistência no servidor favorece continuidade entre sessões e dispositivos,
 
 ## Consequências
 
-A interface deverá refletir falhas de validação e alterações de disponibilidade. A política de expiração e mesclagem de carrinhos deverá ser definida. O servidor será responsável por validar os valores utilizados no checkout.
+A interface deverá refletir falhas de validação e alterações de disponibilidade. O servidor cria e persiste um único carrinho por cliente autenticado e calcula os valores com o preço vigente. A leitura de estoque é informativa e não reserva saldo. O servidor será responsável por validar os valores utilizados no checkout.
 
 ## RF/RN/RNF/UC relacionados
 
