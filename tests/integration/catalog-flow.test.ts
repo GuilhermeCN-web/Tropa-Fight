@@ -197,10 +197,11 @@ describe.skipIf(!databaseConfigured)('catalog PostgreSQL integration', () => {
       publicationState: 'DRAFT',
     })
 
-    expect((await listPublicProductsApi()).status).toBe(200)
-    const draftList = await (await listPublicProductsApi()).json()
+    const publicList = await listPublicProductsApi(request('/api/products'))
+    expect(publicList.status).toBe(200)
+    const draftList = await publicList.json()
     expect(
-      draftList.products.some((item: { id: string }) => item.id === product.id),
+      draftList.items.some((item: { id: string }) => item.id === product.id),
     ).toBe(false)
     expect(
       (

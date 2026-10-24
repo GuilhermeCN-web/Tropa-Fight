@@ -5,6 +5,10 @@ import {
   requireCategoryIds,
   requireUuid,
 } from '../domain/catalog'
+import {
+  normalizeCatalogSearch,
+  type CatalogSearchInput,
+} from '../domain/catalog-search'
 import type {
   CatalogRepository,
   EntityUpdate,
@@ -131,6 +135,9 @@ export class CatalogService {
   }
   listPublicProducts() {
     return this.repository.listPublicProducts()
+  }
+  searchPublicProducts(input: CatalogSearchInput) {
+    return this.repository.searchPublicProducts(normalizeCatalogSearch(input))
   }
 
   private requireStatus(status: string) {

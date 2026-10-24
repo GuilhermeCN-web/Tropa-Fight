@@ -2,13 +2,21 @@ Claro. Abaixo está o **template de produção detalhado da TASK-009**, seguindo
 
  # TASK-009 — Estoque e movimentações
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-02 / HIGH\
  **Dependências:** `DEPENDS_ON: TASK-007,TASK-008`\
- **Estado de entrada esperado:** `BLOCKED` até `TASK-007 = DONE` e `TASK-008 = DONE`\
+ **Estado de prontidão:** `READY` após dependências e decisões aprovadas\
  **Estado de execução permitido:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE | FAILED | CANCELLED`
 
  **Relacionados:** RF-013, RF-014, RN-006, RN-007, UC-010, ADR-005
+
+ **Decisões aprovadas (2026-10-24):** cada variante inicia com saldo zero; saída maior que o saldo é rejeitada atomicamente, sem persistir saldo ou movimentação. Entrada/saída aceitam quantidade inteira positiva; ajuste representa delta inteiro assinado; toda movimentação exige motivo e o histórico é imutável, com correções feitas por nova movimentação. Administrador Geral e Gestor de Catálogo podem consultar e alterar estoque pelo RBAC existente. Saldo e movimentação são gravados na mesma transação, com atualização condicional no banco para impedir saldo negativo sob concorrência. Reserva e baixa de checkout permanecem fora da TASK-009. ADR-005 aprovado para este escopo.
+
+ **Contrato de API:** documentado em [`docs/inventory-api.md`](../inventory-api.md). Consulta de saldo e histórico também exige `inventory.manage`; clientes não recebem consulta pública de estoque nesta TASK.
+
+ **Prontidão/início (2026-10-24):** TASK-007 e TASK-008 confirmadas como DONE, com especificações, migrations, APIs e relatórios de execução presentes. ProductVariant tem UUID estável e vínculo ao produto; elegibilidade comercial está documentada. As decisões acima satisfazem os itens pendentes da Definition of Ready. Status atualizado para `IN_PROGRESS`; branch: `feature/TASK-009-inventory`.
+
+ **Revisão final (2026-10-24):** implementação e Quality Gates aprovados; transição `IN_PROGRESS → IN_REVIEW → DONE`.
 
 ---
 
@@ -439,7 +447,7 @@ AUDITORIA/HISTÓRICO
 
  devem possuir regras claras.
 
- Clientes comuns não podem:
+ Clientes comuns não podem consultar estoque nem:
 
  - criar entrada;
 - criar saída;
@@ -794,11 +802,10 @@ movimentação registrada
  Validar pelo menos:
 
 ```
-cliente → consulta pública permitida conforme contrato
+cliente → consultar estoque NEGADO
 cliente → alterar estoque NEGADO
-admin autorizado → consultar estoque PERMITIDO
-admin autorizado → alterar estoque PERMITIDO
-admin não autorizado → alterar estoque NEGADO
+Administrador Geral ou Gestor de Catálogo → consultar/alterar PERMITIDO
+admin sem inventory.manage → consultar/alterar NEGADO
 ```
 
  A matriz final deve utilizar as permissões efetivamente existentes no projeto.
@@ -1188,38 +1195,38 @@ relatório de execução
 
  A `TASK-009` somente poderá ser marcada como `DONE` quando:
 
- - [ ] `Inventory` implementado;
-- [ ] `InventoryMovement` implementado;
-- [ ] relacionamento com `ProductVariant` validado;
-- [ ] consulta de saldo implementada;
-- [ ] consulta de movimentações implementada;
-- [ ] entrada implementada;
-- [ ] saída implementada;
-- [ ] ajuste implementado conforme regra aprovada;
-- [ ] saldo negativo indevido impedido;
-- [ ] atomicidade validada;
-- [ ] concorrência validada;
-- [ ] autorização validada;
-- [ ] auditoria integrada;
-- [ ] histórico preservado;
-- [ ] movimentações inválidas rejeitadas;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de concorrência passam;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação necessária atualizada;
-- [ ] ADR-005 atualizado/criado quando aplicável;
-- [ ] rastreabilidade RF/RN/UC atualizada;
-- [ ] Scope Guard validado;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] alterações incidentais justificadas;
-- [ ] nenhum Scope Creep identificado;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de execução produzido;
-- [ ] estado final registrado como `DONE`.
+ - [x] `Inventory` implementado;
+- [x] `InventoryMovement` implementado;
+- [x] relacionamento com `ProductVariant` validado;
+- [x] consulta de saldo implementada;
+- [x] consulta de movimentações implementada;
+- [x] entrada implementada;
+- [x] saída implementada;
+- [x] ajuste implementado conforme regra aprovada;
+- [x] saldo negativo indevido impedido;
+- [x] atomicidade validada;
+- [x] concorrência validada;
+- [x] autorização validada;
+- [x] auditoria integrada;
+- [x] histórico preservado;
+- [x] movimentações inválidas rejeitadas;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de concorrência passam;
+- [x] build passa;
+- [x] lint passa;
+- [x] documentação necessária atualizada;
+- [x] ADR-005 atualizado/criado quando aplicável;
+- [x] rastreabilidade RF/RN/UC atualizada;
+- [x] Scope Guard validado;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] alterações incidentais justificadas;
+- [x] nenhum Scope Creep identificado;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de execução produzido;
+- [x] estado final registrado como `DONE`.
 
 ---
 
@@ -1324,75 +1331,78 @@ TASKS.md atualizado
 TASK: TASK-009
 TÍTULO: Estoque e movimentações
 ESTADO INICIAL: IN_PROGRESS
-ESTADO FINAL: <DONE|FAILED|CANCELLED>
+ESTADO FINAL: DONE
 
 DEPENDÊNCIAS:
 - TASK-007: DONE
 - TASK-008: DONE
 
 OBJETIVO:
-<resumo da implementação>
+Controlar saldo físico por variante, movimentações administrativas, histórico imutável e concorrência segura.
 
 MODELO:
-- Inventory: <implementado>
-- InventoryMovement: <implementado>
-- MovementType: <implementado>
+- Inventory: `inventory_stocks`, único por variante e iniciado logicamente em zero.
+- InventoryMovement: `inventory_movements`, com ator, motivo obrigatório, delta e data.
+- MovementType: ENTRY, EXIT e ADJUSTMENT.
 
 IMPLEMENTADO:
-- <item>
-- <item>
-- <item>
+- Repositório PostgreSQL, validação de domínio e serviço de aplicação.
+- Atualização condicional de saldo e gravação de movimentação/auditoria na mesma transação.
+- Imutabilidade das movimentações aplicada por trigger no banco.
 
 ARTEFATOS ALTERADOS:
-- <arquivo/módulo>
-- <arquivo/módulo>
+- `db/migrations/005_inventory.sql`, `src/modules/inventory/` e APIs `app/api/admin/inventory/`.
+- `src/modules/audit/domain/audit-event.ts` e `docs/inventory-api.md`.
+- Testes `tests/unit/inventory-*` e `tests/integration/inventory-flow.test.ts`.
+- `TASKS.md`, este relatório e ADR-005.
 
 PERSISTÊNCIA:
-- <alterações>
+Tabelas `inventory_stocks` e `inventory_movements`, referências restritivas, saldo não negativo, histórico imutável e índice paginado por variante/data/UUID.
 
 API:
-- <endpoint>
-- <endpoint>
+- `GET /api/admin/inventory/{variantId}` e `GET /api/admin/inventory/{variantId}/movements`.
+- `POST /api/admin/inventory/{variantId}/{entries|exits|adjustments}`.
 
 REGRAS DE ESTOQUE:
-- Entrada: <resultado>
-- Saída: <resultado>
-- Ajuste: <resultado>
-- Saldo negativo: <resultado>
+- Entrada: inteiro positivo, motivo obrigatório.
+- Saída: inteiro positivo na entrada; delta negativo no histórico.
+- Ajuste: delta inteiro assinado, não zero; motivo obrigatório.
+- Saldo negativo: rejeitado atomicamente, sem saldo, movimento ou auditoria parcial.
 
 CONCORRÊNCIA:
-- Estratégia: <estratégia>
-- Teste de saldo 1 / duas saídas: <PASS/FAIL>
-- Resultado: <descrição>
+- Estratégia: UPDATE condicional no PostgreSQL dentro da transação.
+- Teste de saldo 1 / duas saídas: PASS.
+- Resultado: uma saída confirmada, uma rejeitada, saldo zero e uma movimentação de saída.
 
 ATOMICIDADE:
-- Atualização de saldo + movimentação: <PASS/FAIL>
-- Rollback: <PASS/FAIL>
+- Atualização de saldo + movimentação: PASS; auditoria participa da mesma transação.
+- Rollback: PASS quando a persistência da movimentação falha após a atualização do saldo.
 
 AUTORIZAÇÃO:
-- Consulta: <resultado>
-- Entrada: <resultado>
-- Saída: <resultado>
-- Ajuste: <resultado>
+- Consulta: `inventory.manage`, Administrador Geral e Gestor de Catálogo.
+- Entrada: `inventory.manage`.
+- Saída: `inventory.manage`.
+- Ajuste: `inventory.manage`.
 
 AUDITORIA:
-- <resultado>
+Eventos específicos para entrada, saída e ajuste, associados à movimentação; ator e dados completos permanecem no histórico do estoque.
 
 TESTES EXECUTADOS:
-- Build: <PASS/FAIL>
-- Lint: <PASS/FAIL>
-- Unit: <PASS/FAIL>
-- Integration: <PASS/FAIL>
-- API: <PASS/FAIL>
-- Concurrency: <PASS/FAIL>
+- Build: PASS (`npm.cmd run build`).
+- Lint: PASS (`npm.cmd run lint`; aviso preexistente em `app/layout.tsx`).
+- Unit: PASS; suíte total inclui regras, serviço e handlers HTTP.
+- Integration: PASS; migrations 001–005 aplicadas em schema isolado PostgreSQL.
+- API: PASS; autenticação, autorização, saldo, histórico, validação e 409 cobertos.
+- Concurrency: PASS; saídas concorrentes e entrada/saída concorrentes.
+- Suíte completa: 19 arquivos, 53 testes PASS; format check e typecheck PASS.
 
 RASTREABILIDADE:
-- RF-013 → <evidência>
-- RF-014 → <evidência>
-- RN-006 → <evidência>
-- RN-007 → <evidência>
-- UC-010 → <evidência>
-- ADR-005 → <evidência>
+- RF-013 → saldo por variante e consulta administrativa nas rotas Inventory.
+- RF-014 → ENTRY/EXIT/ADJUSTMENT em `inventory_movements` e API de histórico.
+- RN-006 → quantidades/deltas, motivo obrigatório e rejeição por saldo insuficiente; testes de domínio.
+- RN-007 → constraints, atualização condicional, transação e teste de concorrência/rollback.
+- UC-010 → autorização `inventory.manage`, rotas administrativas e testes API.
+- ADR-005 → decisão ACCEPTED para estoque administrativo por variante; checkout segue pendente.
 
 SCOPE GUARD:
 - ALLOWED_CHANGES: PASS
@@ -1400,28 +1410,28 @@ SCOPE GUARD:
 - Scope Creep: NÃO IDENTIFICADO
 
 ALTERAÇÕES INCIDENTAIS:
-- <nenhuma / descrição + justificativa>
+Nenhuma.
 
 DECISÕES:
-- <decisão ou N/A>
+Decisões do responsável registradas em 2026-10-24 no início deste documento e em ADR-005.
 
 BLOQUEIOS:
-- <nenhum / descrição>
+Nenhum.
 
 RISCOS RESIDUAIS:
-- <nenhum / descrição>
+Política de reserva/baixa do checkout permanece pendente e fora desta TASK, conforme escopo aprovado.
 
 DOCUMENTAÇÃO:
-- <artefato atualizado>
+`docs/inventory-api.md`, ADR-005, especificação e rastreabilidade da TASK-009.
 
 TASKS.md:
-- atualizado: <SIM/NÃO>
+Atualizado: SIM; TASK-009 DONE e TASK-010 não iniciada.
 
 CONCLUSÃO:
-<resultado factual da execução>
+Critérios, testes e Quality Gates da TASK-009 passaram; Scope Guard respeitado.
 
 PRÓXIMO ESTADO:
-<DONE|FAILED|CANCELLED>
+DONE
 ```
 
 ---

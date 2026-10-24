@@ -20,6 +20,7 @@ export function App({ environment }: AppProps) {
         </p>
         <p className="environment">Ambiente: {environment}</p>
         <nav className="identity-links" aria-label="Conta">
+          <a href="/catalog">Explorar catálogo</a>
           <a href="/login">Entrar</a>
           <a href="/register">Criar conta</a>
           <a href="/forgot-password">Recuperar acesso</a>

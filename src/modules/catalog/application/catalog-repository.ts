@@ -4,6 +4,10 @@ import type {
   CatalogEntityStatus,
   CatalogProduct,
 } from '../domain/catalog'
+import type {
+  CatalogSearchQuery,
+  CatalogSearchResult,
+} from '../domain/catalog-search'
 
 export type EntityInput = { name: string }
 export type EntityUpdate = { name?: string; status?: CatalogEntityStatus }
@@ -44,4 +48,5 @@ export interface CatalogRepository {
   listProducts(): Promise<CatalogProduct[]>
   getPublicProduct(id: string): Promise<CatalogProduct | null>
   listPublicProducts(): Promise<CatalogProduct[]>
+  searchPublicProducts(query: CatalogSearchQuery): Promise<CatalogSearchResult>
 }
