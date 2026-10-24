@@ -23,7 +23,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     7 | TASK-007 | PHASE-02 | HIGH       | TASK-006                   | DONE    |
 |     8 | TASK-008 | PHASE-02 | HIGH       | TASK-006                   | DONE |
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | DONE |
-|    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | BLOCKED |
+|    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | DONE    |
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | BLOCKED |
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | BLOCKED |
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | BLOCKED |
@@ -244,7 +244,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-010 — Checkpoint PHASE-02
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-02 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-009`
 **Relacionados:** RF-003–014, RN-004–007, UC-002, UC-003, UC-010
@@ -254,6 +254,8 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** checkout, pagamento e pedidos.
 **Critérios de aceitação/Testes:** build/lint/unit/integration/API passam; catálogo e estoque mantêm integridade.
 **DoD específico:** PHASE-03 torna-se elegível.
+**Prontidão (2026-10-24): PASS.** TASK-006/007/008/009 estão `DONE`; relatórios, contratos e rastreabilidade estão disponíveis; execuções anteriores registram build, lint e testes aplicáveis aprovados; Scope Guard está definido. O responsável decidiu que disponibilidade comercial pública permanece independente do saldo físico: validar catálogo e inventário separadamente para a mesma variante, sem expor saldo físico nem alterar os resultados públicos por movimentações de estoque. Branch: `feature/TASK-010-phase-02-checkpoint`; transição `BLOCKED → READY → IN_PROGRESS`.
+**Execução concluída (2026-10-24):** checkpoint validou as quatro TASKs funcionais; corrigida colisão de segmento dinâmico que impedia inicializar o Next.js sem alterar a URL pública; teste integrado confirma disponibilidade comercial independente do saldo físico. `npm run quality` passou com `.env.local`: 19 arquivos/53 testes, lint, typecheck, formatação e build; smoke HTTP `/catalog` respondeu 200. Lint mantém aviso preexistente em `app/layout.tsx`. Gates, rastreabilidade e decisão formal liberando PHASE-02 registrados em `docs/TASKS/TASK010.MD`. Transição `IN_PROGRESS → IN_REVIEW → DONE`; TASK-011 não iniciada.
 
 ---
 

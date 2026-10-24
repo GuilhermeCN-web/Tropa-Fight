@@ -11,11 +11,11 @@ const permission = 'catalog.products.manage'
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ productId: string }> },
+  context: { params: Promise<{ id: string }> },
 ) {
   const access = await authorizeCatalog(request, permission)
   if ('response' in access) return access.response
-  const { productId } = await context.params
+  const { id: productId } = await context.params
   try {
     return NextResponse.json(
       { variants: await productVariantService.listByProduct(productId) },
@@ -28,11 +28,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ productId: string }> },
+  context: { params: Promise<{ id: string }> },
 ) {
   const access = await authorizeCatalog(request, permission)
   if ('response' in access) return access.response
-  const { productId } = await context.params
+  const { id: productId } = await context.params
   const body = await request.json().catch(() => null)
   if (
     !body ||
