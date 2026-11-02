@@ -1,4 +1,5 @@
 import { CartError, validateQuantity } from '../domain/cart'
+import { normalizeCouponCode } from '../../coupons/domain/coupon'
 import type { CartRepository } from './cart-repository'
 
 const uuidPattern =
@@ -43,5 +44,16 @@ export class CartService {
       requireUuid(customerId, 'Customer ID'),
       requireUuid(itemId, 'Cart item ID'),
     )
+  }
+
+  applyCoupon(customerId: string, code: unknown) {
+    return this.repository.applyCoupon(
+      requireUuid(customerId, 'Customer ID'),
+      normalizeCouponCode(code),
+    )
+  }
+
+  removeCoupon(customerId: string) {
+    return this.repository.removeCoupon(requireUuid(customerId, 'Customer ID'))
   }
 }

@@ -445,7 +445,7 @@ Restringir o acesso a operações administrativas conforme a responsabilidade do
 
 Adotar controle de acesso baseado em papéis e permissões, validado no servidor. A V1 deverá contemplar, no mínimo, os perfis administrativos já identificados: administrador geral e gestor de catálogo.
 
-Para TASK-003, o Administrador Geral possui todas as permissões de identidade/autorização implementadas nesta TASK; Customer pode consultar somente o próprio perfil; Gestor de Catálogo não recebe permissões de identidade. Em 2026-10-22, o responsável aprovou explicitamente que a edição de perfil fique fora da TASK-003. Permissões de catálogo serão definidas e concedidas pela TASK-006, quando o módulo existir. Esta decisão não antecipa permissões comerciais.
+Para TASK-003, o Administrador Geral possui todas as permissões de identidade/autorização implementadas nesta TASK; Customer pode consultar somente o próprio perfil; Gestor de Catálogo não recebe permissões de identidade. Em 2026-10-22, o responsável aprovou explicitamente que a edição de perfil fique fora da TASK-003. Permissões de catálogo foram definidas e concedidas pela TASK-006. Em 2026-10-26, o responsável aprovou a permissão comercial `promotions.manage`, concedida exclusivamente ao papel `GENERAL_ADMIN` pela TASK-012. Nenhuma outra permissão comercial é antecipada por esta decisão.
 
 ## Justificativa
 

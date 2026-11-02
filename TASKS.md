@@ -25,7 +25,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |     9 | TASK-009 | PHASE-02 | HIGH       | TASK-007,TASK-008          | DONE |
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | DONE    |
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | DONE |
-|    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | BLOCKED |
+|    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | DONE |
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | BLOCKED |
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | BLOCKED |
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | BLOCKED |
@@ -275,16 +275,18 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-012 — Cupons e promoções
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-011`
 **Relacionados:** RF-018, RF-019, RN-010, UC-005
 **Objetivo:** Implementar cupons e promoções conforme regras aprovadas.
 **Artefatos esperados:** Coupon, Promotion, validação de vigência, limites e aplicação de desconto.
-**ALLOWED_CHANGES:** módulos promotions/coupons/pricing; testes; APIs; `TASKS.md`.
-**FORBIDDEN_CHANGES:** inventar política comercial, alterar preço de catálogo sem autorização, pagamento.
+**ALLOWED_CHANGES:** módulos promotions/coupons/pricing; integração com cart; persistência/migrations; APIs/DTOs; testes; auditoria/documentação; permissão `promotions.manage` somente para GENERAL_ADMIN (autorizada em 2026-10-26); `TASKS.md`.
+**FORBIDDEN_CHANGES:** inventar política comercial, alterar preço de catálogo sem autorização, pagamento, qualquer outra alteração de RBAC.
 **Critérios de aceitação/Testes:** cupom expirado ou inválido não é aplicado; limites de uso são respeitados; desconto é calculado de forma determinística.
 **DoD específico:** regras de desconto cobertas por testes.
+**Prontidão (2026-10-26): PASS.** TASK-011 está `DONE`; regras comerciais de desconto, combinação, uso, código, vigência, estados, arredondamento e atualização do carrinho foram aprovadas e registradas. O responsável autorizou `promotions.manage` somente para GENERAL_ADMIN. Branch `feature/TASK-012-coupons-promotions`; transição `BLOCKED → READY → IN_PROGRESS`.
+**Execução concluída (2026-11-02):** GATE-001 a GATE-006 APROVADOS. `npm run quality` passou (67 testes, typecheck, lint e build); migrations locais aplicadas duas vezes. Testes manuais confirmaram criação/normalização de cupom, autorização 403, aplicação determinística sem acumular desconto e remoção do cupom após edição do carrinho. TASK-012: `IN_PROGRESS → IN_REVIEW → DONE`. Relatório e evidências em `docs/TASKS/TASK012.MD`. TASK-013 permanece BLOCKED e não foi iniciada.
 
 ## TASK-013 — Checkout, endereço e frete
 
