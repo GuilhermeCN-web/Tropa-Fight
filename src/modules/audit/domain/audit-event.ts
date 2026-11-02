@@ -34,6 +34,10 @@ export const auditActions = [
   'ADDRESS_UPDATED',
   'ORDER_CREATED',
   'ORDER_EXPIRED',
+  'ORDER_PAYMENT_CONFIRMED',
+  'PAYMENT_CREATED',
+  'PAYMENT_STATUS_CHANGED',
+  'PAYMENT_WEBHOOK_REJECTED',
 ] as const
 
 export type AuditAction = (typeof auditActions)[number]

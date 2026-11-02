@@ -1196,6 +1196,21 @@ Infraestrutura
 
 ---
 
+# Decisões aprovadas para TASK-014 — Pagamentos e idempotência
+
+**Aprovação:** responsável do projeto, registrada em 2026-11-02.
+
+- A TASK-014 usará somente um mock local, sem transação financeira real ou integração externa. Os meios simulados são PIX, débito e crédito; não solicitar, armazenar ou registrar PAN/CVV.
+- O gateway real de produção permanece pendente de uma decisão futura.
+- Estados de pagamento: `PENDING`, `PROCESSING`, `APPROVED`, `FAILED`, `CANCELLED` e `EXPIRED`. Transições: `PENDING → PROCESSING`; `PROCESSING → APPROVED | FAILED | CANCELLED | EXPIRED`. Os estados finais não regridem.
+- Webhooks simulados usarão HMAC-SHA256 do corpo bruto, cabeçalho `x-payment-signature: sha256=<hex>` e segredo `PAYMENT_WEBHOOK_SECRET` fornecido pelo ambiente local. A validação deve comparar em tempo constante.
+- Eventos suportados: `payment.processing`, `payment.approved`, `payment.failed`, `payment.cancelled` e `payment.expired`. O JSON contém `id` (identificador do evento), `type`, `paymentId`, `orderId`, `amountCents`, `currency` e `occurredAt`. `(provider, providerEventId)` é único; persistência e efeitos são atômicos e idempotentes.
+- Cada pedido admite um único pagamento integral pelo total consolidado. Não há pagamentos parciais.
+- Ao receber aprovação válida antes do vencimento, o pedido passa de `PENDING_PAYMENT` para `PAYMENT_CONFIRMED` e a reserva de estoque é convertida em baixa definitiva. Aprovação após expiração é rejeitada sem alteração do pedido ou do estoque.
+- O ciclo de vida financeiro permanece separado do pedido, conforme ADR-009. Nenhuma política de estorno ou cancelamento comercial é definida por estas decisões.
+
+---
+
  # Próximo passo
 
  A elicitação deverá começar pela **Rodada 1 — Escopo comercial e operação da V1**.

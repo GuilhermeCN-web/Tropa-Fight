@@ -1,6 +1,6 @@
 # TASK-014 — Pagamentos e idempotência
 
- **Status inicial:** `BLOCKED`\
+ **Status inicial:** `BLOCKED`; estado atual: `DONE` após GATE-006 aprovado em 2026-11-02\
  **Phase/Priority:** `PHASE-03 / HIGH`\
  **Dependência:** `TASK-013`\
  **Dependências obrigatórias para execução:** `TASK-013 = DONE` e Definition of Ready satisfeita\
@@ -10,7 +10,7 @@
 
  ## 1\. Objetivo
 
- Integrar o provedor de pagamento previamente aprovado ao fluxo comercial do Tropa Fight, implementando persistência de pagamentos, adaptação do gateway, processamento de webhooks e mecanismos de idempotência.
+ Integrar o mock local de pagamento aprovado para a TASK-014 ao fluxo comercial do Tropa Fight, implementando persistência de pagamentos, adaptação do gateway, processamento de webhooks e mecanismos de idempotência.
 
  A TASK deve garantir que operações de pagamento possam ser repetidas, reenviadas ou recebidas fora de ordem sem produzir efeitos comerciais duplicados ou inconsistentes.
 
@@ -18,7 +18,7 @@
 
  - criar e acompanhar pagamentos;
 - associar pagamentos aos pedidos;
-- integrar o gateway aprovado por meio de um adaptador;
+- integrar o mock local aprovado por meio de um adaptador;
 - receber e validar webhooks;
 - processar eventos de pagamento de forma idempotente;
 - persistir estados de pagamento;
@@ -34,7 +34,7 @@
 
  A `TASK-013` deve entregar o checkout e a criação transacional do pedido.
 
- A `TASK-014` passa a ser responsável pela camada de pagamento que conecta o pedido ao provedor aprovado.
+ A `TASK-014` passa a ser responsável pela camada de pagamento que conecta o pedido ao adaptador mock local aprovado. Nenhuma integração financeira externa faz parte desta execução.
 
  Fluxo esperado:
 
@@ -54,7 +54,7 @@ Payment
 Gateway Adapter
    |
    v
-Provedor de Pagamento
+Mock Local de Pagamento
    |
    v
 Webhook
@@ -93,7 +93,8 @@ Presentation
 
  ### Decisões arquiteturais
 
- - `ADR-006`
+ - `ADR-008`
+ - `ADR-009`
 
  ### Dependência funcional
 
@@ -111,21 +112,62 @@ TASK-015
 
  A TASK só pode entrar em `IN_PROGRESS` quando todos os itens abaixo forem verdadeiros:
 
- - [ ] `TASK-013` está em `DONE`.
-- [ ] Checkout e criação de pedido estão funcionando.
-- [ ] `Order` e `OrderItem` possuem contrato estável para integração com pagamento.
-- [ ] O provedor de pagamento foi aprovado.
-- [ ] `ADR-006` está aprovado e disponível.
-- [ ] Credenciais/configurações necessárias possuem estratégia definida.
-- [ ] Ambiente de teste/sandbox do provedor está disponível ou explicitamente definido como mock.
-- [ ] Estados de pagamento estão definidos.
-- [ ] Eventos/webhooks esperados estão definidos.
-- [ ] Estratégia de idempotência está definida.
-- [ ] Estratégia de validação de assinatura dos webhooks está definida.
-- [ ] Regras de transição entre estados estão definidas.
-- [ ] Não existem decisões comerciais críticas pendentes que precisem ser inventadas durante a implementação.
+- [x] `TASK-013` está em `DONE`.
+- [x] Checkout e criação de pedido estão funcionando; migrations 008–010 e testes da TASK-013 foram registrados como aprovados.
+- [x] `Order` e `OrderItem` possuem contrato estável; o pedido inicia em `PENDING_PAYMENT`, contém total consolidado e vence em 30 dias.
+- [x] O mock local foi aprovado; nenhum provedor financeiro real foi escolhido.
+- [x] `ADR-008` está aprovado e `ADR-009` define a separação dos ciclos de pedido e pagamento.
+- [x] Configuração do mock usa `PAYMENT_WEBHOOK_SECRET` do ambiente local, sem credenciais reais.
+- [x] O ambiente de teste foi definido como mock local, sem rede financeira.
+- [x] Estados e transições de pagamento foram definidos abaixo e em ADR-008.
+- [x] Eventos/webhooks esperados foram definidos abaixo e em ADR-008.
+- [x] Idempotência da criação e dos eventos foi definida abaixo e em ADR-008.
+- [x] Assinatura HMAC-SHA256 do corpo bruto foi definida abaixo e em ADR-008.
+- [x] Pedido aprovado passa a `PAYMENT_CONFIRMED`; após expiração, aprovação é rejeitada sem mutação.
+- [x] Um único pagamento integral por pedido foi aprovado; pagamentos parciais, gateway real, estornos e cancelamento comercial não fazem parte do escopo.
 
  Se qualquer item crítico estiver pendente, a TASK permanece `BLOCKED`.
+
+**Prontidão (2026-11-02): PASS.** Decisões aprovadas e registradas em ADR-008 e `docs/planning/answered-questions.md`; referência indevida a ADR-006 corrigida para ADR-008/009. TASK-013 e seus artefatos foram verificados.
+
+**GATE-001 — APROVADO (2026-11-02).** Dependência e artefatos da TASK-013 verificados; DoR atendida; alterações preexistentes: nenhuma; branch criada: `feature/TASK-014-payments-idempotency`; working tree estava limpo na abertura. Transições registradas: `BLOCKED → READY → IN_PROGRESS`.
+
+## Planejamento de implementação — GATE-002
+
+**Arquivos PRIMARY previstos:**
+
+- `src/modules/payments/domain/payment.ts` — tipos, estados, transições e validações do domínio.
+- `src/modules/payments/application/` — portas de persistência/gateway e orquestração de criação e webhook.
+- `src/modules/payments/infrastructure/` — adaptador mock local e repositório PostgreSQL transacional.
+- `src/modules/payments/presentation/` e `app/api/payments/` — criação/consulta autenticadas e endpoint de webhook assinado.
+- `db/migrations/011_mock_payments.sql` — estados/tabelas/constraints do pagamento e estado `PAYMENT_CONFIRMED` do pedido.
+- `tests/unit/payment-domain.test.ts`, `tests/unit/payment-webhook.test.ts`, `tests/unit/payment-http.test.ts` e `tests/integration/payment-flow.test.ts`.
+- `.env.example` — variável de configuração local do webhook, sem valor secreto.
+- Este documento, `TASKS.md`, ADR-008 e `docs/planning/answered-questions.md`.
+
+**Arquivo INCIDENTAL previsto:**
+
+- `src/modules/audit/domain/audit-event.ts` e teste relacionado — acrescentar somente ações de auditoria de pagamento necessárias à rastreabilidade exigida na seção 26; o schema de auditoria armazena ações como texto e não requer migration.
+
+**Arquivos protegidos:** checkout e regras de preço/cupom; APIs e permissões de estoque; carrinho; cálculo de frete; TASK-013; RBAC; frontend; integrações externas; manifestos de dependências.
+
+**Sequência:** migration aditiva; modelo e transições; assinatura do corpo bruto; adaptador mock; persistência transacional e idempotente; endpoints; integração de aprovação com pedido, reserva, saldo/movimentação de estoque e auditoria; testes unitários, de concorrência, integração, autenticação e webhook; quality gates; teste manual com payload assinado.
+
+**Integridade e segurança:** criação bloqueia o pedido e usa seu total persistido; `(customerId, idempotencyKey)` e `orderId` recebem constraints únicas; evento e efeitos são aplicados em uma transação com locks consistentes. A aprovação só converte estoque se o pedido ainda estiver `PENDING_PAYMENT` e dentro do prazo. O payload de cartão não é aceito; assinatura inválida não persiste nem aplica o corpo; nenhum segredo ou corpo bruto é registrado.
+
+**Riscos/rollback:** migration é aditiva; não altera pedidos existentes e `PAYMENT_CONFIRMED` não é alvo da rotina de expiração da TASK-013. Se a implementação ou validação falhar, manter TASK-014 fora de DONE e não alterar TASK-015. Não adicionar dependências.
+
+**GATE-002 — APROVADO (2026-11-02).** Plano limitado ao escopo, arquivos reais mapeados, alteração de auditoria classificada como incidental e diretamente necessária. Nenhum bloqueio ou decisão pendente identificado. GATE-003 habilitado.
+
+## Implementação e validação
+
+**GATE-003 — IMPLEMENTAÇÃO CONCLUÍDA (2026-11-02).** Implementados migration 011, modelo e transições, assinatura HMAC do corpo bruto, adaptador `LOCAL_MOCK`, criação/consulta autenticadas, processamento transacional e idempotente, confirmação do pedido e conversão de estoque, auditoria e testes unitários/de integração/API. PRIMARY: arquivos do módulo payments, rotas, migration, testes, `.env.example` e documentos autorizados. INCIDENTAL: ações de auditoria de pagamento e teste correspondente, necessárias à rastreabilidade e rejeição de webhook. Nenhum arquivo FORBIDDEN alterado.
+
+**GATE-004 — APROVADO (2026-11-02).** `npm run quality`, executado com `.env.local` carregado pelo Node, passou: format, lint, typecheck, 92 testes em 32 arquivos e build Next.js. Lint mantém somente warning preexistente em `app/layout.tsx`. Uma execução inicial teve falha transitória no teste preexistente `checkout-api-flow`; o teste passou isoladamente e a execução completa subsequente passou. Revisão confirmou validação HMAC antes do processamento, sem acesso ao serviço em assinatura inválida, autenticação/propriedade no GET e efeitos comerciais dentro da transação.
+
+**GATE-005 — APROVADO (2026-11-02).** Teste manual local executado: assinatura inválida retornou HTTP 401; evento `payment.processing` retornou HTTP 200; evento `payment.approved` retornou HTTP 200; replay foi reconhecido como duplicado (`duplicate: true`). O banco confirmou `Payment=APPROVED`, `Order=PAYMENT_CONFIRMED`, uma reserva convertida, uma saída de estoque e um evento de aprovação processado. Um envio intermediário retornou HTTP 400 devido ao corpo copiado inválido e outro HTTP 409 por tentar aprovar antes de `PROCESSING`; nenhum deles mutou o pagamento. O teste válido/replay subsequente concluiu os critérios. Nenhum segredo, cookie ou identificador foi registrado.
+
+**GATE-006 — APROVADO (2026-11-02).** Definition of Done, critérios de aceitação, rastreabilidade, diff e Scope Guard revisados. PRIMARY limitado ao mock de pagamentos, persistência, endpoints e testes; INCIDENTAL limitado às ações/teste de auditoria necessários. Nenhuma alteração FORBIDDEN ou Scope Creep. Quality gates automatizados e teste manual aprovados. TASK-014 concluída; TASK-015 permanece BLOCKED e não foi iniciada.
 
 ---
 
@@ -209,16 +251,16 @@ Payment
 ```
 PENDING
    |
-   +--> PROCESSING
-   |       |
-   |       +--> APPROVED
-   |       |
-   |       +--> FAILED
+   v
+PROCESSING
    |
+   +--> APPROVED
+   +--> FAILED
    +--> CANCELLED
+   +--> EXPIRED
 ```
 
- Caso o projeto utilize nomenclatura diferente, prevalece o contrato aprovado em `ADR-006`.
+ Caso o projeto utilize nomenclatura diferente, prevalecem os contratos aprovados em `ADR-008` e `ADR-009`.
 
  ### Regras
 
@@ -228,15 +270,16 @@ PENDING
 
 ```
 PENDING     → PROCESSING
-PENDING     → FAILED
-PENDING     → CANCELLED
 
 PROCESSING  → APPROVED
 PROCESSING  → FAILED
+PROCESSING  → CANCELLED
+PROCESSING  → EXPIRED
 
 APPROVED    → [estado terminal]
 FAILED      → [estado terminal]
 CANCELLED   → [estado terminal]
+EXPIRED     → [estado terminal]
 ```
 
  Não deve ser permitido, por exemplo:
@@ -248,7 +291,7 @@ FAILED   → APPROVED
 CANCELLED → APPROVED
 ```
 
- salvo se uma regra formal do provedor e do domínio exigir outro comportamento.
+ Estados terminais não regridem.
 
 ---
 
@@ -270,7 +313,7 @@ getPayment(...)
 cancelPayment(...)
 ```
 
- Os métodos concretos dependem do contrato do provedor aprovado.
+ O adaptador desta TASK implementa somente a criação simulada; consulta e cancelamento de gateway externo não fazem parte do escopo.
 
  O fluxo deve ser:
 
@@ -281,10 +324,10 @@ Application
 PaymentGateway
     |
     v
-ApprovedProviderAdapter
+LocalMockPaymentGateway
     |
     v
-Provider SDK/API
+Local mock
 ```
 
  Não deve existir código comercial espalhado pelo adapter.
@@ -369,6 +412,8 @@ if exists(...)
 
  sem mecanismo de concorrência/constraint apropriado.
 
+ Cada pedido aceita um único pagamento integral pelo total persistido. Pagamentos parciais e a criação de um segundo pagamento para o mesmo pedido não são suportados.
+
 ---
 
  # 11\. Concorrência
@@ -448,7 +493,7 @@ Persistence
  Antes de processar um evento:
 
  - validar assinatura;
-- validar autenticidade conforme o mecanismo oficial do provedor;
+- validar autenticidade conforme o contrato aprovado em ADR-008;
 - validar estrutura mínima do payload;
 - rejeitar assinatura inválida;
 - não produzir efeitos comerciais antes da validação.
@@ -477,7 +522,7 @@ secret = "..."
 
  # 14\. Idempotência de webhook
 
- O mesmo evento pode ser enviado várias vezes pelo provedor.
+ O mesmo evento pode ser reenviado pelo mock local várias vezes.
 
  Exemplo:
 
@@ -516,6 +561,10 @@ WebhookEvent
 
  Uma constraint única deve impedir processamento duplicado quando aplicável.
 
+ No mock local, os tipos suportados são `payment.processing`, `payment.approved`, `payment.failed`, `payment.cancelled` e `payment.expired`. A assinatura HMAC-SHA256 cobre os bytes exatos do corpo da requisição; o cabeçalho é `x-payment-signature: sha256=<hex>`, e a chave vem de `PAYMENT_WEBHOOK_SECRET` no ambiente local.
+
+ O payload JSON mínimo contém `id` (identificador do evento), `type`, `paymentId`, `orderId`, `amountCents`, `currency` e `occurredAt`. O evento deve corresponder ao pagamento, pedido, valor e moeda persistidos antes de qualquer efeito comercial.
+
 ---
 
  # 15\. Eventos fora de ordem
@@ -532,7 +581,7 @@ PROCESSING
 
  Não deve permitir que um evento antigo faça o pagamento regredir para um estado incompatível.
 
- A transição deve ser validada pela máquina de estados.
+ A transição deve ser validada pela máquina de estados. A aprovação válida antes do vencimento move o pedido de `PENDING_PAYMENT` para `PAYMENT_CONFIRMED` e converte a reserva de estoque na mesma transação. Aprovação após expiração é rejeitada sem mutação do pedido ou estoque.
 
  Exemplo:
 
@@ -547,7 +596,7 @@ estado continua APPROVED
 evento tratado sem regressão
 ```
 
- A política exata deve seguir `ADR-006` e as garantias do provedor.
+ A política exata segue `ADR-008` e `ADR-009`. Evento `APPROVED` para pedido expirado deve ser rejeitado sem alterar pedido ou estoque.
 
 ---
 
@@ -676,7 +725,7 @@ erro temporário
 erro definitivo
 ```
 
- Retries automáticos devem ser utilizados somente quando suportados pela arquitetura e pelo contrato do provedor.
+ Não há integração externa nem retry de gateway nesta TASK. Repetições da criação devem reutilizar a mesma chave idempotente.
 
 ---
 
@@ -692,7 +741,15 @@ GET  /payments/{id}
 POST /payments/webhook
 ```
 
- Os caminhos reais devem seguir o padrão já adotado no projeto.
+ Os caminhos reais seguem o padrão já adotado no projeto:
+
+```
+POST /api/payments
+GET  /api/payments/{paymentId}
+POST /api/payments/webhook
+```
+
+ `POST /api/payments` aceita somente `{ orderId, method }` e um UUID em `Idempotency-Key`; o total e a moeda vêm do pedido persistido. Dados de cartão não são aceitos.
 
  ### `POST /payments`
 
@@ -716,7 +773,7 @@ POST /payments/webhook
 - verificar idempotência;
 - validar transição;
 - persistir resultado;
-- responder conforme contrato do provedor.
+- responder conforme contrato do mock aprovado.
 
 ---
 
@@ -899,7 +956,7 @@ status
 
 ```
 módulos payments/orders necessários ao pagamento
-adaptador do provedor aprovado
+adaptador mock local aprovado
 persistência de Payment
 persistência de eventos de webhook
 migrations necessárias
@@ -909,9 +966,12 @@ mocks/fakes de gateway
 testes unitários
 testes de integração
 testes de webhook
-configuração de sandbox
+configuração local do mock
+`.env.example` — nome da variável local necessária ao webhook, sem valor secreto
 documentação técnica
-ADR-006, caso a decisão aprovada precise ser complementada sem alterar seu sentido
+testes unitários da API de pagamento/webhook
+ADR-008 e documentação de decisões relacionadas
+docs/planning/answered-questions.md
 TASKS.md
 ```
 
@@ -923,8 +983,8 @@ TASKS.md
 
  É proibido:
 
- - trocar o provedor aprovado sem decisão explícita;
-- escolher provedor diferente unilateralmente;
+- substituir o mock local por um provedor real sem decisão explícita;
+- escolher ou integrar provedor externo unilateralmente;
 - colocar credenciais reais no código;
 - armazenar dados completos de cartão;
 - implementar política de reembolso não aprovada;
@@ -975,7 +1035,7 @@ NÃO ALTERAR
  Sequência recomendada:
 
 ```
-1. Confirmar ADR-006
+1. Confirmar ADR-008 e ADR-009
         ↓
 2. Mapear contrato atual de Order
         ↓
@@ -1031,67 +1091,68 @@ NÃO ALTERAR
  ### Build
 
 ```
-[ ] Build passa
-[ ] Sem erro de compilação
-[ ] Migrations aplicam corretamente
+ [x] Build passa
+ [x] Sem erro de compilação
+ [x] Migrations aplicam corretamente
 ```
 
  ### Lint
 
 ```
-[ ] Lint passa
-[ ] Sem warnings críticos introduzidos
+[x] Lint passa
+[x] Sem warnings críticos introduzidos
 ```
 
  ### Testes
 
 ```
-[ ] Unitários passam
-[ ] Integração passa
-[ ] Webhook passa
-[ ] Idempotência passa
-[ ] Concorrência aplicável passa
-[ ] Testes de segurança aplicáveis passam
+[x] Unitários passam
+[x] Integração passa
+[x] Webhook passa
+[x] Idempotência passa
+[x] Concorrência aplicável passa
+[x] Testes de segurança aplicáveis passam
 ```
 
  ### Segurança
 
 ```
-[ ] Assinatura de webhook validada
-[ ] Segredos fora do código
-[ ] Dados de cartão não persistidos indevidamente
-[ ] Dados sensíveis ausentes dos logs
+[x] Assinatura de webhook validada
+[x] Segredos fora do código
+[x] Dados de cartão não persistidos indevidamente
+[x] Dados sensíveis ausentes dos logs
 ```
 
  ### Integridade
 
 ```
-[ ] Payment ↔ Order consistente
-[ ] Estados válidos
-[ ] Estados inválidos rejeitados
-[ ] Webhooks duplicados não duplicam efeitos
-[ ] Requests duplicados não criam pagamentos duplicados
+[x] Payment ↔ Order consistente
+[x] Estados válidos
+[x] Estados inválidos rejeitados
+[x] Webhooks duplicados não duplicam efeitos
+[x] Requests duplicados não criam pagamentos duplicados
 ```
 
  ### Rastreabilidade
 
 ```
-[ ] RF-024 coberto
-[ ] RF-025 coberto
-[ ] RN-013 coberto
-[ ] RNF-009 coberto
-[ ] ADR-006 implementado
-[ ] Testes vinculados aos critérios
+[x] RF-024 coberto
+[x] RF-025 coberto
+[x] RN-013 coberto
+[x] RNF-009 coberto
+[x] ADR-008 implementado
+[x] ADR-009 respeitado
+[x] Testes vinculados aos critérios
 ```
 
  ### Escopo
 
 ```
-[ ] ALLOWED_CHANGES respeitado
-[ ] FORBIDDEN_CHANGES não violado
-[ ] Scope Guard validado
-[ ] Nenhum Scope Creep
-[ ] Alterações incidentais justificadas
+[x] ALLOWED_CHANGES respeitado
+[x] FORBIDDEN_CHANGES não violado
+[x] Scope Guard validado
+[x] Nenhum Scope Creep
+[x] Alterações incidentais justificadas
 ```
 
 ---
@@ -1100,31 +1161,31 @@ NÃO ALTERAR
 
  A TASK-014 somente pode ser marcada como `DONE` quando:
 
- - [ ] Provedor aprovado está integrado por adapter.
-- [ ] `Payment` está persistido corretamente.
-- [ ] Estados de pagamento estão definidos e protegidos.
-- [ ] Criação de pagamento é idempotente.
-- [ ] Concorrência da criação foi testada.
-- [ ] Webhooks são recebidos.
-- [ ] Assinaturas de webhook são validadas.
-- [ ] Webhooks duplicados não produzem efeitos duplicados.
-- [ ] Eventos fora de ordem não causam regressões inválidas.
-- [ ] Estado de `Payment` é consistente com `Order`.
-- [ ] Falhas do gateway são tratadas com segurança.
-- [ ] Dados sensíveis não são persistidos indevidamente.
-- [ ] Segredos não aparecem no código ou logs.
-- [ ] Testes unitários passam.
-- [ ] Testes de integração passam.
-- [ ] Testes de webhook passam.
-- [ ] Testes de idempotência passam.
-- [ ] Build passa.
-- [ ] Lint passa.
-- [ ] Documentação foi atualizada.
-- [ ] Rastreabilidade foi atualizada.
-- [ ] `TASKS.md` foi atualizado.
-- [ ] Relatório de execução foi produzido.
-- [ ] Nenhum `FORBIDDEN_CHANGE` ocorreu.
-- [ ] Nenhum Scope Creep ocorreu.
+- [x] Mock local aprovado está integrado por adapter.
+- [x] `Payment` está persistido corretamente.
+- [x] Estados de pagamento estão definidos e protegidos.
+- [x] Criação de pagamento é idempotente.
+- [x] Concorrência da criação foi testada.
+- [x] Webhooks são recebidos.
+- [x] Assinaturas de webhook são validadas.
+- [x] Webhooks duplicados não produzem efeitos duplicados.
+- [x] Eventos fora de ordem não causam regressões inválidas.
+- [x] Estado de `Payment` é consistente com `Order`.
+- [x] Falhas e eventos rejeitados não produzem efeitos comerciais parciais.
+- [x] Dados sensíveis não são persistidos indevidamente.
+- [x] Segredos não aparecem no código ou logs.
+- [x] Testes unitários passam.
+- [x] Testes de integração passam.
+- [x] Testes de webhook passam.
+- [x] Testes de idempotência passam.
+- [x] Build passa.
+- [x] Lint passa.
+- [x] Documentação foi atualizada.
+- [x] Rastreabilidade foi atualizada.
+- [x] `TASKS.md` foi atualizado.
+- [x] Relatório de execução foi produzido.
+- [x] Nenhum `FORBIDDEN_CHANGE` ocorreu.
+- [x] Nenhum Scope Creep ocorreu.
 
 ---
 
@@ -1143,7 +1204,7 @@ transição inválida de estado possível
         OU
 dados sensíveis armazenados indevidamente
         OU
-gateway não aprovado
+mock local não aprovado
         OU
 teste obrigatório falhando
         OU
@@ -1176,71 +1237,69 @@ BLOCKED
 
 ```
 TASK: TASK-014
-STATUS: DONE | FAILED | BLOCKED
+STATUS: DONE
 
 Resumo:
-<resumo objetivo>
+Mock local de pagamentos implementado, integrado ao fluxo de pedidos e validado por testes automatizados e manuais.
 
 Implementado:
-- ...
-- ...
-- ...
+- Persistência idempotente de pagamentos e eventos com migration 011.
+- HMAC-SHA256 no webhook, autenticação/escopo do cliente e adaptador `LOCAL_MOCK`.
+- Confirmação transacional de pedido e conversão de estoque sem efeitos duplicados.
 
 Arquivos alterados:
-- ...
-- ...
+- `src/modules/payments/`, `app/api/payments/` e `db/migrations/011_mock_payments.sql`.
+- Testes payment unitários, HTTP e PostgreSQL integration; ações de auditoria e teste correspondente.
+- `docs/TASKS/TASK014.MD`, `docs/adr/ADRs.md`, `docs/planning/answered-questions.md`, `TASKS.md` e `.env.example`.
 
 Migrations:
-- ...
+- `db/migrations/011_mock_payments.sql` (aplicada ao banco local)
 
 Gateway:
-- Provider: <aprovado>
-- Adapter: <implementado>
+- Mode: mock local; provedor real: não selecionado
+- Adapter: `LocalMockPaymentGateway`
 
 Idempotência:
-- criação: PASS/FAIL
-- webhook: PASS/FAIL
-- concorrência: PASS/FAIL
+- criação: PASS
+- webhook: PASS
+- concorrência: PASS
 
 Webhooks:
-- assinatura: PASS/FAIL
-- duplicação: PASS/FAIL
-- ordem: PASS/FAIL
+- assinatura: PASS (HTTP 401 inválida; válida aceita)
+- duplicação: PASS (replay `duplicate: true`; uma saída de estoque)
+- ordem: PASS (evento processing antes de approved; eventos obsoletos cobertos por integração)
 
 Testes:
-- unit: PASS/FAIL
-- integration: PASS/FAIL
-- webhook: PASS/FAIL
-- idempotência: PASS/FAIL
-- concorrência: PASS/FAIL
+- unit: PASS
+- integration: PASS
+- webhook: PASS
+- idempotência: PASS
+- concorrência: PASS
 
 Quality Gates:
-- build: PASS/FAIL
-- lint: PASS/FAIL
-- testes aplicáveis: PASS/FAIL
+- build: PASS
+- lint: PASS (um warning preexistente em `app/layout.tsx`)
+- testes aplicáveis: PASS (92 testes)
 
 Rastreabilidade:
-- RF-024: ...
-- RF-025: ...
-- RN-013: ...
-- RNF-009: ...
-- ADR-006: ...
+- RF-024: pagamento local associado a pedido persistido.
+- RF-025: webhooks e estados tratados conforme contrato aprovado.
+- RN-013: criação e eventos idempotentes, confirmação e estoque transacionais.
+- RNF-009: assinatura validada, dados de cartão excluídos e segredo local fora do repositório.
+- ADR-008: mock local sem transação financeira real.
+- ADR-009: ciclo de pagamento separado; pedido confirmado como `PAYMENT_CONFIRMED`.
 
 Scope Guard:
-- PASS/FAIL
+- PASS
 
 Alterações incidentais:
-- nenhuma
-ou
-- <justificativa>
+- Inclusão de ações de auditoria de pagamentos e teste de sanitização/rastreabilidade.
 
 Bloqueios:
 - nenhum
-ou
-- <bloqueio>
 
 Próximo estado:
-<estado>
+DONE
 
 Próxima TASK:
 TASK-015 — somente após autorização explícita.
@@ -1248,9 +1307,9 @@ TASK-015 — somente após autorização explícita.
 
 ---
 
- # 36\. Estado final esperado
+ # 36\. Estado final
 
- Se todos os Gates forem aprovados:
+ Todos os Gates foram aprovados:
 
 ```
 TASK-014
@@ -1258,6 +1317,8 @@ TASK-014
     v
 DONE
 ```
+
+GATE-006 encerra a TASK. Não iniciar TASK-015 sem autorização explícita.
 
  A conclusão da TASK-014 **não inicia automaticamente** a `TASK-015`.
 
