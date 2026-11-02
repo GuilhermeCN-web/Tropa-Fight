@@ -30,6 +30,10 @@ export const auditActions = [
   'COUPON_REMOVED',
   'COUPON_CREATED',
   'COUPON_UPDATED',
+  'ADDRESS_CREATED',
+  'ADDRESS_UPDATED',
+  'ORDER_CREATED',
+  'ORDER_EXPIRED',
 ] as const
 
 export type AuditAction = (typeof auditActions)[number]

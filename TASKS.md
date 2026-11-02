@@ -26,7 +26,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    10 | TASK-010 | PHASE-02 | HIGH       | TASK-009                   | DONE    |
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | DONE |
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | DONE |
-|    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | BLOCKED |
+|    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | DONE |
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | BLOCKED |
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | BLOCKED |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | BLOCKED |
@@ -286,20 +286,22 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **Critérios de aceitação/Testes:** cupom expirado ou inválido não é aplicado; limites de uso são respeitados; desconto é calculado de forma determinística.
 **DoD específico:** regras de desconto cobertas por testes.
 **Prontidão (2026-10-26): PASS.** TASK-011 está `DONE`; regras comerciais de desconto, combinação, uso, código, vigência, estados, arredondamento e atualização do carrinho foram aprovadas e registradas. O responsável autorizou `promotions.manage` somente para GENERAL_ADMIN. Branch `feature/TASK-012-coupons-promotions`; transição `BLOCKED → READY → IN_PROGRESS`.
-**Execução concluída (2026-11-02):** GATE-001 a GATE-006 APROVADOS. `npm run quality` passou (67 testes, typecheck, lint e build); migrations locais aplicadas duas vezes. Testes manuais confirmaram criação/normalização de cupom, autorização 403, aplicação determinística sem acumular desconto e remoção do cupom após edição do carrinho. TASK-012: `IN_PROGRESS → IN_REVIEW → DONE`. Relatório e evidências em `docs/TASKS/TASK012.MD`. TASK-013 permanece BLOCKED e não foi iniciada.
+**Execução concluída (2026-11-02):** GATE-001 a GATE-006 APROVADOS. `npm run quality` passou (67 testes, typecheck, lint e build); migrations locais aplicadas duas vezes. Testes manuais confirmaram criação/normalização de cupom, autorização 403, aplicação determinística sem acumular desconto e remoção do cupom após edição do carrinho. TASK-012: `IN_PROGRESS → IN_REVIEW → DONE`. Adendo aprovado em 2026-11-02: a utilização consumida na criação do pedido será liberada se o pedido expirar sem pagamento após 30 dias; integração implementada na TASK-013. Relatório e evidências em `docs/TASKS/TASK012.MD`.
 
 ## TASK-013 — Checkout, endereço e frete
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / CRITICAL
 **Dependências:** `DEPENDS_ON: TASK-012`
 **Relacionados:** RF-020, RF-021, RF-022, RF-023, RN-011, RN-012, UC-006
 **Objetivo:** Implementar checkout, endereços, cálculo/seleção de entrega e criação de pedido.
 **Artefatos esperados:** Address, Order, OrderItem, Shipment e fluxo transacional de checkout.
-**ALLOWED_CHANGES:** módulos checkout/orders/shipping; persistência; APIs; testes; `TASKS.md`.
+**ALLOWED_CHANGES:** módulos checkout/orders/shipping/addresses; persistência/migrations; APIs/DTOs/contratos; integração com cart/pricing/promotions/coupons/inventory; reserva e expiração de estoque; liberação do uso de cupom em pedido expirado (regra aprovada em 2026-11-02); idempotência; testes; auditoria/observabilidade; documentação; `TASKS.md`.
 **FORBIDDEN_CHANGES:** gateway real sem aprovação, regras de devolução não definidas, integrações logísticas não aprovadas.
 **Critérios de aceitação/Testes:** endereço pertence ao cliente; pedido preserva preço/itens no momento da compra; estoque é validado de forma consistente; checkout inválido não cria pedido parcial.
 **DoD específico:** testes transacionais e de concorrência aplicáveis passam.
+**Prontidão (2026-11-02): PASS.** TASK-012 está `DONE`; regras de endereço, frete local, reserva/expiração de estoque, cupom em pedido expirado, divergência de preço, estados, carrinho e idempotência aprovadas. ADR-005/007/009/010 resolvidos e `ALLOWED_CHANGES` alinhado ao detalhe. Veja `docs/TASKS/TASK013.MD` e `docs/planning/answered-questions.md`.
+**Execução concluída (2026-11-02):** transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`; branch `feature/TASK-013-checkout-address-shipping`. `npm run quality` passou (28 arquivos, 79 testes; typecheck, formatação e build aprovados; lint com aviso preexistente em `app/layout.tsx`). Migrations 008–010 aplicadas duas vezes. GATE-001 a GATE-004 aprovados; relatório e evidências em `docs/TASKS/TASK013.MD`. TASK-014 permanece BLOCKED e não foi iniciada.
 
 ## TASK-014 — Pagamentos e idempotência
 

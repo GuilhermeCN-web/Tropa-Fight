@@ -126,7 +126,13 @@ function toCartItem(row: CartItemRow): CartItem {
 const cartItemsQuery = `
   SELECT ci.id, ci.variant_id, p.name AS product_name, v.attributes,
          ci.quantity::text AS quantity, v.price_cents::text AS price_cents,
-         COALESCE(s.quantity, 0)::text AS available_quantity,
+         GREATEST(COALESCE(s.quantity, 0) - COALESCE((
+           SELECT sum(ir.quantity) FROM inventory_reservations ir
+           JOIN orders o ON o.id = ir.order_id
+            WHERE ir.variant_id = v.id AND ir.released_at IS NULL
+              AND ir.converted_at IS NULL AND ir.expires_at > now()
+              AND o.status = 'PENDING_PAYMENT' AND o.payment_due_at > now()
+         ), 0), 0)::text AS available_quantity,
          ci.created_at, ci.updated_at
     FROM cart_items ci
     JOIN catalog_product_variants v ON v.id = ci.variant_id
@@ -144,8 +150,12 @@ async function loadCouponSnapshot(
     `SELECT c.id, c.promotion_id, c.code, c.status,
             c.usage_limit::text AS usage_limit,
             c.usage_limit_per_customer::text AS usage_limit_per_customer,
-            count(r.id)::text AS redeemed_count,
-            count(r.id) FILTER (WHERE r.customer_id = $2)::text
+            count(r.id) FILTER (WHERE r.released_at IS NULL AND
+              (o.id IS NULL OR (o.status <> 'EXPIRED' AND
+               (o.status <> 'PENDING_PAYMENT' OR o.payment_due_at > now()))))::text AS redeemed_count,
+            count(r.id) FILTER (WHERE r.customer_id = $2 AND r.released_at IS NULL AND
+              (o.id IS NULL OR (o.status <> 'EXPIRED' AND
+               (o.status <> 'PENDING_PAYMENT' OR o.payment_due_at > now()))))::text
               AS customer_redeemed_count,
             p.application_type, p.discount_type, p.discount_value::text AS discount_value,
             p.minimum_cart_subtotal_cents::text AS minimum_cart_subtotal_cents,
@@ -153,6 +163,7 @@ async function loadCouponSnapshot(
        FROM coupons c
        JOIN promotions p ON p.id = c.promotion_id
        LEFT JOIN coupon_redemptions r ON r.coupon_id = c.id
+       LEFT JOIN orders o ON o.id = r.order_id
       WHERE c.id = $1
       GROUP BY c.id, p.id`,
     [couponId, customerId],
@@ -160,7 +171,7 @@ async function loadCouponSnapshot(
   return result.rows[0] ?? null
 }
 
-async function loadCart(
+export async function loadCart(
   client: PoolClient,
   cartId: string,
   customerId: string,
@@ -323,11 +334,11 @@ async function createOrLockCart(
 ): Promise<string> {
   await client.query(
     `INSERT INTO carts (id, customer_id) VALUES ($1, $2)
-     ON CONFLICT (customer_id) DO NOTHING`,
+     ON CONFLICT DO NOTHING`,
     [randomUUID(), customerId],
   )
   const result = await client.query<CartRow>(
-    'SELECT id, created_at, updated_at FROM carts WHERE customer_id = $1 FOR UPDATE',
+    "SELECT id, created_at, updated_at FROM carts WHERE customer_id = $1 AND status = 'ACTIVE' FOR UPDATE",
     [customerId],
   )
   const cartId = result.rows[0]?.id
@@ -341,7 +352,13 @@ async function readEligibleVariant(
 ): Promise<VariantRow> {
   const result = await client.query<VariantRow>(
     `SELECT v.id, v.price_cents::text AS price_cents,
-            COALESCE(s.quantity, 0)::text AS available_quantity,
+            GREATEST(COALESCE(s.quantity, 0) - COALESCE((
+              SELECT sum(ir.quantity) FROM inventory_reservations ir
+              JOIN orders o ON o.id=ir.order_id
+               WHERE ir.variant_id=v.id AND ir.released_at IS NULL
+                 AND ir.converted_at IS NULL AND ir.expires_at>now()
+                 AND o.status='PENDING_PAYMENT' AND o.payment_due_at>now()
+            ),0),0)::text AS available_quantity,
             (v.status = 'ACTIVE' AND p.publication_state = 'PUBLISHED'
               AND b.status = 'ACTIVE'
               AND EXISTS (SELECT 1 FROM catalog_product_categories pc
@@ -440,7 +457,7 @@ export class PostgresCartRepository implements CartRepository {
   ): Promise<Cart> {
     return inTransaction(this.pool, async (client) => {
       const cartResult = await client.query<{ id: string }>(
-        'SELECT id FROM carts WHERE customer_id = $1 FOR UPDATE',
+        "SELECT id FROM carts WHERE customer_id = $1 AND status = 'ACTIVE' FOR UPDATE",
         [customerId],
       )
       const cartId = cartResult.rows[0]?.id
@@ -486,7 +503,7 @@ export class PostgresCartRepository implements CartRepository {
   async removeItem(customerId: string, itemId: string): Promise<Cart> {
     return inTransaction(this.pool, async (client) => {
       const cartIdResult = await client.query<{ id: string }>(
-        'SELECT id FROM carts WHERE customer_id = $1 FOR UPDATE',
+        "SELECT id FROM carts WHERE customer_id = $1 AND status = 'ACTIVE' FOR UPDATE",
         [customerId],
       )
       const cartId = cartIdResult.rows[0]?.id

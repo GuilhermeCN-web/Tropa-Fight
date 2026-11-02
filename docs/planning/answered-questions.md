@@ -600,7 +600,23 @@ reembolsado
 
 ---
 
- # Rodada 9 — Cupons e promoções
+# Adendo às Rodadas 1–8 — decisões da TASK-013 (2026-11-02)
+
+**Respostas aprovadas pelo responsável para checkout, endereço, estoque e frete:**
+
+- Endereços: o cliente pode manter vários e escolhe explicitamente o endereço de entrega no checkout. Nome do destinatário, CPF, telefone, CEP, rua, número, bairro, cidade, estado e país são obrigatórios; complemento e referência são opcionais. CPF exige 11 dígitos e validação dos dígitos verificadores. Telefone brasileiro exige DDD e 10 ou 11 dígitos; ambos são normalizados e preservados no snapshot do pedido. O checkout atende somente o Brasil; país `BR` e CEP de 8 dígitos.
+- Frete local determinístico, sem integração real: cobertura de todos os CEPs brasileiros, uma modalidade `STANDARD`, tarifa fixa de R$ 20,00 e estimativa de 5 dias úteis contando segunda a sexta, sem calendário de feriados. Não haverá retirada nem frete grátis.
+- Estoque: reservar atomicamente no momento da criação do pedido por 30 dias corridos. Se houver pagamento antes do prazo, a reserva vira baixa definitiva na confirmação processada pela TASK-014. Se não houver pagamento ao fim do prazo, o pedido fica `EXPIRED`, não pode mais ser pago e a reserva é liberada.
+- Divergência de preço: recalcular no servidor e pedir confirmação explícita dos valores atualizados antes de criar o pedido; valores comerciais enviados pelo cliente nunca são fonte de verdade.
+- Estados iniciais separados: pedido `PENDING_PAYMENT` e entrega `NOT_SHIPPED`. Estados posteriores continuam sujeitos às decisões das tarefas de pedidos/pagamentos.
+- Carrinho: associar ao pedido e marcar como convertido, preservando itens; a próxima consulta cria um novo carrinho vazio.
+- Idempotência: exigir `Idempotency-Key` associada ao cliente. Mesma chave e mesmo conteúdo retorna o mesmo pedido; reutilizar a chave com conteúdo diferente retorna conflito.
+- Cupom: uso é consumido atomicamente na criação do pedido e devolvido ao limite se o pedido expirar sem pagamento após 30 dias. Este adendo atualiza a decisão de consumo registrada na TASK-012; a integração de expiração e liberação é implementada na TASK-013.
+- Desconto por item no pedido: aprovado rateio proporcional do desconto total do carrinho entre os subtotais dos itens. Diferenças de centavos serão atribuídas pelas maiores frações proporcionais; empates serão resolvidos pelo menor ID de variante em ordem lexical. A soma dos descontos dos itens deverá corresponder exatamente ao desconto do pedido.
+
+---
+
+# Rodada 9 — Cupons e promoções
 
  ## 1\. Quais tipos de desconto existirão?
 

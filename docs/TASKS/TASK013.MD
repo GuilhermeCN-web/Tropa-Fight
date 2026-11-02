@@ -1,6 +1,6 @@
 # TASK-013 — Checkout, endereço e frete
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-03 / CRITICAL\
  **Dependências:** `DEPENDS_ON: TASK-012`\
  **Estado de entrada esperado:** `BLOCKED` até `TASK-012 = DONE`\
@@ -110,6 +110,26 @@ pedido não deve ser criado parcialmente
 - Scope Guard estiver validado.
 
  Se a política comercial de frete ou endereço estiver indefinida, não inventar comportamento.
+
+ **Prontidão (2026-11-02): PASS.** TASK-012 está `DONE`; seus artefatos de carrinho, cupom e promoção existem. Requisitos, contratos, políticas comerciais, estados, estratégia transacional e Scope Guard foram definidos abaixo e registrados em `docs/planning/answered-questions.md`. ADR-005, ADR-007, ADR-009 e ADR-010 foram aprovados para o escopo da TASK-013. O resumo `ALLOWED_CHANGES` foi alinhado ao escopo detalhado. Nenhum código foi implementado antes desta aprovação de prontidão.
+
+ **Execução (2026-11-02):** branch `feature/TASK-013-checkout-address-shipping`; transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. GATE-001 (prontidão), GATE-002 (planejamento), GATE-003 (implementação) e GATE-004 (validação final) aprovados.
+
+ **Decisão adicional aprovada pelo responsável:** o desconto total será rateado proporcionalmente entre os itens; os centavos restantes serão alocados pelas maiores frações, com desempate pelo menor ID de variante em ordem lexical. A soma dos descontos por item deve coincidir com o desconto do pedido. A migration `009_order_item_discount_allocation.sql` persiste essa parcela e restringe o desconto de cada item ao respectivo subtotal.
+
+ **Implementação concluída:** migrations `008_checkout_orders.sql`, `009_order_item_discount_allocation.sql` e `010_order_coupon_snapshot.sql`; persistência de endereços/cotações/pedidos/itens/entregas/reservas/idempotência; APIs autenticadas de endereço e checkout; recálculo de carrinho/cupom; rateio do desconto; proteção de estoque reservado; snapshots; cotação local por porta/adaptador e auditoria. `npm run quality` passou com 28 arquivos e 79 testes; migrations reaplicadas duas vezes. Lint manteve somente o aviso preexistente em `app/layout.tsx`.
+
+ **Decisões aprovadas pelo responsável em 2026-11-02:**
+
+ 1. **Endereço:** o cliente pode manter vários endereços e seleciona explicitamente um no checkout. Nome do destinatário, CPF, telefone, CEP, rua, número, bairro, cidade, estado e país são obrigatórios; complemento e referência são opcionais. CPF deve ter 11 dígitos com dígitos verificadores válidos. Telefone brasileiro deve conter DDD e 10 ou 11 dígitos. CPF e telefone serão normalizados e preservados no snapshot do pedido. Somente Brasil é atendido; país `BR` e CEP de 8 dígitos.
+ 2. **Frete:** cotação local determinística, sem transportadora real: todos os CEPs brasileiros; somente modalidade `STANDARD`; preço fixo de R$ 20,00; estimativa de 5 dias úteis, contando segunda a sexta sem calendário de feriados; sem retirada e sem frete grátis.
+ 3. **Estoque:** reserva atômica na criação do pedido por 30 dias corridos. Pagamento confirmado antes do prazo converte a reserva em baixa definitiva na integração da TASK-014. Sem pagamento no prazo, o pedido passa a `EXPIRED`, não pode mais ser pago e a reserva é liberada.
+ 4. **Cupom:** uso consumido atomicamente na criação do pedido é devolvido ao limite se o pedido expirar sem pagamento após 30 dias. A decisão atualiza o ciclo registrado na TASK-012; a integração de liberação pertence a esta TASK-013.
+ 5. **Preço:** checkout recalcula preços e demais valores no servidor. Se houver divergência desde a apresentação anterior, retorna a cotação atualizada e exige confirmação explícita antes de criar o pedido. Totais do cliente nunca são fonte de verdade.
+ 6. **Estados:** pedido inicia `PENDING_PAYMENT`, entrega inicia `NOT_SHIPPED`; os ciclos permanecem separados. Pedido não pago expira como `EXPIRED` após 30 dias corridos.
+ 7. **Carrinho:** ao criar o pedido, marcar o carrinho como convertido e associá-lo ao pedido, preservando itens. Uma consulta posterior cria um novo carrinho vazio.
+ 8. **Idempotência:** exigir `Idempotency-Key` associada ao cliente. Mesma chave com mesmo conteúdo retorna o mesmo pedido; mesma chave com conteúdo diferente retorna conflito.
+ 9. **Escopo:** incluir módulos de checkout/orders/shipping/addresses, persistência/migrations, APIs/DTOs/contratos, integração com cart/pricing/promotions/coupons, consulta e reservas de inventory, idempotência, auditoria, testes e documentação. Permanecem proibidos pagamentos reais, gateway, captura, reembolso, cancelamento comercial, devolução/troca, rastreamento externo, integração logística real e alteração unilateral de RBAC.
 
 ---
 
@@ -259,6 +279,8 @@ Address
  ├── id
  ├── customerId
  ├── recipientName
+ ├── cpf
+ ├── phone
  ├── postalCode
  ├── street
  ├── number
@@ -272,7 +294,7 @@ Address
  └── updatedAt
 ```
 
- Somente manter campos realmente necessários.
+ Campos obrigatórios: `recipientName`, CPF, telefone, `postalCode`, `street`, `number`, `neighborhood`, `city`, `state` e `country`. `complement` e `reference` são opcionais. O cliente poderá manter múltiplos endereços.
 
 ---
 
@@ -346,17 +368,7 @@ Pedido A continua:
 
  # 12\. Validação de endereço
 
- Validar, conforme regras aprovadas:
-
- - campos obrigatórios;
-- formato;
-- CEP;
-- estado;
-- cidade;
-- país;
-- consistência necessária para cálculo do frete.
-
- Não criar validações comerciais não especificadas.
+ Validar campos obrigatórios; CPF brasileiro de 11 dígitos e dígitos verificadores; telefone brasileiro com DDD e 10 ou 11 dígitos; CEP de 8 dígitos; e país `BR`. Normalizar CPF, telefone e CEP para dígitos. Não consultar serviço externo de CEP nem inventar outras regras de validação.
 
 ---
 
@@ -429,26 +441,13 @@ ShippingOption
  └── availability
 ```
 
- Os campos reais devem seguir o modelo aprovado.
+ Para a V1 local, a única opção é `STANDARD`, com preço fixo de 2.000 centavos BRL e prazo estimado de 5 dias úteis.
 
 ---
 
  # 18\. Estratégia de frete
 
- A TASK deve utilizar somente a estratégia aprovada.
-
- Possibilidades:
-
-```
-frete fixo
-faixas de CEP
-faixas de valor
-faixas de peso
-transportadora simulada
-provedor externo aprovado
-```
-
- Não escolher provedor real unilateralmente.
+Utilizar somente a cotação local determinística aprovada: todos os CEPs brasileiros válidos recebem `STANDARD`, R$ 20,00 fixos e estimativa de 5 dias úteis. Não escolher provedor real.
 
 ---
 
@@ -508,7 +507,7 @@ pedido
 
  # 21\. Cotação de frete
 
- Uma cotação deve ser baseada em informações confiáveis:
+ A cotação local aprovada usa o endereço brasileiro válido e não depende de peso, dimensões ou valor dos itens. Uma futura cotação externa deverá ser baseada em informações confiáveis:
 
 ```
 endereço
@@ -540,7 +539,7 @@ valor comercial quando aplicável
 
  # 23\. Prazo de entrega
 
- Se o frete possuir prazo:
+ O prazo aprovado é de 5 dias úteis, contando segunda a sexta e sem calendário de feriados. O cálculo começa na data de criação do pedido.
 
 ```
 estimatedDelivery
@@ -575,16 +574,7 @@ EXPRESS
 
  # 25\. Expiração da cotação
 
- Se a cotação tiver validade:
-
-```
-quotedAt
-expiresAt
-```
-
- não aceitar uma cotação expirada.
-
- Caso não exista expiração definida, não inventar TTL comercial.
+ A cotação não possui expiração temporal própria. No momento de confirmar o pedido, o servidor revalida carrinho, endereço, preço, desconto e frete. Se os valores divergirem, retorna nova cotação e exige confirmação explícita novamente.
 
 ---
 
@@ -653,19 +643,7 @@ checkout rejeitado
 preço carrinho ≠ preço atual
 ```
 
- o checkout deve seguir a política aprovada.
-
- Possibilidades:
-
-```
-recalcular
-rejeitar
-exigir confirmação
-```
-
- Não inventar comportamento.
-
- O importante é que o pedido nunca seja criado com preço inconsistente.
+ recalcular no servidor e exigir confirmação explícita dos valores atualizados. A primeira tentativa de confirmar uma cotação divergente não cria pedido; retorna a nova cotação para o cliente confirmar.
 
 ---
 
@@ -709,38 +687,13 @@ itens
 
  # 33\. Consumo definitivo do cupom
 
- A criação do pedido deve utilizar a estratégia definida na `TASK-012`.
-
- Se o uso definitivo ocorrer na confirmação do pedido:
-
-```
-Checkout
-   ↓
-Order criado
-   ↓
-consumo definitivo
-```
-
- deve ser consistente com a transação.
-
- Não consumir duas vezes.
+ Consumir o uso do cupom atomicamente na criação do pedido. Se esse pedido expirar sem pagamento após 30 dias corridos, liberar o uso ao limite na mesma transação que expira o pedido e libera a reserva de estoque. Repetição idempotente não consome novamente.
 
 ---
 
  # 34\. Estoque
 
- O checkout deve validar disponibilidade.
-
- Não antecipar regras de reserva definitiva se elas não estiverem aprovadas.
-
- A TASK pode:
-
-```
-consultar estoque
-validar quantidade
-```
-
- mas não deve criar uma estratégia de reserva fora do escopo.
+ Ao criar o pedido, reservar atomica e transacionalmente as quantidades disponíveis por 30 dias corridos. Pagamento confirmado converte a reserva em baixa definitiva na TASK-014. Pedido não pago ao fim do prazo expira e libera a reserva. O carrinho não reserva estoque.
 
 ---
 
@@ -757,9 +710,7 @@ Cliente B → checkout
 
  A implementação deve impedir criação inconsistente de pedidos que violem a política de estoque.
 
- A estratégia exata de reserva/baixa deve seguir o modelo definido.
-
- Se a regra definitiva exigir operação de estoque transacional, ela deve ser explicitamente integrada sem inventar comportamento.
+ A reserva deve impedir que pedidos concorrentes excedam o saldo vendável. A confirmação, expiração e liberação de cada reserva devem ser atômicas com a atualização do pedido e, quando aplicável, da utilização do cupom.
 
 ---
 
@@ -806,6 +757,8 @@ OrderItem
 
  Snapshots devem preservar a informação comercial necessária para o histórico.
 
+ **Decisão aprovada:** distribuir o desconto total proporcionalmente aos subtotais dos itens. Distribuir centavos residuais pelas maiores frações; em empate, priorizar o menor ID de variante em ordem lexical. A soma deve corresponder exatamente ao desconto do pedido, sem exceder o subtotal de cada item.
+
 ---
 
  # 38\. Por que usar snapshot
@@ -851,19 +804,13 @@ Shipment
 
  # 40\. Estado inicial do pedido
 
- O pedido precisa possuir estado inicial definido.
-
- Exemplo conceitual:
+O pedido possui estado inicial aprovado:
 
 ```
 PENDING_PAYMENT
 ```
 
- ou equivalente aprovado.
-
- Não criar estados novos sem decisão.
-
- O estado deve ser compatível com a `TASK-014`.
+ A entrega inicia em `NOT_SHIPPED`. Pedido sem pagamento após 30 dias corridos passa a `EXPIRED` e não pode mais ser pago. Não implementar outros estados ou políticas comerciais sem aprovação.
 
 ---
 
@@ -974,27 +921,19 @@ Order 101
 
  sem que isso seja uma nova intenção legítima.
 
- A estratégia pode utilizar:
-
-```
-idempotency key
-checkout token
-request identifier
-```
-
- conforme arquitetura aprovada.
+ Exigir o header `Idempotency-Key`, associado ao cliente e ao conteúdo normalizado da confirmação. Mesma chave/cliente/conteúdo devolve o mesmo pedido; mesma chave com conteúdo diferente retorna conflito. A chave deve ser persistida no servidor.
 
 ---
 
  # 45\. Idempotency Key
 
- Se adotada:
+ A API exige:
 
 ```
 Idempotency-Key
 ```
 
- deve ser:
+ O valor deve ser UUID. A chave deve ser:
 
  - associada ao cliente;
 - protegida contra reutilização indevida;
@@ -1027,17 +966,14 @@ dois pedidos legítimos gerados pelo mesmo checkout
 
  # 47\. Carrinho após criação do pedido
 
- O comportamento deve ser definido.
-
- Opções:
+ Após a criação do pedido:
 
 ```
-limpar carrinho
-marcar como convertido
-associar cart → order
+marcar carrinho como CONVERTED
+associar carrinho ao pedido
+preservar os itens históricos
+GET posterior cria um novo carrinho vazio
 ```
-
- A implementação deve seguir a regra aprovada.
 
  Não duplicar itens nem permitir que o carrinho convertido continue sendo interpretado como compra pendente.
 
@@ -1252,25 +1188,15 @@ correlationId
 
 ---
 
- # 59\. API de checkout
+ # 59\. Contrato da API de checkout
 
- Contrato conceitual:
+ Endereços usam `GET/POST /api/addresses` e `GET/PATCH /api/addresses/{addressId}`. O cliente autenticado é sempre derivado da sessão; `customerId` enviado no corpo é rejeitado.
 
-```
-POST /checkout
-```
+ `POST /api/checkout/quotes` recebe `{ "addressId": "..." }`, usa o carrinho do cliente autenticado e retorna uma cotação calculada pelo servidor, contendo `quoteId`, endereço, modalidade `STANDARD`, subtotal, desconto, frete e total em centavos. A cotação não expira por TTL; a confirmação revalida todos os dados.
 
- Entrada possível:
+ `POST /api/checkout/orders` recebe `{ "quoteId": "..." }` e exige `Idempotency-Key` UUID no header. A mesma chave/cliente/conteúdo retorna o mesmo pedido; reutilização com conteúdo diferente retorna HTTP 409. Uma cotação só pode originar um pedido; reenvio da mesma cotação retorna o pedido já criado.
 
-```
-{
-  "cartId": "cart-id",
-  "addressId": "address-id",
-  "shippingOptionId": "shipping-option-id"
-}
-```
-
- Os campos reais devem seguir o contrato da aplicação.
+ Ao confirmar, o backend recalcula itens, preços, descontos, frete, endereço e disponibilidade. Se o resultado diferir da cotação, retorna HTTP 409 `QUOTE_CHANGED` com a nova cotação e não cria pedido. O cliente confirma o novo `quoteId` em nova chamada.
 
 ---
 
@@ -1293,57 +1219,52 @@ POST /checkout
 
  # 61\. Resposta do checkout
 
- Resposta conceitual:
+ Resposta do pedido criado:
 
 ```
 {
   "orderId": "order-id",
   "status": "PENDING_PAYMENT",
-  "subtotal": 300.00,
-  "discount": 30.00,
-  "shipping": 20.00,
-  "total": 290.00
+  "subtotalCents": 30000,
+  "discountCents": 3000,
+  "shippingCents": 2000,
+  "totalCents": 29000,
+  "shipmentStatus": "NOT_SHIPPED",
+  "paymentDueAt": "ISO timestamp 30 days after creation"
 }
 ```
 
- Os nomes concretos devem respeitar o contrato existente.
+ Os valores são derivados no servidor. O pedido começa `PENDING_PAYMENT`; pagamento real fica fora desta TASK.
 
 ---
 
  # 62\. API de endereços
 
- Operações conceituais:
+ Operações necessárias:
 
 ```
-POST   /customer/addresses
-GET    /customer/addresses
-GET    /customer/addresses/{id}
-PATCH  /customer/addresses/{id}
-DELETE /customer/addresses/{id}
+POST   /api/addresses
+GET    /api/addresses
+GET    /api/addresses/{addressId}
+PATCH  /api/addresses/{addressId}
 ```
 
- Somente implementar operações realmente necessárias.
+Cadastro, consulta de lista/detalhe e atualização devem verificar a propriedade do cliente. Exclusão de endereço fica fora da TASK-013.
 
 ---
 
  # 63\. API de frete
 
- Operação conceitual:
+ A cotação de frete é incluída em `POST /api/checkout/quotes` e sempre retorna uma única opção `STANDARD`.
 
-```
-POST /checkout/shipping-options
-```
-
- ou equivalente.
-
- A cotação deve utilizar:
+A cotação utiliza:
 
 ```
 cart
 address
 ```
 
- e calcular opções válidas.
+ e retorna R$ 20,00 e prazo de 5 dias úteis calculado pelo backend.
 
 ---
 
@@ -1366,7 +1287,7 @@ shippingQuote
 → recalcular
 ```
 
- Não manter valor antigo silenciosamente.
+ Não manter valor antigo silenciosamente; a confirmação de cotação divergente retorna `QUOTE_CHANGED` e exige novo aceite.
 
 ---
 
@@ -1384,23 +1305,15 @@ cotação A
 
 ---
 
- # 66\. Expiração de sessão
+ # 66\. Expiração de cotação
 
- Se existir mecanismo de sessão de checkout:
-
-```
-checkoutSession
-```
-
- seguir o TTL definido.
-
- Não criar sessão persistente sem necessidade.
+Não há TTL comercial para a cotação. Ela é revalidada integralmente na confirmação; uma cotação já usada retorna o pedido associado e não cria outro.
 
 ---
 
  # 67\. Estado do checkout
 
- Se houver entidade própria:
+ A cotação deverá possuir entidade persistida própria:
 
 ```
 CheckoutSession
@@ -1408,13 +1321,14 @@ CheckoutSession
 
  ela deve possuir ciclo de vida claro.
 
- Exemplo:
+ Estados:
 
 ```
 OPEN
-COMPLETED
-EXPIRED
+CONSUMED
 ```
+
+ A validade comercial do pedido é controlada separadamente por `paymentDueAt` (30 dias corridos).
 
  Não adicionar estados sem necessidade.
 
@@ -1835,7 +1749,8 @@ contratos
 integração com cart
 integração com pricing
 integração com promotions/coupons
-integração de consulta com inventory
+integração com inventory, incluindo reserva e expiração atômica de estoque
+liberação do uso de cupom quando pedido expirar sem pagamento, conforme adendo aprovado à TASK-012
 testes
 validações
 transações
@@ -1908,30 +1823,30 @@ NÃO IMPLEMENTAR
  # 90\. Quality Gates
 
 ```
-[ ] Build
-[ ] Lint
-[ ] Unit tests
-[ ] Integration tests
-[ ] API/contract tests
-[ ] Authorization tests
-[ ] Security tests
-[ ] Checkout tests
-[ ] Address tests
-[ ] Shipping tests
-[ ] Pricing tests
-[ ] Promotion/Coupon regression
-[ ] Inventory validation
-[ ] Financial calculation tests
-[ ] Snapshot tests
-[ ] Transaction tests
-[ ] Rollback tests
-[ ] Concurrency tests
-[ ] Idempotency tests
-[ ] Regression tests
-[ ] Migration tests
-[ ] Observability validation
-[ ] Traceability validation
-[ ] Scope Guard
+[x] Build
+[x] Lint (aviso preexistente em `app/layout.tsx`)
+[x] Unit tests
+[x] Integration tests
+[x] API/contract tests
+[x] Authorization tests
+[x] Security tests
+[x] Checkout tests
+[x] Address tests
+[x] Shipping tests
+[x] Pricing tests
+[x] Promotion/Coupon regression
+[x] Inventory validation
+[x] Financial calculation tests
+[x] Snapshot tests
+[x] Transaction tests
+[x] Rollback tests
+[x] Concurrency tests
+[x] Idempotency tests
+[x] Regression tests
+[x] Migration tests
+[x] Observability validation
+[x] Traceability validation
+[x] Scope Guard
 ```
 
 ---
@@ -2020,50 +1935,50 @@ subtotal - desconto + frete
 
  A `TASK-013` somente poderá ser marcada como `DONE` quando:
 
- - [ ] checkout implementado;
-- [ ] endereço implementado;
-- [ ] validação de propriedade implementada;
-- [ ] snapshot de endereço implementado;
-- [ ] cálculo/seleção de frete implementado;
-- [ ] abstração de frete criada quando necessária;
-- [ ] carrinho validado novamente no checkout;
-- [ ] preços revalidados;
-- [ ] promoções revalidadas;
-- [ ] cupons revalidados;
-- [ ] disponibilidade validada;
-- [ ] `Order` implementado;
-- [ ] `OrderItem` implementado;
-- [ ] `Shipment` implementado;
-- [ ] estado inicial do pedido definido;
-- [ ] snapshot comercial preservado;
-- [ ] total calculado pelo backend;
-- [ ] transação implementada;
-- [ ] rollback validado;
-- [ ] idempotência implementada;
-- [ ] concorrência validada;
-- [ ] autorização validada;
-- [ ] segurança validada;
-- [ ] observabilidade necessária validada;
-- [ ] auditoria necessária validada;
-- [ ] migrations executadas/testadas;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes financeiros passam;
-- [ ] testes de autorização passam;
-- [ ] testes de concorrência passam;
-- [ ] testes de idempotência passam;
-- [ ] regressão das TASK-011 e TASK-012 passa;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação atualizada;
-- [ ] rastreabilidade atualizada;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] nenhum Scope Creep;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de execução produzido;
-- [ ] estado final registrado.
+ - [x] checkout implementado;
+- [x] endereço implementado;
+- [x] validação de propriedade implementada;
+- [x] snapshot de endereço implementado;
+- [x] cálculo/seleção de frete implementado;
+- [x] abstração de frete criada;
+- [x] carrinho validado novamente no checkout;
+- [x] preços revalidados;
+- [x] promoções revalidadas;
+- [x] cupons revalidados;
+- [x] disponibilidade validada;
+- [x] `Order` implementado;
+- [x] `OrderItem` implementado;
+- [x] `Shipment` implementado;
+- [x] estado inicial do pedido definido;
+- [x] snapshot comercial preservado;
+- [x] total calculado pelo backend;
+- [x] transação implementada;
+- [x] rollback validado;
+- [x] idempotência implementada;
+- [x] concorrência validada;
+- [x] autorização validada;
+- [x] segurança validada;
+- [x] observabilidade necessária validada;
+- [x] auditoria necessária validada;
+- [x] migrations executadas/testadas;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes financeiros passam;
+- [x] testes de autorização passam;
+- [x] testes de concorrência passam;
+- [x] testes de idempotência passam;
+- [x] regressão das TASK-011 e TASK-012 passa;
+- [x] build passa;
+- [x] lint passa;
+- [x] documentação atualizada;
+- [x] rastreabilidade atualizada;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] nenhum Scope Creep;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de execução produzido;
+- [x] estado final registrado.
 
 ---
 
@@ -2165,174 +2080,63 @@ Cada requisito deve possuir evidência em código, teste, contrato, documentaç�
 
 ---
 
- # 97\. Relatório de execução — template
+ # 97\. Relatório de execução
 
 ```
 TASK: TASK-013
 TÍTULO: Checkout, endereço e frete
 ESTADO INICIAL: IN_PROGRESS
-ESTADO FINAL: <DONE|FAILED|CANCELLED>
+ESTADO FINAL: DONE
+BRANCH: feature/TASK-013-checkout-address-shipping
+COMMITS: nenhum (alterações ainda não commitadas)
 
 DEPENDÊNCIA:
 - TASK-012: DONE
 
-OBJETIVO:
-<resumo>
+IMPLEMENTADO (PRIMARY):
+- Endereços de cliente com validação e controle de propriedade.
+- Cotação local STANDARD: R$ 20,00 e cinco dias úteis, de segunda a sexta.
+- Cotação e criação de pedido com preços, descontos, frete e total calculados no servidor.
+- Alocação proporcional do desconto entre os itens; restos de centavos distribuídos pelas maiores frações, com desempate pelo menor ID de variante em ordem lexical; soma igual ao desconto total.
+- Snapshots de endereço, itens, valores e cupom no pedido.
+- Reserva transacional de estoque por 30 dias, expiração do pedido e liberação de estoque e uso do cupom.
+- Conversão do carrinho e idempotência por cliente e Idempotency-Key.
+- Auditoria, migrations, testes unitários, de integração e de API.
 
-IMPLEMENTADO:
-- Checkout
-- Address
-- Order
-- OrderItem
-- Shipment
-- ShippingCalculator
-- Validação comercial
-- Snapshot
-- Transação
-- Idempotência
+ALTERAÇÃO INCIDENTAL:
+- `next-env.d.ts`: referências de tipos de rotas geradas pelo build do Next.js.
 
-QUALITY GATES:
+TESTES E QUALITY GATES:
+- `npm run quality`: PASS; 28 arquivos de teste e 79 testes aprovados; typecheck, formatação e build aprovados.
+- Lint: PASS com aviso preexistente `react(only-export-components)` em `app/layout.tsx`.
+- Migrations 008–010 aplicadas duas vezes: PASS.
+- Build: PASS. Lint: PASS. Unit: PASS. Integration: PASS. API/Contract: PASS.
+- Authorization: PASS. Security: PASS. Checkout: PASS. Address: PASS. Shipping: PASS.
+- Pricing e rateio financeiro: PASS. Regressão de cupom/promoção: PASS. Inventory: PASS.
+- Snapshot: PASS. Transaction e rollback: PASS. Concurrency: PASS. Idempotency: PASS.
+- Restrições, índices e invariantes de ownership e cálculo no servidor: PASS.
 
-Build:
-- Resultado: <PASS/FAIL>
-- Evidência:
+SEGURANÇA E PAGAMENTO:
+- Preço, desconto, frete e total são recalculados/controlados no servidor.
+- Testes de propriedade e isolamento entre clientes aprovados; nenhum bypass de autorização identificado.
+- Gateway, captura e webhook não implementados; pedido permanece preparado para integração da TASK-014.
 
-Lint:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Unit:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Integration:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-API/Contract:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Authorization:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Security:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Checkout:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Address:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Shipping:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Pricing:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Promotion/Coupon Regression:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Inventory:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Financial Calculation:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Snapshot:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Transaction:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Rollback:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Concurrency:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-Idempotency:
-- Resultado: <PASS/FAIL>
-- Evidência:
-
-DATABASE:
-- migrations: <PASS/FAIL>
-- constraints: <PASS/FAIL>
-- índices: <PASS/FAIL>
-
-INVARIANTES:
-- order ownership: <PASS/FAIL>
-- address ownership: <PASS/FAIL>
-- cart ownership: <PASS/FAIL>
-- subtotal backend-controlled: <PASS/FAIL>
-- discount backend-controlled: <PASS/FAIL>
-- shipping backend-controlled: <PASS/FAIL>
-- total backend-controlled: <PASS/FAIL>
-- total >= 0: <PASS/FAIL>
-- snapshot integrity: <PASS/FAIL>
-- transaction integrity: <PASS/FAIL>
-- idempotency: <PASS/FAIL>
-- concurrency: <PASS/FAIL>
-
-SEGURANÇA:
-- preço controlável pelo cliente: NÃO
-- desconto controlável pelo cliente: NÃO
-- frete controlável pelo cliente: NÃO
-- total controlável pelo cliente: NÃO
-- acesso cross-customer: NÃO
-- bypass de autorização: NÃO
-
-PAGAMENTO:
-- gateway real: NÃO IMPLEMENTADO
-- captura: NÃO IMPLEMENTADA
-- webhook: NÃO IMPLEMENTADO
-- pedido preparado para TASK-014: <SIM/NÃO>
-
-PROBLEMAS ENCONTRADOS:
-- <item ou nenhum>
-
-CORREÇÕES REALIZADAS:
-- <item ou nenhuma>
-
-PENDÊNCIAS:
-- <item ou nenhuma>
+PROBLEMAS/PENDÊNCIAS:
+- Nenhum bloqueio da TASK-013. Permanece o aviso de lint preexistente em `app/layout.tsx`.
 
 RASTREABILIDADE:
-- RF-020: <evidência>
-- RF-021: <evidência>
-- RF-022: <evidência>
-- RF-023: <evidência>
-- RN-011: <evidência>
-- RN-012: <evidência>
-- UC-006: <evidência>
+- RF-020 a RF-023, RN-011, RN-012 e UC-006: implementados nos módulos `checkout`, `shipping`, integrações de `cart`, `coupons` e `inventory`, migrations 008–010 e testes `checkout-domain`, `checkout-flow` e `checkout-api-flow`.
 
 SCOPE GUARD:
 - ALLOWED_CHANGES: PASS
+- INCIDENTAL (`next-env.d.ts`): PASS, gerado pelo build e necessário aos tipos de rotas.
 - FORBIDDEN_CHANGES: PASS
-- Scope Creep: NÃO IDENTIFICADO
+- Scope Creep: nenhum
 
-TASKS.md:
-- atualizado: <SIM/NÃO>
-
-CONCLUSÃO:
-<resultado factual>
-
-ESTADO FINAL:
-<DONE|FAILED|CANCELLED>
+TASKS.md: atualizado; TASK-014 permanece BLOCKED e não foi iniciada.
+CONCLUSÃO: critérios de aceitação e gates aplicáveis aprovados.
+DEFINITION OF DONE: PASS
+ESTADO FINAL: DONE
 ```
 
 ---

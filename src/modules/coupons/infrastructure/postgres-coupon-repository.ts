@@ -119,9 +119,13 @@ export class PostgresCouponRepository implements CouponRepository {
       `SELECT c.id, c.promotion_id, c.code, c.status,
               c.usage_limit::text AS usage_limit,
               c.usage_limit_per_customer::text AS usage_limit_per_customer,
-              count(r.id)::text AS redeemed_count, c.created_at, c.updated_at
+              count(r.id) FILTER (WHERE r.released_at IS NULL AND
+                (o.id IS NULL OR (o.status <> 'EXPIRED' AND
+                 (o.status <> 'PENDING_PAYMENT' OR o.payment_due_at > now()))))::text AS redeemed_count,
+              c.created_at, c.updated_at
          FROM coupons c
          LEFT JOIN coupon_redemptions r ON r.coupon_id = c.id
+         LEFT JOIN orders o ON o.id = r.order_id
         GROUP BY c.id
         ORDER BY c.created_at DESC, c.id`,
     )
@@ -182,7 +186,10 @@ export class PostgresCouponRepository implements CouponRepository {
                   c.usage_limit::text AS usage_limit,
                   c.usage_limit_per_customer::text AS usage_limit_per_customer,
                   (SELECT count(*)::text FROM coupon_redemptions r
-                    WHERE r.coupon_id = c.id) AS redeemed_count,
+                    LEFT JOIN orders o ON o.id=r.order_id
+                    WHERE r.coupon_id = c.id AND r.released_at IS NULL
+                      AND (o.id IS NULL OR (o.status <> 'EXPIRED' AND
+                       (o.status <> 'PENDING_PAYMENT' OR o.payment_due_at > now())))) AS redeemed_count,
                   c.created_at, c.updated_at
              FROM coupons c
             WHERE c.id = $1
@@ -204,8 +211,11 @@ export class PostgresCouponRepository implements CouponRepository {
             RETURNING id, promotion_id, code, status,
                       usage_limit::text AS usage_limit,
                       usage_limit_per_customer::text AS usage_limit_per_customer,
-                      (SELECT count(*)::text FROM coupon_redemptions
-                        WHERE coupon_id = coupons.id) AS redeemed_count,
+                      (SELECT count(*)::text FROM coupon_redemptions r
+                        LEFT JOIN orders o ON o.id=r.order_id
+                        WHERE r.coupon_id = coupons.id AND r.released_at IS NULL
+                          AND (o.id IS NULL OR (o.status <> 'EXPIRED' AND
+                           (o.status <> 'PENDING_PAYMENT' OR o.payment_due_at > now())))) AS redeemed_count,
                       created_at, updated_at`,
           [
             id,
