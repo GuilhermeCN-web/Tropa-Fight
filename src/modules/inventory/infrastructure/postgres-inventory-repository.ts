@@ -152,12 +152,25 @@ export class PostgresInventoryRepository implements InventoryRepository {
         [input.variantId],
       )
 
+      await client.query(
+        'SELECT variant_id FROM inventory_stocks WHERE variant_id = $1 FOR UPDATE',
+        [input.variantId],
+      )
+
       const delta = input.type === 'EXIT' ? -input.quantity : input.quantity
       const balanceResult = await client.query<{ quantity: string }>(
         `UPDATE inventory_stocks
             SET quantity = quantity + $2::bigint, updated_at = now()
           WHERE variant_id = $1
-            AND quantity + $2::bigint >= 0
+            AND quantity + $2::bigint >= COALESCE((
+              SELECT sum(ir.quantity)
+                FROM inventory_reservations ir
+                JOIN orders o ON o.id = ir.order_id
+               WHERE ir.variant_id = inventory_stocks.variant_id
+                 AND ir.released_at IS NULL AND ir.converted_at IS NULL
+                 AND ir.expires_at > now() AND o.status = 'PENDING_PAYMENT'
+                 AND o.payment_due_at > now()
+            ), 0)
           RETURNING quantity::text AS quantity`,
         [input.variantId, delta],
       )

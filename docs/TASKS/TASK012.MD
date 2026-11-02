@@ -960,7 +960,7 @@ resultado
 
  # 43\. Auditoria de utilização
 
- Registrar utilizações efetivamente consumidas em criação de pedido futura, de forma idempotente e transacional. Aplicar um cupom ao carrinho não registra consumo.
+Registrar utilizações efetivamente consumidas na criação do pedido, de forma idempotente e transacional. Aplicar um cupom ao carrinho não registra consumo. A TASK-013 também deverá registrar a liberação quando um pedido `PENDING_PAYMENT` expirar após 30 dias sem pagamento.
 
 ```
 CouponRedemption
@@ -1005,7 +1005,7 @@ cupom efetivamente consumido
 
  A aplicação ao carrinho não deve necessariamente significar consumo definitivo, caso a regra comercial determine consumo somente no checkout/pedido.
 
- O consumo foi aprovado para a criação do pedido. A aplicação no carrinho apenas valida o limite disponível e não reserva nem incrementa o uso. A TASK-013 deve consumir o limite atomicamente ao criar o pedido.
+O consumo ocorre atomicamente na criação do pedido. Se o pedido não for pago em 30 dias corridos e passar a `EXPIRED`, o uso do cupom é liberado ao limite de forma transacional e auditável. A TASK-013 implementa essa integração com o ciclo de vida do pedido. A aplicação no carrinho apenas valida o limite e não reserva nem incrementa o uso.
 
 ---
 
@@ -1020,7 +1020,7 @@ aplicou no carrinho
 → decrementa imediatamente usageLimit
 ```
 
- O consumo é feito somente na criação do pedido, em operação atômica da TASK-013.
+O consumo é feito somente na criação do pedido, em operação atômica da TASK-013. A expiração sem pagamento também libera atomicamente o uso consumido.
 
 ---
 
@@ -2157,3 +2157,7 @@ PASS
 ### Next Eligible TASK
 
 NONE — TASK-013 permanece BLOCKED e não foi iniciada.
+
+### Adendo aprovado em 2026-11-02
+
+O responsável aprovou que o uso de cupom consumido na criação do pedido seja devolvido ao limite se o pedido expirar sem pagamento após 30 dias corridos. A mudança de ciclo de vida será implementada pela TASK-013, que integra pedidos, reservas de estoque e cupons; esta TASK-012 permanece DONE para o escopo originalmente executado.

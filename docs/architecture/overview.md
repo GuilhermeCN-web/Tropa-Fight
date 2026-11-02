@@ -2,17 +2,17 @@
 
 ## Limites de módulos
 
-`identity` administra cadastro de clientes, autenticação, recuperação de acesso, sessões, perfis, endereços e papéis administrativos.
+`identity` administra cadastro de clientes, autenticação, recuperação de acesso, sessões, perfis e papéis administrativos. `checkout` mantém endereços de entrega pertencentes ao cliente e snapshots usados nos pedidos.
 
 `catalog` controla produtos físicos, categorias, variantes, SKUs, imagens, descrições, preços de referência, filtros, pesquisa e publicação do catálogo.
 
-`inventory` controla disponibilidade por variante/SKU, movimentações, ajustes administrativos e integração entre estoque e pedidos. As regras de reserva, baixa e recomposição devem ser definidas antes da implementação.
+`inventory` controla disponibilidade por variante/SKU, movimentações, ajustes administrativos e integração entre estoque e pedidos. Para a TASK-013, pedidos reservam estoque atomicamente por 30 dias corridos; pagamento confirmado converte a reserva em baixa definitiva na TASK-014 e pedido não pago expirado libera a reserva.
 
 `commerce` contém carrinho, cálculo comercial, cupons, checkout e pedidos. Coordena a validação dos itens, os valores da compra e a criação do pedido, sem assumir diretamente responsabilidades de pagamento ou transporte.
 
 `payments` adapta o provedor de pagamento escolhido, cria cobranças, processa confirmações, falhas, cancelamentos e reembolsos. Webhooks e consultas ao provedor devem atualizar o estado financeiro de forma idempotente.
 
-`shipping` administra opções de entrega, cotação de frete, modalidade selecionada, expedição e rastreamento. A integração com transportadoras e a estratégia logística permanecem pendentes de definição.
+`shipping` administra opções de entrega, cotação de frete, modalidade selecionada, expedição e rastreamento. Para a TASK-013 há cotação local `STANDARD` fixa de R$ 20,00 com prazo de 5 dias úteis, sem feriados modelados; transportadoras reais e rastreamento externo permanecem pendentes.
 
 `reviews` implementa avaliações de produtos, regras de elegibilidade, denúncias e moderação. A exigência de compra verificada e as políticas de publicação deverão ser confirmadas no escopo funcional.
 
@@ -28,7 +28,7 @@ A apresentação pode chamar apenas casos de uso da aplicação. A aplicação o
 
 1. O checkout valida o cliente, os produtos e variantes, as quantidades, os preços, os cupons, o endereço e as opções de entrega. O servidor calcula os valores finais e cria o pedido conforme as regras comerciais aprovadas.
 
-2. O módulo de estoque valida a disponibilidade e aplica a política de reserva definida para a compra. A estratégia de reserva, sua expiração e o momento da baixa definitiva ainda precisam ser formalmente decididos.
+2. O módulo de estoque valida a disponibilidade e reserva atomicamente as unidades por 30 dias corridos. A confirmação financeira converte a reserva em baixa definitiva conforme a integração posterior; a expiração libera a reserva.
 
 3. O adaptador de pagamentos cria a cobrança no provedor selecionado, associando-a ao pedido e registrando a referência externa. Os meios de pagamento, o gateway e os prazos de expiração permanecem pendentes.
 
@@ -72,8 +72,8 @@ A etapa inicial (TASK-001/TASK-002) executou somente o front React/TypeScript em
 * Provedores e configuração de development compartilhado e staging, quando necessários.
 * Metas de RPO, RTO, disponibilidade e thresholds de alertas.
 * Gateway e meios de pagamento.
-* Política de reserva, baixa e recomposição do estoque.
-* Transportadoras, cálculo de frete e rastreamento.
+* Regras de cancelamento, devolução e reembolso, incluindo recomposição fora da expiração aprovada.
+* Transportadoras reais e rastreamento externo.
 * Regras de cancelamento, devolução e reembolso.
 * Política de cupons, avaliações e moderação.
 * Estratégia mobile e canais de notificação.

@@ -179,7 +179,7 @@ RF de catálogo, busca, filtros e detalhe do produto; RN de identificação e se
 
 ACCEPTED
 
-**Aprovação:** 2026-10-24, pelo responsável do projeto, para o controle administrativo de estoque da TASK-009. A política de reserva e baixa no checkout continua pendente e fora desta decisão.
+**Aprovação:** controle administrativo aprovado em 2026-10-24 para TASK-009; integração de reserva/baixa aprovada em 2026-11-02 para TASK-013.
 
 ## Contexto
 
@@ -199,9 +199,9 @@ Definir como controlar disponibilidade e concorrência sem permitir que pedidos 
 
 Adotar controle de estoque por variante/SKU, com validação no momento das operações comerciais críticas. As alterações deverão ser atômicas e registrar movimentações relevantes.
 
-A política exata de reserva, expiração, baixa, cancelamento e recomposição do estoque deverá ser definida antes da implementação do checkout.
+Para TASK-013, reservar estoque atomicamente quando o pedido for criado. A reserva dura 30 dias corridos; o pagamento confirmado converte a reserva em baixa definitiva. Se o pedido permanecer sem pagamento ao fim do prazo, passa a `EXPIRED`, não pode mais ser pago e a reserva deixa de contar como indisponível. Esta decisão não define cancelamento comercial, devolução ou recomposição após reembolso.
 
-Para a TASK-009, cada estoque será identificado por variante/SKU. Entradas e saídas serão movimentações transacionais e auditáveis; saídas usarão atualização condicional atômica para impedir saldo negativo concorrente. O registro da movimentação e a atualização do saldo deverão confirmar ou reverter juntos. Esta decisão não define reserva, expiração ou baixa de checkout.
+Para a TASK-009, cada estoque será identificado por variante/SKU. Entradas e saídas serão movimentações transacionais e auditáveis; saídas usarão atualização condicional atômica para impedir saldo negativo concorrente. O registro da movimentação e a atualização do saldo deverão confirmar ou reverter juntos.
 
 ## Justificativa
 
@@ -209,7 +209,7 @@ O controle transacional reduz o risco de venda acima da disponibilidade e permit
 
 ## Consequências
 
-O estoque não poderá ser alterado apenas por uma verificação isolada na interface. A implementação deverá tratar concorrência, falhas parciais e repetição de operações. A estratégia definitiva de reserva e baixa permanece pendente.
+O estoque não poderá ser alterado apenas por uma verificação isolada na interface. A implementação deverá tratar concorrência, falhas parciais e repetição de operações. A reserva de checkout, sua expiração e sua conversão em baixa seguirão a decisão aprovada para TASK-013; políticas de cancelamento e reembolso permanecem pendentes.
 
 ## RF/RN/RNF/UC relacionados
 
@@ -265,7 +265,9 @@ RF de carrinho, autenticação, catálogo e checkout; RN de revalidação comerc
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-02, pelo responsável do projeto, para TASK-013.
 
 ## Contexto
 
@@ -286,6 +288,8 @@ Evitar que dados manipulados no cliente, alterações de preço ou mudanças de 
 Adotar um fluxo de checkout no qual o servidor revalida os itens, variantes, preços, descontos, endereço, frete e disponibilidade. Os totais enviados pelo cliente não serão considerados fonte confiável.
 
 A criação do pedido deverá registrar um retrato consistente dos dados comerciais utilizados na compra.
+
+Se o preço ou outro total comercial mudar desde a cotação apresentada, o servidor deverá retornar os valores recalculados e exigir confirmação explícita antes da criação do pedido. A criação deverá revalidar a cotação e todos os dados autoritativos. A API exigirá `Idempotency-Key` associada ao cliente; chave repetida com mesmo conteúdo devolve o mesmo pedido e com conteúdo diferente gera conflito.
 
 ## Justificativa
 
@@ -345,7 +349,9 @@ RF de checkout, pagamentos e pedidos; RN de confirmação financeira; RNF de seg
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-02, pelo responsável do projeto, para TASK-013.
 
 ## Contexto
 
@@ -367,6 +373,8 @@ Adotar estados separados para pedido, pagamento e entrega, com transições expl
 
 O modelo definitivo deverá contemplar, conforme os fluxos aprovados, criação, aguardando pagamento, confirmação, preparação, envio, entrega, cancelamento e devolução. Os estados financeiros deverão distinguir, no mínimo, situações relevantes como pendente, confirmado, falho e estornado, conforme suporte do gateway.
 
+Para TASK-013, o pedido começa em `PENDING_PAYMENT` e a entrega em `NOT_SHIPPED`, mantendo os ciclos separados. Pedido sem pagamento expira em `EXPIRED` após 30 dias corridos; não poderá mais ser pago. As demais transições comerciais, financeiras e logísticas serão definidas nas tarefas correspondentes.
+
 ## Justificativa
 
 A separação permite representar situações reais sem misturar eventos financeiros com etapas de separação e transporte.
@@ -385,7 +393,9 @@ RF de pedidos, pagamentos, logística e administração; RN de transição de es
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-02, pelo responsável do projeto, para a cotação local determinística da TASK-013. Provedor e integração externa continuam não aprovados.
 
 ## Contexto
 
@@ -403,9 +413,7 @@ Integrar cotações e rastreamento sem tornar o domínio de pedidos dependente d
 
 ## Decisão
 
-Adotar uma abstração logística que permita consultar opções de entrega, registrar a modalidade selecionada e armazenar os dados de envio e rastreamento.
-
-A transportadora, a origem de cálculo do frete, a estratégia de etiquetas e a cobertura de entrega permanecem pendentes.
+Adotar uma abstração logística que permita consultar opções de entrega, registrar a modalidade selecionada e armazenar os dados de envio e rastreamento. Para TASK-013, a cotação local atenderá CEPs brasileiros de 8 dígitos, oferecerá somente `STANDARD`, cobrará valor fixo de R$ 20,00 e estimará 5 dias úteis (segunda a sexta, sem calendário de feriados). Não haverá retirada nem frete grátis. Nenhuma transportadora, etiqueta ou integração externa fica aprovada por esta decisão.
 
 ## Justificativa
 
