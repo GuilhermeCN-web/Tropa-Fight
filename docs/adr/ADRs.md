@@ -309,11 +309,13 @@ RF de carrinho, cupons, endereço, frete, checkout e pedidos; RN de cálculo e v
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-02, pelo responsável do projeto, para a simulação local da TASK-014. Nenhum gateway financeiro real foi aprovado.
 
 ## Contexto
 
-O Tropa Fight precisa receber pagamentos de pedidos físicos, mas o gateway e os meios de pagamento da V1 ainda não foram definidos.
+O projeto acadêmico precisa exercitar o fluxo de pagamentos sem realizar transações financeiras reais. A V1 da TASK-014 simulará PIX, débito e crédito localmente, sem integração externa.
 
 ## Problema
 
@@ -327,17 +329,25 @@ Integrar pagamentos sem acoplar as regras do domínio a um provedor específico 
 
 ## Decisão
 
-Adotar uma porta de pagamento na camada de aplicação/infraestrutura, com adaptador para o gateway selecionado. O estado financeiro deverá ser atualizado por respostas verificáveis do provedor, como webhooks autenticados ou consultas confiáveis à API.
+Adotar uma porta de pagamento na camada de aplicação, implementada por um adaptador `LocalMockPaymentGateway`. Nesta TASK, PIX, débito e crédito são apenas métodos simulados: não haverá rede financeira, cobrança real, PAN ou CVV.
 
-O gateway, os meios de pagamento e os requisitos de conciliação permanecem pendentes.
+O mock emitirá eventos `payment.processing`, `payment.approved`, `payment.failed`, `payment.cancelled` e `payment.expired`. O corpo JSON conterá `id` (identificador do evento), `type`, `paymentId`, `orderId`, `amountCents`, `currency` e `occurredAt`. Webhooks usarão HMAC-SHA256 do corpo bruto, enviado no cabeçalho `x-payment-signature` como `sha256=<hex>`. O segredo `PAYMENT_WEBHOOK_SECRET` virá da configuração local do ambiente, nunca do código. A comparação da assinatura será em tempo constante; cada `(provider, providerEventId)` será único e o registro do evento e seus efeitos serão transacionais e idempotentes.
+
+Os estados de pagamento serão `PENDING`, `PROCESSING`, `APPROVED`, `FAILED`, `CANCELLED` e `EXPIRED`. `PENDING` pode avançar para `PROCESSING`; `PROCESSING` pode avançar para um estado terminal. Estados terminais não regridem.
+
+Cada pedido admite um único pagamento integral pelo total persistido do pedido; pagamentos parciais não são suportados. Uma confirmação válida `APPROVED` atualiza o pedido de `PENDING_PAYMENT` para `PAYMENT_CONFIRMED` e converte a reserva de estoque conforme a decisão da TASK-013. Uma aprovação recebida após a expiração do pedido é rejeitada sem mutar pedido ou estoque.
+
+Para produção, a escolha de gateway permanece pendente e exigirá decisão própria; este mock não aprova nem seleciona um provedor real.
+
+O gateway financeiro de produção e os requisitos de conciliação permanecem pendentes. Os meios simulados nesta execução estão definidos acima.
 
 ## Justificativa
 
-O adaptador reduz o acoplamento e permite substituir ou ampliar provedores sem reescrever as regras centrais de pedidos.
+O adaptador mantém o domínio independente de integrações externas e permite exercitar segurança, estados e idempotência sem movimentar dinheiro nem tratar dados de cartão.
 
 ## Consequências
 
-A integração deverá tratar idempotência, confirmação assíncrona, falhas, estornos e divergências de estado. Nenhum pedido deverá ser considerado pago apenas porque o cliente retornou à página de sucesso.
+A implementação deverá tratar idempotência, confirmação assíncrona, falhas e divergências de estado. Nenhum pedido será considerado pago apenas porque o cliente retornou à página de sucesso. Estornos e gateway real permanecem fora do escopo e exigem decisão futura.
 
 ## RF/RN/RNF/UC relacionados
 

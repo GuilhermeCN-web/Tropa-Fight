@@ -27,7 +27,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    11 | TASK-011 | PHASE-03 | CRITICAL   | TASK-010                   | DONE |
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | DONE |
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | DONE |
-|    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | BLOCKED |
+|    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | DONE |
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | BLOCKED |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | BLOCKED |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | BLOCKED |
@@ -305,16 +305,18 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-014 — Pagamentos e idempotência
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-013`
-**Relacionados:** RF-024, RF-025, RN-013, RNF-009, ADR-006
-**Objetivo:** Integrar o provedor de pagamento aprovado e persistir estados de pagamento de forma idempotente.
+**Relacionados:** RF-024, RF-025, RN-013, RNF-009, ADR-008, ADR-009
+**Objetivo:** Integrar o mock local aprovado para a TASK-014 e persistir estados de pagamento de forma idempotente.
 **Artefatos esperados:** Payment, adaptador de gateway, webhooks e tratamento de estados.
-**ALLOWED_CHANGES:** módulos payments/orders; adaptador do provedor aprovado; mocks; testes; `TASKS.md`.
-**FORBIDDEN_CHANGES:** credenciais reais no código, troca unilateral de gateway, alteração de preço após pagamento.
+**ALLOWED_CHANGES:** módulos payments/orders; adaptador mock local; persistência e migrations; endpoints; mocks; testes; configuração local do mock em `.env.example`; ADR-008 e documentação relacionada; `TASKS.md`.
+**FORBIDDEN_CHANGES:** credenciais reais no código, integração financeira real sem decisão própria, alteração de preço após pagamento.
 **Critérios de aceitação/Testes:** webhook repetido não duplica efeitos; assinatura inválida é rejeitada; pagamento possui estado consistente com pedido.
 **DoD específico:** testes de webhook e idempotência passam.
+**Prontidão (2026-11-02): PASS.** Mock exclusivamente local para PIX, débito e crédito; sem transações reais. ADR-008 aceito. Estados, HMAC, eventos, idempotência, pagamento integral único e transição do pedido para `PAYMENT_CONFIRMED` aprovados; aprovação após expiração não altera pedido/estoque. Veja `docs/TASKS/TASK014.MD` e `docs/planning/answered-questions.md`.
+**Execução concluída (2026-11-02):** branch `feature/TASK-014-payments-idempotency`; transições `BLOCKED → READY → IN_PROGRESS → DONE`; GATE-001–006 aprovados. `npm run quality` passou (92 testes, lint, typecheck, formatação e build), com um warning preexistente em `app/layout.tsx`. Teste manual confirmou assinatura inválida HTTP 401, aprovação e replay idempotente HTTP 200; banco validou pedido confirmado e uma única baixa de estoque. TASK-015 permanece BLOCKED e não foi iniciada.
 
 ## TASK-015 — Pedidos, histórico e rastreamento
 

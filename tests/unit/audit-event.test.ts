@@ -34,6 +34,22 @@ describe('audit event', () => {
     expect(event.metadata).toEqual({})
   })
 
+  it('supports payment audit actions without exposing payload data', () => {
+    const event = createAuditEvent({
+      actorId: null,
+      action: 'PAYMENT_WEBHOOK_REJECTED',
+      resourceType: 'Payment',
+      result: 'FAILURE',
+      source: 'payments.webhook',
+      metadata: {
+        reasonCode: 'INVALID_SIGNATURE',
+        cardNumber: '4111111111111111',
+      },
+    })
+    expect(event.action).toBe('PAYMENT_WEBHOOK_REJECTED')
+    expect(event.metadata).toEqual({ reasonCode: 'INVALID_SIGNATURE' })
+  })
+
   it('drops personal data from audit identifiers and metadata', () => {
     const event = createAuditEvent({
       actorId: 'person@example.test',
