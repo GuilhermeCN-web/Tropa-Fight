@@ -604,9 +604,9 @@ reembolsado
 
  ## 1\. Quais tipos de desconto existirão?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-26):**
 
- A documentação prevê:
+ Cupons e promoções poderão conceder percentual inteiro de 1% a 100% ou valor fixo positivo. O desconto se aplica ao carrinho todo; poderá exigir subtotal mínimo inclusivo, avaliado antes do desconto. Não haverá segmentação por produto, categoria, marca ou cliente nesta V1.
 
  - cupons;
 - promoções.
@@ -623,9 +623,9 @@ reembolsado
 
  ## 2\. Cupons poderão ser acumulados?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-26):**
 
- A regra ainda está pendente.
+ No máximo um cupom por carrinho e descontos não são acumulados. Entre os descontos elegíveis, aplica-se somente o de maior valor; promoção automática vence empate com cupom. Promoções elegíveis concorrentes também são comparadas, sem soma.
 
  **Pergunta:** um pedido poderá utilizar mais de um cupom?
 
@@ -633,23 +633,35 @@ reembolsado
 
  **R:**
 
- Ainda não definido.
+ Frete está fora do escopo da TASK-012; eventual desconto de frete precisa ser decidido ao definir sua integração.
 
  **Pergunta:** um cupom poderá reduzir o valor do frete?
 
  ## 4\. Promoções e cupons poderão coexistir?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-26):**
 
- Ainda não definido.
+ Podem ser elegíveis ao mesmo tempo, mas não acumulam; somente o maior desconto é aplicado, com promoção automática vencendo empate.
 
  **Pergunta:** se um produto já estiver em promoção, um cupom também poderá ser aplicado?
 
  ## 5\. O administrador poderá limitar cupons por cliente?
 
- **R:**
+ **R (aprovado pelo responsável em 2026-10-26):**
 
- Ainda não definido.
+ Sim. Limites globais e por conta serão opcionais e configurados no cupom. O uso será consumido somente na criação do pedido, sem reserva no carrinho. A contagem definitiva deverá ser atômica na TASK-013. A nova permissão `promotions.manage` foi autorizada exclusivamente para GENERAL_ADMIN.
+
+ ## 6\. Código, vigência, estados e arredondamento
+
+ **R (aprovado pelo responsável em 2026-10-26):**
+
+ Remover espaços externos e converter códigos para maiúsculas; aceitar somente A–Z e dígitos. A vigência usa UTC, início inclusivo e expiração exclusiva (`startsAt <= agora < expiresAt`). Estados: `DRAFT`, `ACTIVE` e `INACTIVE`; expiração é derivada das datas. Descontos percentuais arredondam ao centavo mais próximo, com meio para cima.
+
+ ## 7\. Cupom invalidado por alteração do carrinho
+
+ **R (aprovado pelo responsável em 2026-10-26):**
+
+ Aceitar a alteração do carrinho, remover automaticamente o cupom que perdeu elegibilidade e recalcular/informar o total.
 
  **Pergunta:** haverá regras como:
 

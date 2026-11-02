@@ -1,3 +1,5 @@
+import type { DiscountCalculation } from '../../pricing/domain/discount'
+
 export type CartItem = {
   id: string
   variantId: string
@@ -16,6 +18,10 @@ export type Cart = {
   items: CartItem[]
   totalItems: number
   subtotalCents: number
+  discount: DiscountCalculation | null
+  totalCents: number
+  appliedCoupon: { id: string; code: string } | null
+  couponRemoved?: boolean
   createdAt: string
   updatedAt: string
 }

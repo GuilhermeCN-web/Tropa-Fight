@@ -1,6 +1,6 @@
 # TASK-012 — Cupons e promoções
 
- **Status:** BLOCKED\
+ **Status:** DONE\
  **Phase/Priority:** PHASE-03 / HIGH\
  **Dependências:** `DEPENDS_ON: TASK-011`\
  **Estado de entrada esperado:** `BLOCKED` até `TASK-011 = DONE`\
@@ -100,6 +100,10 @@ total = subtotal - desconto
 
  A TASK deverá permanecer `BLOCKED` até a decisão correspondente ser registrada.
 
+ **Prontidão (2026-10-26): PASS.** TASK-011 está `DONE`; carrinho, cálculo em centavos, preços e validação comercial estão implementados; testes e Gates anteriores passaram. As regras foram aprovadas e registradas em `docs/planning/answered-questions.md`. O responsável autorizou `promotions.manage` somente para GENERAL_ADMIN. Branch `feature/TASK-012-coupons-promotions`; transições `BLOCKED → READY → IN_PROGRESS`.
+
+ **Decisões aprovadas pelo responsável (2026-10-26):** somente desconto percentual inteiro de 1% a 100% ou valor fixo positivo; desconto aplicado sobre o carrinho inteiro, com mínimo opcional de subtotal pré-desconto e limiar inclusivo; sem segmentação por item/categoria/marca/cliente e sem desconto de frete nesta TASK. No máximo um cupom; cupons e promoções não acumulam. Entre todas as opções elegíveis, aplicar o maior desconto; em empate, promoção automática vence cupom. Limites globais e por conta são opcionais; aplicação ao carrinho não reserva/consome limite; consumo ocorre atomicamente na criação do pedido, na TASK-013. Código é trim + uppercase, apenas A–Z e dígitos; vigência UTC com início inclusivo e expiração exclusiva. Estados `DRAFT`, `ACTIVE`, `INACTIVE`; `EXPIRED` é derivado. Percentual arredonda ao centavo mais próximo, meio para cima. Se edição do carrinho invalidar cupom aplicado, manter a edição, remover o cupom e recalcular/informar total. Permissão `promotions.manage` autorizada exclusivamente para GENERAL_ADMIN.
+
 ---
 
  # 4\. Escopo funcional
@@ -126,7 +130,7 @@ total = subtotal - desconto
 - período de validade;
 - condição de elegibilidade;
 - regra de desconto;
-- produtos/categorias aplicáveis quando especificado;
+- elegibilidade por subtotal mínimo inclusivo; não há segmentação por produto, categoria, marca ou cliente nesta V1;
 - prioridade/aplicabilidade quando houver mais de uma promoção.
 
  ### Cálculo
@@ -304,9 +308,9 @@ FIXED_AMOUNT
 TROPA10
 ```
 
- A política de normalização deve ser definida.
+ Remover espaços externos e converter para maiúsculas antes de persistir ou consultar. Aceitar somente caracteres ASCII `A–Z` e `0–9`.
 
- Se a regra for case-insensitive:
+ Assim, a comparação é case-insensitive:
 
 ```
 tropa10
@@ -316,9 +320,7 @@ Tropa10
 
  devem representar o mesmo cupom.
 
- Se a regra for case-sensitive, preservar exatamente a política aprovada.
-
- Não assumir comportamento comercial não documentado.
+ A unicidade é sobre o código já normalizado.
 
 ---
 
@@ -345,20 +347,9 @@ TROPA10
 
  # 12\. Status
 
- Utilizar somente estados aprovados.
+Utilizar somente os estados aprovados pelo responsável: `DRAFT`, `ACTIVE` e `INACTIVE`. `EXPIRED` é uma condição derivada da vigência, não um estado persistido.
 
- Exemplo conceitual:
-
-```
-DRAFT
-ACTIVE
-INACTIVE
-EXPIRED
-```
-
- Se o projeto não possuir essa taxonomia, seguir o padrão existente.
-
- Não criar estados apenas para facilitar implementação.
+Promoções automáticas também devem estar `ACTIVE` e dentro da vigência para participar do cálculo.
 
 ---
 
@@ -374,7 +365,7 @@ AND
 (expiresAt IS NULL OR now < expiresAt)
 ```
 
- O limite exato de inclusão/exclusão deve seguir a regra aprovada.
+ A vigência é interpretada em UTC como `startsAt <= now` e `expiresAt IS NULL OR now < expiresAt`; início é inclusivo e expiração exclusiva.
 
  Casos de borda devem possuir testes.
 
@@ -502,7 +493,7 @@ B → utiliza
 
  # 20\. Elegibilidade
 
- A promoção pode possuir regras de elegibilidade.
+ Na V1, cupom e promoção aplicam-se ao carrinho inteiro. A única condição opcional de elegibilidade é subtotal mínimo, comparado com o subtotal antes de qualquer desconto. Não há alvos por produto, categoria, marca, quantidade ou cliente; os exemplos listados abaixo ficam fora do escopo atual.
 
  Exemplos possíveis:
 
@@ -523,7 +514,7 @@ cliente específico
 
  # 21\. Valor mínimo do carrinho
 
- Caso aprovado:
+ Quando configurado:
 
 ```
 minimumCartAmount = 200,00
@@ -543,7 +534,7 @@ subtotal = 150,00
 subtotal = 200,00
 ```
 
- deve seguir a regra de inclusão definida.
+ atende ao mínimo, pois o limiar é inclusivo (`subtotal >= minimumCartAmount`).
 
  Casos de borda devem ser testados.
 
@@ -565,7 +556,7 @@ desconto = 20,00
 total = 180,00
 ```
 
- O cálculo deve utilizar a política monetária aprovada.
+ O percentual é inteiro entre 1% e 100%. O desconto percentual é arredondado ao centavo mais próximo, meio para cima, usando centavos inteiros. Promoções e cupons fixos devem ter valor positivo.
 
 ---
 
@@ -590,7 +581,7 @@ total = 170,00
 total < 0
 ```
 
- salvo regra explicitamente aprovada para créditos/saldos, o que não faz parte desta TASK.
+ O desconto fixo aplicado é limitado ao subtotal; o total nunca será negativo.
 
 ---
 
@@ -603,9 +594,7 @@ subtotal = 50,00
 desconto = 70,00
 ```
 
- o comportamento deve ser definido.
-
- Na ausência de regra específica, a implementação deve impedir total negativo:
+ O comportamento aprovado é limitar o desconto ao subtotal, impedindo total negativo:
 
 ```
 discountApplied <= subtotal
@@ -676,21 +665,8 @@ total = 270,00
 
  # 27\. Múltiplas promoções
 
- A regra de combinação deve ser explícita.
+ Promoções elegíveis concorrentes não acumulam. Comparar os descontos calculados e aplicar somente o maior. Quando duas promoções produzirem o mesmo desconto, maior prioridade vence; empate de prioridade usa ordem determinística estável.
 
- Possibilidades:
-
-```
-somente uma promoção
-promoções acumuláveis
-promoções não acumuláveis
-maior desconto
-prioridade explícita
-```
-
- Não assumir automaticamente que descontos são cumulativos.
-
- Se o requisito não definir composição, registrar bloqueio.
 
 ---
 
@@ -704,7 +680,7 @@ PROMOÇÃO AUTOMÁTICA
 CUPOM
 ```
 
- a regra de composição deve ser explicitamente definida.
+ cupom e promoção automática podem ser elegíveis ao mesmo tempo, mas não acumulam. Comparar seus valores e aplicar somente o maior; em empate, aplicar a promoção automática.
 
  Não aplicar automaticamente:
 
@@ -716,39 +692,14 @@ CUPOM
 20%
 ```
 
- sem regra aprovada.
+ A mesma regra aplica-se quando o carrinho é recalculado.
 
 ---
 
  # 29\. Ordem de aplicação
 
- Se houver múltiplos descontos aprovados, a ordem deverá ser determinística.
+ Avaliar todos os descontos individualmente sobre o subtotal original e selecionar apenas o maior; não calcular desconto sobre valor já descontado. Em empate entre cupom e promoção, promoção vence. Esta seleção não altera o preço base do catálogo.
 
- Exemplo conceitual:
-
-```
-preço base
-    ↓
-promoção automática
-    ↓
-cupom
-    ↓
-total
-```
-
- ou:
-
-```
-preço base
-    ↓
-cupom
-    ↓
-promoção
-    ↓
-total
-```
-
- A ordem deve ser registrada quando impactar o resultado.
 
 ---
 
@@ -840,7 +791,7 @@ subtotal = 170
 → cupom deixa de ser elegível
 ```
 
- O sistema não deve manter desconto inválido silenciosamente.
+ Se uma edição do carrinho tornar o cupom inelegível, manter a edição, remover o cupom automaticamente, recalcular o desconto promocional e o total, e retornar o estado atualizado para que a interface informe a remoção.
 
 ---
 
@@ -848,7 +799,7 @@ subtotal = 170
 
  O desconto não pode ser considerado permanentemente válido após uma alteração relevante do carrinho.
 
- Qualquer mudança que impacte elegibilidade deve provocar nova avaliação.
+ Qualquer mudança que impacte elegibilidade deve provocar nova avaliação. Promoções elegíveis são recalculadas; cupom inválido é removido conforme decisão aprovada.
 
 ---
 
@@ -985,7 +936,7 @@ consultar uso
 configurar promoção
 ```
 
- Não alterar RBAC para viabilizar a TASK.
+ A permissão `promotions.manage` foi explicitamente autorizada pelo responsável em 2026-10-26 e deverá ser concedida somente ao papel `GENERAL_ADMIN`. Nenhuma outra permissão ou papel será alterado.
 
 ---
 
@@ -1009,7 +960,7 @@ resultado
 
  # 43\. Auditoria de utilização
 
- Se o domínio exigir rastreabilidade de utilização:
+ Registrar utilizações efetivamente consumidas em criação de pedido futura, de forma idempotente e transacional. Aplicar um cupom ao carrinho não registra consumo.
 
 ```
 CouponRedemption
@@ -1032,7 +983,7 @@ timestamp
 
  A TASK-012 não deve criar o fluxo definitivo de pedido.
 
- Se a utilização do cupom precisar posteriormente ser vinculada a um pedido, criar somente a abstração necessária e deixar a integração definitiva para a `TASK-013`/fluxo de pedido.
+ A abstração de consumo deverá permitir vínculo futuro com o pedido, sem criar `Order` nesta TASK. A integração que consome a utilização na criação do pedido pertence à TASK-013.
 
  Não criar `Order` nesta TASK.
 
@@ -1054,15 +1005,13 @@ cupom efetivamente consumido
 
  A aplicação ao carrinho não deve necessariamente significar consumo definitivo, caso a regra comercial determine consumo somente no checkout/pedido.
 
- Essa decisão deve ser explícita.
-
- Se o consumo ocorrer somente na confirmação da compra, a TASK-012 deve registrar a intenção/aplicação sem contabilizar indevidamente o uso definitivo.
+ O consumo foi aprovado para a criação do pedido. A aplicação no carrinho apenas valida o limite disponível e não reserva nem incrementa o uso. A TASK-013 deve consumir o limite atomicamente ao criar o pedido.
 
 ---
 
  # 46\. Reserva de cupom
 
- Não implementar reserva de cupom no carrinho sem requisito.
+ Não implementar reserva ou consumo de cupom no carrinho.
 
  Evitar:
 
@@ -1071,9 +1020,7 @@ aplicou no carrinho
 → decrementa imediatamente usageLimit
 ```
 
- se isso puder bloquear usuários sem compra.
-
- O comportamento de consumo definitivo deve estar alinhado com o fluxo aprovado para `TASK-013`.
+ O consumo é feito somente na criação do pedido, em operação atômica da TASK-013.
 
 ---
 
@@ -1255,19 +1202,7 @@ conforme regra aprovada
 
  ### PROMO-03
 
- Produto elegível.
-
- ### PROMO-04
-
- Produto não elegível.
-
- ### PROMO-05
-
- Categoria elegível.
-
- ### PROMO-06
-
- Categoria não elegível.
+ Não aplicável: segmentação por produto, categoria, marca ou cliente está fora do escopo aprovado. A elegibilidade promocional limita-se ao subtotal mínimo inclusivo.
 
 ---
 
@@ -1630,7 +1565,6 @@ CUPOMCLIENTE
 PROMOCAO10
 PROMOCAO_FIXA
 PROMOCAO_MINIMO
-PROMOCAO_PRODUTO
 ```
 
  Somente criar os tipos efetivamente suportados.
@@ -1683,6 +1617,7 @@ documentação
 TASKS.md
 relatório de execução
 correções diretamente necessárias na TASK-011
+permissão promotions.manage exclusivamente para GENERAL_ADMIN, aprovada explicitamente pelo responsável em 2026-10-26
 ```
 
 ---
@@ -1743,27 +1678,27 @@ NÃO IMPLEMENTAR
  # 75\. Quality Gates
 
 ```
-[ ] Build
-[ ] Lint
-[ ] Unit tests
-[ ] Integration tests
-[ ] API/contract tests
-[ ] Authorization tests
-[ ] Security tests
-[ ] Coupon validation tests
-[ ] Promotion tests
-[ ] Discount calculation tests
-[ ] Monetary precision tests
-[ ] Eligibility tests
-[ ] Usage-limit tests
-[ ] Concurrency tests
-[ ] Idempotency tests
-[ ] Recalculation tests
-[ ] Regression TASK-011
-[ ] Database/migration tests
-[ ] Observability validation
-[ ] Traceability validation
-[ ] Scope Guard
+[x] Build
+[x] Lint
+[x] Unit tests
+[x] Integration tests
+[x] API/contract tests
+[x] Authorization tests
+[x] Security tests
+[x] Coupon validation tests
+[x] Promotion tests
+[x] Discount calculation tests
+[x] Monetary precision tests
+[x] Eligibility tests
+[x] Usage-limit tests
+[x] Concurrency tests
+[x] Idempotency tests
+[x] Recalculation tests
+[x] Regression TASK-011
+[x] Database/migration tests
+[x] Observability validation
+[x] Traceability validation
+[x] Scope Guard
 ```
 
 ---
@@ -1852,43 +1787,43 @@ subtotal - desconto
 
  A `TASK-012` somente poderá ser marcada como `DONE` quando:
 
- - [ ] domínio de cupom implementado;
-- [ ] domínio de promoção implementado;
-- [ ] validação de vigência implementada;
-- [ ] validação de status implementada;
-- [ ] limites de uso implementados;
-- [ ] limites por cliente implementados quando aplicáveis;
-- [ ] elegibilidade implementada;
-- [ ] cálculo de desconto implementado;
-- [ ] cálculo monetário validado;
-- [ ] total comercial integrado ao carrinho;
-- [ ] aplicação de cupom implementada;
-- [ ] remoção de cupom implementada;
-- [ ] recalculo implementado;
-- [ ] idempotência validada;
-- [ ] concorrência validada;
-- [ ] segurança de preço/desconto validada;
-- [ ] autorização validada;
-- [ ] auditoria administrativa validada;
-- [ ] observabilidade necessária validada;
-- [ ] migrations executadas/testadas;
-- [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de segurança passam;
-- [ ] testes de cálculo passam;
-- [ ] testes de concorrência passam;
-- [ ] regressão da `TASK-011` passa;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação atualizada;
-- [ ] rastreabilidade atualizada;
-- [ ] `ALLOWED_CHANGES` respeitado;
-- [ ] `FORBIDDEN_CHANGES` não violado;
-- [ ] nenhum Scope Creep;
-- [ ] `TASKS.md` atualizado;
-- [ ] relatório de execução produzido;
-- [ ] estado final registrado.
+ - [x] domínio de cupom implementado;
+- [x] domínio de promoção implementado;
+- [x] validação de vigência implementada;
+- [x] validação de status implementada;
+- [x] limites de uso implementados;
+- [x] limites por cliente implementados quando aplicáveis;
+- [x] elegibilidade implementada;
+- [x] cálculo de desconto implementado;
+- [x] cálculo monetário validado;
+- [x] total comercial integrado ao carrinho;
+- [x] aplicação de cupom implementada;
+- [x] remoção de cupom implementada;
+- [x] recalculo implementado;
+- [x] idempotência validada;
+- [x] concorrência validada;
+- [x] segurança de preço/desconto validada;
+- [x] autorização validada;
+- [x] auditoria administrativa validada;
+- [x] observabilidade necessária validada;
+- [x] migrations executadas/testadas;
+- [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de segurança passam;
+- [x] testes de cálculo passam;
+- [x] testes de concorrência passam;
+- [x] regressão da `TASK-011` passa;
+- [x] build passa;
+- [x] lint passa;
+- [x] documentação atualizada;
+- [x] rastreabilidade atualizada;
+- [x] `ALLOWED_CHANGES` respeitado;
+- [x] `FORBIDDEN_CHANGES` não violado;
+- [x] nenhum Scope Creep;
+- [x] `TASKS.md` atualizado;
+- [x] relatório de execução produzido;
+- [x] estado final registrado.
 
 ---
 
@@ -2117,3 +2052,108 @@ ESTADO FINAL:
 13. produzir o relatório de execução;
 14. registrar o estado final;
 15. **não iniciar automaticamente a `TASK-013`**.
+
+---
+
+# 82. Execução dos prompts — 2026-11-02
+
+**Decisão de escopo confirmada pelo responsável:** elegibilidade limitada ao subtotal mínimo inclusivo; não incluir segmentação por produto/categoria. A matriz de testes da seção 52 foi alinhada a essa decisão.
+
+**Branch:** `feature/TASK-012-coupons-promotions`.
+
+| Gate | Resultado | Evidência |
+|---|---|---|
+| GATE-001 — Recontextualização e prontidão | APROVADO | TASK-011 está DONE; relatório, código, migration e testes de carrinho existentes; branch correta; decisões/escopo revisados. |
+| GATE-002 — Planejamento | APROVADO | Mudanças restritas a promotions/coupons/pricing, integração do cart, persistência/API, auditoria, testes e documentação da TASK. |
+| GATE-003 — Implementação | APROVADO | Domínio, APIs administrativas e do carrinho, migration, testes unitários/de integração e auditoria implementados; sem checkout/pagamento/pedido. |
+| GATE-004 — Revisão e validação automatizada | APROVADO | `npm run quality`: formatação, lint, typecheck, 67 testes e build passaram; PostgreSQL local aplicado e migration repetida com sucesso. |
+| GATE-005 — Testes manuais | APROVADO | MAN-001 a MAN-003 executados pelo responsável no servidor local; respostas HTTP, valores do carrinho e autorização registrados abaixo. |
+| GATE-006 — Conclusão | APROVADO | Definition of Done validada; TASK-012 transicionada `IN_PROGRESS → IN_REVIEW → DONE`; TASK-013 permanece BLOCKED e não foi iniciada. |
+
+**Gates:** 6 no total; 6 aprovados; 0 pendentes; 0 bloqueados.
+
+## Evidências dos casos manuais
+
+Pré-condições comuns: aplicação e PostgreSQL locais ativos; migrations aplicadas; sessão de `GENERAL_ADMIN` e sessão de cliente autenticadas; variante comercial ativa com preço maior que zero e saldo suficiente. Não compartilhar senhas, tokens ou cookies na evidência.
+
+### TASK012-MAN-001 — Configurar promoção e cupom
+
+- **Objetivo:** verificar manualmente a autorização administrativa, a criação e a normalização do código.
+- **Comando/ambiente:** `npm.cmd run dev`; enviar requisições HTTP locais para `http://localhost:3000`.
+- **Passos:** autenticado como `GENERAL_ADMIN`, criar uma promoção `COUPON` ativa e uma promoção `AUTOMATIC` ativa, ambas com desconto percentual de 10%, início no passado recente, expiração futura e subtotal mínimo de 1 centavo; criar um cupom associado usando código com espaços externos e letras minúsculas; consultar a lista administrativa.
+- **Esperado:** criações HTTP 201; código retornado trimado e em maiúsculas; lista contém promoção/cupom; usuário sem `promotions.manage` recebe 403.
+- **Obtido:** promoções `COUPON` e `AUTOMATIC` e cupom criados com HTTP 201; código informado com espaços externos e minúsculas retornou normalizado como `TASK0121793642458699`. Consultas administrativas retornaram HTTP 200, duas promoções e cupom encontrado. Sessão de cliente consultando `/api/admin/promotions` recebeu HTTP 403.
+- **Evidência:** resultados do Console do navegador fornecidos pelo responsável em 2026-11-02.
+- **Status:** APROVADO.
+
+### TASK012-MAN-002 — Aplicar desconto e recalcular
+
+- **Objetivo:** confirmar o cálculo do servidor, a idempotência e a seleção sem acumulação.
+- **Comando/ambiente:** `POST /api/cart` e `POST /api/cart/coupon` no servidor local, usando sessão do cliente.
+- **Passos:** adicionar uma variante disponível; aplicar o cupom criado; repetir a aplicação; consultar o carrinho.
+- **Esperado:** subtotal usa o preço vigente; desconto percentual arredonda meio para cima em centavos; total é subtotal menos um único desconto; repetição não acumula; promoção automática elegível de mesmo valor vence empate.
+- **Obtido:** inclusão de item HTTP 201; aplicação e repetição do cupom HTTP 200. Subtotal `10000`, desconto `1000` centavos selecionado da promoção automática `TASK012 Automatic 1793642458699`, total `9000`; cupom permaneceu associado. A repetição manteve os mesmos valores, sem acumular desconto.
+- **Evidência:** resultado JSON do Console do navegador fornecido pelo responsável em 2026-11-02; variante de teste `5a96b8d2-ada7-4dc7-bdd7-b5786f200c31`, preço `10000` centavos.
+- **Status:** APROVADO.
+
+### TASK012-MAN-003 — Remover cupom após alteração
+
+- **Objetivo:** confirmar que edição de carrinho inelegível é mantida e o cupom é removido/recalculado.
+- **Comando/ambiente:** `DELETE /api/cart/items/{itemId}` no servidor local, usando a mesma sessão do cliente.
+- **Passos:** após MAN-002, remover o último item (ou item que deixe o subtotal abaixo do mínimo) e consultar a resposta do carrinho.
+- **Esperado:** edição permanece; `appliedCoupon` fica nulo; `couponRemoved` é verdadeiro; promoções elegíveis são recalculadas; total não é negativo.
+- **Obtido:** remoção do item HTTP 200; subtotal `0`, desconto `null`, total `0`, `appliedCoupon: null` e `couponRemoved: true`.
+- **Evidência:** mesmo resultado JSON do Console do navegador fornecido pelo responsável em 2026-11-02.
+- **Status:** APROVADO.
+
+---
+
+# 83. Relatório de execução
+
+## TASK Execution Report
+
+TASK: TASK-012  
+Status: DONE  
+Branch: `feature/TASK-012-coupons-promotions`  
+Commits: nenhum commit criado nesta execução.
+
+### Primary Changes
+- Domínio de promoções, cupons e cálculo de descontos; integração ao carrinho, persistência, API e auditoria conforme RF-018, RF-019, RN-010 e UC-005.
+- Permissão `promotions.manage` atribuída exclusivamente a `GENERAL_ADMIN`, conforme autorização registrada.
+- Documentação, rastreabilidade, resultados manuais e estado da TASK atualizados.
+
+### Incidental Changes
+- `next-env.d.ts` regenerado pelo Next.js 16 durante a validação local.
+
+### Tests Executed
+- `npm run quality`: PASS, 67 testes, typecheck, lint, formatação e build aprovados (evidência GATE-004, 2026-11-02).
+- Migrations locais aplicadas duas vezes: PASS (evidência GATE-004).
+- MAN-001 a MAN-003: PASS, conforme resultados do responsável registrados acima.
+
+### Quality Gates
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS |
+| Acceptance | PASS |
+| Regression | PASS |
+
+### Scope Validation
+
+Allowed Changes: PASS  
+Incidental Changes: PASS — `next-env.d.ts` gerado pelo Next.js durante execução local.  
+Forbidden Changes: PASS  
+Scope Creep: NONE
+
+### Definition of Done
+
+PASS
+
+### Next Eligible TASK
+
+NONE — TASK-013 permanece BLOCKED e não foi iniciada.

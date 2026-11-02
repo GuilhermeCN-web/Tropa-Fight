@@ -3,6 +3,7 @@ import { requirePermission } from '../../auth/presentation/request-identity'
 import { CartError } from '../domain/cart'
 import { CartService } from '../application/cart-service'
 import { PostgresCartRepository } from '../infrastructure/postgres-cart-repository'
+import { PromotionError } from '../../promotions/domain/promotion'
 
 const cartService = new CartService(new PostgresCartRepository())
 const permission = 'identity.profile.read:self'
@@ -34,6 +35,18 @@ async function authorizeCustomer(
 }
 
 function cartErrorResponse(error: unknown) {
+  if (error instanceof PromotionError) {
+    const status =
+      error.code === 'VALIDATION'
+        ? 400
+        : error.code === 'COUPON_NOT_FOUND' || error.code === 'NOT_FOUND'
+          ? 404
+          : 409
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
   if (error instanceof CartError) {
     const status =
       error.code === 'VALIDATION'
@@ -141,6 +154,39 @@ export async function removeCartItem(request: NextRequest, itemId: string) {
   try {
     return NextResponse.json(
       { cart: await cartService.removeItem(access.customerId, itemId) },
+      { headers: { 'Cache-Control': 'no-store' } },
+    )
+  } catch (error) {
+    return cartErrorResponse(error)
+  }
+}
+
+export async function applyCartCoupon(request: NextRequest) {
+  const access = await authorizeCustomer(request)
+  if ('response' in access) return access.response
+  const body = await readBody(request)
+  if (!body || Object.keys(body).some((key) => key !== 'code')) {
+    return NextResponse.json(
+      { error: 'Invalid request body.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
+  try {
+    return NextResponse.json(
+      { cart: await cartService.applyCoupon(access.customerId, body.code) },
+      { headers: { 'Cache-Control': 'no-store' } },
+    )
+  } catch (error) {
+    return cartErrorResponse(error)
+  }
+}
+
+export async function removeCartCoupon(request: NextRequest) {
+  const access = await authorizeCustomer(request)
+  if ('response' in access) return access.response
+  try {
+    return NextResponse.json(
+      { cart: await cartService.removeCoupon(access.customerId) },
       { headers: { 'Cache-Control': 'no-store' } },
     )
   } catch (error) {

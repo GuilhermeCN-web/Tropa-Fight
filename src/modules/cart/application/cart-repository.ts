@@ -13,4 +13,6 @@ export interface CartRepository {
     quantity: number,
   ): Promise<Cart>
   removeItem(customerId: string, itemId: string): Promise<Cart>
+  applyCoupon(customerId: string, code: string): Promise<Cart>
+  removeCoupon(customerId: string): Promise<Cart>
 }
