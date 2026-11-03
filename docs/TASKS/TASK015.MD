@@ -1,6 +1,7 @@
 # TASK-015 — Pedidos, histórico e rastreamento
 
  **Status inicial:** `BLOCKED`\
+ **Status atual:** `DONE` (2026-11-03)\
  **Phase/Priority:** `PHASE-03 / HIGH`\
  **Dependência:** `TASK-014`\
  **Dependências obrigatórias para execução:** `TASK-014 = DONE` e Definition of Ready satisfeita\
@@ -14,19 +15,19 @@
 
  A TASK deve consolidar a camada de consulta e apresentação do ciclo de vida do pedido já criado pelas etapas anteriores.
 
- O foco é:
+ O escopo aprovado para esta execução é somente de consulta. O foco é:
 
  - histórico de pedidos do cliente;
 - detalhes do pedido;
 - estados do pedido;
-- transições válidas;
+- consistência dos estados existentes, sem novas transições;
 - autorização de acesso;
 - informações de pagamento relevantes;
 - informações de entrega;
 - rastreamento;
-- visão administrativa autorizada;
+- consulta administrativa somente leitura pelo papel `GENERAL_ADMIN`;
 - consistência entre pedido, pagamento e envio;
-- testes de autorização e máquina de estados.
+- testes de autorização e consistência dos estados persistidos.
 
  Não faz parte desta TASK inventar políticas de cancelamento, devolução ou reembolso.
 
@@ -87,7 +88,7 @@ Orders
   +--> Consulta
   +--> Filtros
   +--> Detalhes
-  +--> Status autorizado
+  +--> Status consultado (somente leitura)
   +--> Rastreamento
 ```
 
@@ -120,22 +121,25 @@ TASK-016
 
  A TASK só pode entrar em `IN_PROGRESS` quando:
 
- - [ ] `TASK-014` está em `DONE`.
-- [ ] `Order` está persistido e funcional.
-- [ ] `OrderItem` está persistido.
-- [ ] pagamento possui estado consistente.
-- [ ] fluxo de checkout está funcional.
-- [ ] regras de autorização de cliente estão disponíveis.
-- [ ] roles/permissões administrativas estão disponíveis.
-- [ ] estados de pedido estão definidos.
-- [ ] transições válidas estão definidas.
-- [ ] informações de entrega disponíveis no pedido estão definidas.
-- [ ] estratégia de rastreamento está definida.
-- [ ] não existe política de cancelamento pendente sendo necessária para esta TASK.
-- [ ] não existe política de devolução pendente sendo necessária para esta TASK.
-- [ ] não existe decisão comercial pendente que precise ser inventada durante a implementação.
+ - [x] `TASK-014` está em `DONE`.
+- [x] `Order` está persistido e funcional.
+- [x] `OrderItem` está persistido.
+- [x] pagamento possui estado consistente.
+- [x] fluxo de checkout está funcional.
+- [x] regras de autorização de cliente estão disponíveis.
+- [x] papel administrativo `GENERAL_ADMIN` está disponível para consulta somente leitura.
+- [x] estados de pedido exibidos estão definidos: `PENDING_PAYMENT`, `PAYMENT_CONFIRMED` e `EXPIRED`.
+- [x] novas transições de estado estão fora do escopo desta consulta.
+- [x] dados de entrega existentes em `Shipment` estão definidos.
+- [x] estratégia de rastreamento está definida: exibir somente dados persistidos, sem inventar tracking.
+- [x] políticas de cancelamento e devolução não são necessárias para esta TASK.
+- [x] decisões comerciais necessárias foram aprovadas e registradas em `docs/planning/answered-questions.md`.
 
  Se qualquer requisito essencial estiver indefinido, a TASK deve permanecer `BLOCKED`.
+
+ **Prontidão (2026-11-03): PASS.** TASK-014 está `DONE` e seus artefatos Order/Payment/Shipment foram verificados. Estados consultados, acesso exclusivo de leitura por `GENERAL_ADMIN`, ausência de novas transições e ausência de dados fictícios de rastreamento foram aprovados e registrados em `docs/planning/answered-questions.md`. Branch `feature/TASK-015-orders-history-tracking`; transições `BLOCKED → READY → IN_PROGRESS`.
+
+ **Execução (2026-11-03): DONE.** Transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. Implementados endpoints de histórico, detalhes, consulta administrativa e entrega/rastreamento somente leitura. GATE-001 (prontidão), GATE-002 (planejamento), GATE-003 (implementação) e GATE-004 (validação final) aprovados; relatório abaixo.
 
 ---
 
@@ -146,12 +150,8 @@ TASK-016
 ```
 Order
 OrderItem
-OrderStatus
-OrderStatusTransition
-OrderHistory / OrderEvent
+OrderStatus (projeção de estados persistidos)
 OrderQuery
-OrderTracking
-TrackingEvent
 CustomerOrderService
 AdminOrderService
 ```
@@ -162,7 +162,7 @@ AdminOrderService
 
  - APIs de pedidos;
 - consultas do cliente;
-- consultas administrativas;
+- consultas administrativas somente leitura para `GENERAL_ADMIN`;
 - detalhes do pedido;
 - histórico;
 - status;
@@ -171,7 +171,7 @@ AdminOrderService
 - testes unitários;
 - testes de integração;
 - testes de API;
-- testes de máquina de estados;
+- testes de consistência dos estados persistidos;
 - testes de autorização;
 - documentação;
 - atualização de `TASKS.md`;
@@ -282,70 +282,27 @@ R$ 100,00
 
 ---
 
- # 9\. Máquina de estados do pedido
+ # 9\. Estados de pedido consultados
 
- Os estados devem ser definidos explicitamente.
+ A TASK-015 somente apresentará os estados já produzidos pelos fluxos anteriores:
 
- A implementação deve utilizar somente os estados aprovados no domínio.
+ - `PENDING_PAYMENT`: pedido criado e aguardando pagamento;
+- `PAYMENT_CONFIRMED`: pagamento aprovado pela TASK-014;
+- `EXPIRED`: pedido expirado sem pagamento.
 
- Exemplo conceitual:
+ `PAYMENT_CONFIRMED` é o nome persistido aprovado em ADR-008/TASK-014. Os ciclos de pagamento e entrega continuam separados: o estado financeiro vem de `Payment`, e o estado logístico vem de `Shipment`.
 
-```
-PENDING
-   |
-   +--> CONFIRMED
-   |       |
-   |       +--> PROCESSING
-   |               |
-   |               +--> SHIPPED
-   |                       |
-   |                       +--> DELIVERED
-   |
-   +--> CANCELLED
-```
-
- A nomenclatura real deve seguir o domínio aprovado.
+ Nenhum estado `PROCESSING`, `SHIPPED` ou `DELIVERED` será criado ou atribuído nesta TASK. Não serão adicionados endpoints de mutação nem transições manuais ou automáticas. Transições comerciais/logísticas posteriores dependem de decisão e escopo próprios.
 
 ---
 
- # 10\. Transições
+ # 10\. Consistência de estados
 
- Toda transição deve ser validada.
-
- Exemplo conceitual:
-
-```
-PENDING
-  → CONFIRMED
-  → CANCELLED
-
-CONFIRMED
-  → PROCESSING
-  → CANCELLED
-
-PROCESSING
-  → SHIPPED
-
-SHIPPED
-  → DELIVERED
-```
-
- Transições inválidas devem ser rejeitadas.
-
- Exemplos:
-
-```
-DELIVERED → PENDING
-DELIVERED → PROCESSING
-CANCELLED → CONFIRMED
-CANCELLED → SHIPPED
-```
-
- não devem ocorrer salvo regra explícita previamente aprovada.
+ As consultas devem apresentar os valores persistidos por checkout, pagamento e expiração sem recalculá-los ou alterá-los. Dados inconsistentes entre `Order`, `Payment` e `Shipment` não devem ser corrigidos silenciosamente; retornar resposta segura e registrar o problema conforme os mecanismos já disponíveis.
 
 ---
 
- # 11\. Responsabilidade sobre transições
+ # 11\. Responsabilidade de consulta
 
  A TASK deve diferenciar:
 
@@ -368,16 +325,14 @@ GET status
 GET rastreamento
 ```
 
- Administrador:
+ Administrador `GENERAL_ADMIN`:
 
 ```
-consulta
-operações autorizadas
+GET histórico administrativo
+GET detalhes administrativos
 ```
 
- Alterações de estado devem existir somente quando já forem necessárias pelo contrato aprovado.
-
- A TASK não deve criar novas operações administrativas simplesmente para "completar" o painel.
+ Todas as operações desta TASK são somente leitura. O papel é verificado no servidor; nenhuma permissão ou papel RBAC será criado ou alterado.
 
 ---
 
@@ -499,7 +454,7 @@ Usuário não autenticado → Pedido A → 401
 
  # 16\. Autorização administrativa
 
- Administradores devem acessar pedidos conforme suas permissões.
+ Somente o papel existente `GENERAL_ADMIN` pode consultar todos os pedidos, em modo somente leitura. Nenhuma permissão ou papel RBAC será criado ou alterado.
 
  Exemplo:
 
@@ -507,7 +462,7 @@ Usuário não autenticado → Pedido A → 401
 Customer
     → somente seus pedidos
 
-Admin autorizado
+GENERAL_ADMIN (somente leitura)
     → pedidos permitidos pela role
 
 Admin não autorizado
@@ -552,31 +507,19 @@ PENDING
 
  # 18\. Rastreamento
 
- O pedido deve expor as informações de rastreamento disponíveis.
+ O pedido deve expor somente informações de envio/rastreamento que já estejam persistidas.
 
  Modelo conceitual:
 
 ```
-OrderTracking
-├── carrier
-├── trackingCode
+Shipment
 ├── status
-├── estimatedDelivery
-└── events[]
+├── method
+├── shippingCents
+└── estimatedDeliveryDate
 ```
 
- Eventos:
-
-```
-TrackingEvent
-├── code
-├── description
-├── location
-├── occurredAt
-└── ...
-```
-
- Somente informações efetivamente disponíveis devem ser apresentadas.
+O esquema atual não possui transportadora, código de rastreio ou eventos. Esses campos não serão persistidos nem inventados nesta TASK.
 
  Não inventar:
 
@@ -590,7 +533,7 @@ TrackingEvent
 
  # 19\. Rastreamento sem integração externa
 
- Se a integração logística real ainda não estiver aprovada, a TASK deve implementar somente a abstração e os dados necessários previstos no contrato.
+ Se a integração logística real ainda não estiver aprovada, a TASK deve consultar somente os dados já existentes, sem implementar um novo adaptador, persistir eventos ou preencher dados fictícios.
 
  Exemplo:
 
@@ -602,97 +545,33 @@ TrackingProvider
 
  Não implementar uma integração externa real sem aprovação.
 
- Se o rastreamento for inicialmente interno:
+ Nesta execução, a informação de entrega consiste somente nos dados persistidos:
 
 ```
 Order
    ↓
-Shipment
-   ↓
-Tracking events
+Shipment (dados persistidos)
 ```
 
- deve ser suficiente para atender ao escopo aprovado.
+ A ausência de tracking é uma resposta válida.
 
 ---
 
  # 20\. Histórico de estados
 
- Toda alteração relevante de estado deve possuir rastreabilidade.
-
- Exemplo:
-
-```
-Order #1001
-
-PENDING
-  ↓
-CONFIRMED
-  ↓
-PROCESSING
-  ↓
-SHIPPED
-```
-
- O sistema deve conseguir determinar:
-
- - estado atual;
-- estado anterior quando aplicável;
-- momento da transição;
-- origem da transição;
-- ator, quando aplicável.
+Esta TASK não altera estados nem cria um novo histórico de transições. As consultas apresentam o estado atual e os dados persistidos pelos fluxos de checkout, pagamento e expiração; os registros de auditoria existentes continuam sendo a fonte de rastreabilidade dessas operações.
 
 ---
 
  # 21\. Auditoria
 
- Operações administrativas críticas relacionadas a pedidos devem ser auditáveis conforme a infraestrutura criada anteriormente.
-
- Exemplo:
-
-```
-order.status.changed
-```
-
- Contexto mínimo possível:
-
-```
-orderId
-previousStatus
-newStatus
-actorId
-timestamp
-correlationId
-```
-
- Nunca registrar dados sensíveis desnecessários.
+Como a TASK-015 não inclui mutações administrativas, não cria eventos de auditoria de mudança de estado. As respostas de consulta não devem expor dados sensíveis desnecessários.
 
 ---
 
  # 22\. Integridade de estado
 
- A aplicação não deve permitir que o pedido fique em um estado incompatível.
-
- Exemplos:
-
-```
-Pedido DELIVERED
-+
-Pagamento FAILED
-```
-
- não deve surgir como resultado de uma transição inválida.
-
- Outro exemplo:
-
-```
-Pedido CANCELLED
-→ SHIPPED
-```
-
- deve ser rejeitado.
-
- As regras devem ser centralizadas em serviço/domínio apropriado, evitando validações divergentes entre endpoints.
+As consultas devem preservar e apresentar separadamente os estados persistidos de pedido, pagamento e envio. Nenhum estado novo será atribuído nesta TASK; dados inconsistentes não serão corrigidos silenciosamente.
 
 ---
 
@@ -757,6 +636,8 @@ GET /admin/orders
 GET /admin/orders/{id}
 ```
 
+Os endpoints administrativos devem exigir `GENERAL_ADMIN` no servidor; não haverá endpoints administrativos de mutação.
+
  Não criar endpoints não necessários.
 
 ---
@@ -779,7 +660,7 @@ GET /admin/orders/{id}
   "items": [
     {
       "id": "order-1001",
-      "status": "SHIPPED",
+      "status": "PAYMENT_CONFIRMED",
       "total": 249.90,
       "createdAt": "..."
     }
@@ -801,7 +682,7 @@ GET /admin/orders/{id}
 ```
 {
   "id": "order-1001",
-  "status": "SHIPPED",
+  "status": "PAYMENT_CONFIRMED",
   "items": [],
   "subtotal": 220.00,
   "discount": 10.00,
@@ -824,15 +705,8 @@ GET /admin/orders/{id}
 
 ```
 {
-  "trackingCode": "ABC123",
-  "carrier": "approved-provider",
-  "status": "IN_TRANSIT",
-  "events": [
-    {
-      "status": "POSTED",
-      "occurredAt": "..."
-    }
-  ]
+  "shipment": { "status": "NOT_SHIPPED" },
+  "tracking": null
 }
 ```
 
@@ -859,9 +733,7 @@ GET /admin/orders/{id}
 
  Cobrir:
 
- - máquina de estados;
-- transições válidas;
-- transições inválidas;
+- consistência de estados persistidos;
 - autorização do cliente;
 - autorização administrativa;
 - construção do histórico;
@@ -882,16 +754,12 @@ GET /admin/orders/{id}
 cliente lista seus pedidos
 cliente abre seu pedido
 cliente tenta abrir pedido de outro cliente
-admin autorizado consulta pedido
-admin não autorizado recebe bloqueio
+GENERAL_ADMIN consulta pedido em modo somente leitura
+outros papéis administrativos recebem bloqueio
 pedido inexistente
 pedido sem rastreamento
-pedido com rastreamento
-pedido com múltiplos eventos
 pedido com pagamento aprovado
 pedido com pagamento falho
-transição válida
-transição inválida
 ```
 
 ---
@@ -936,8 +804,7 @@ GET /orders/{id}/tracking
 
  - autorização;
 - ausência de rastreamento;
-- rastreamento disponível;
-- eventos ordenados corretamente.
+- nenhum código, transportadora ou evento fabricado.
 
 ---
 
@@ -950,17 +817,14 @@ GET /orders/{id}/tracking
 | cliente acessa próprio pedido | permitido |
 | cliente acessa pedido de outro cliente | bloqueado |
 | usuário não autenticado | bloqueado |
-| admin autorizado consulta pedido | permitido |
-| admin sem permissão | bloqueado |
+| GENERAL_ADMIN consulta pedido | permitido, somente leitura |
+| papel administrativo diferente de GENERAL_ADMIN | bloqueado |
 | pedido inexistente | resposta conforme contrato |
 | pedido com pagamento aprovado | status consistente |
 | pedido com pagamento falho | status consistente |
 | pedido sem tracking | resposta válida sem inventar dados |
-| pedido com tracking | dados apresentados |
-| transição válida | permitida |
-| transição inválida | rejeitada |
-| pedido entregue regressando | rejeitado |
-| pedido cancelado avançando | rejeitado |
+| tracking não persistido | `null`/ausente, sem inventar dados |
+| estado do pedido | somente PENDING_PAYMENT, PAYMENT_CONFIRMED ou EXPIRED |
 | paginação | consistente |
 | ordenação | determinística |
 | histórico de preço | preservado |
@@ -981,13 +845,12 @@ N+1 queries
 ```
 orders
 → items
-→ tracking
-→ events
+→ shipment
 ```
 
  Deve ser avaliada a estratégia de:
 
- - joins;
+- joins;
 - eager loading controlado;
 - consultas específicas;
 - projeções;
@@ -1014,18 +877,7 @@ id DESC
 
  # 36\. Rastreamento e ordenação de eventos
 
- Os eventos de rastreamento devem possuir ordenação determinística.
-
- Preferencialmente:
-
-```
-occurredAt ASC
-id ASC
-```
-
- ou o padrão definido pelo domínio.
-
- Não assumir que a ordem de armazenamento é suficiente.
+O esquema atual não possui eventos de rastreamento. Se algum registro de tracking existente for encontrado no futuro, sua ordenação deverá seguir o contrato da fonte; esta TASK não adicionará armazenamento ou eventos.
 
 ---
 
@@ -1067,9 +919,7 @@ módulos shipping/tracking necessários
 consultas de pedidos
 APIs de pedidos
 serializadores/DTOs de pedidos
-máquina de estados do pedido
-persistência de histórico de pedidos
-persistência de tracking quando necessária
+ projeções de consulta de pedidos
 testes
 documentação
 configuração diretamente relacionada
@@ -1099,6 +949,8 @@ TASKS.md
 - criar notificações novas fora do escopo;
 - alterar RBAC sem decisão;
 - criar novos papéis administrativos;
+- adicionar operações de mutação ou transições manuais/automáticas de pedido;
+- adicionar tabelas/campos/eventos de tracking ou dados fictícios;
 - criar integração logística externa sem aprovação;
 - alterar arquitetura sem ADR;
 - modificar requisitos comerciais;
@@ -1111,15 +963,15 @@ TASKS.md
  Toda alteração deve responder positivamente a pelo menos uma destas categorias:
 
 ```
-[ ] Histórico de pedidos
-[ ] Detalhes de pedidos
-[ ] Status do pedido
-[ ] Máquina de estados
-[ ] Rastreamento
-[ ] Autorização de pedidos
-[ ] Consulta administrativa de pedidos
-[ ] Testes diretamente relacionados
-[ ] Documentação diretamente relacionada
+[x] Histórico de pedidos
+[x] Detalhes de pedidos
+[x] Status do pedido
+[x] Consistência de estados persistidos
+[x] Rastreamento (somente dados existentes)
+[x] Autorização de pedidos
+[x] Consulta administrativa de pedidos somente leitura
+[x] Testes diretamente relacionados
+[x] Documentação diretamente relacionada
 ```
 
  Caso contrário:
@@ -1139,7 +991,7 @@ NÃO ALTERAR
         ↓
 2. Mapear Order/OrderItem/Payment/Shipment
         ↓
-3. Definir máquina de estados
+3. Confirmar estados existentes e projeções de leitura
         ↓
 4. Definir regras de autorização
         ↓
@@ -1155,7 +1007,7 @@ NÃO ALTERAR
         ↓
 10. Garantir isolamento por cliente
         ↓
-11. Implementar validação de transições
+11. Validar consistência dos estados consultados
         ↓
 12. Testes unitários
         ↓
@@ -1191,79 +1043,79 @@ NÃO ALTERAR
  ## Build
 
 ```
-[ ] Build passa
-[ ] Sem erros de compilação
-[ ] Migrations aplicam corretamente
+[x] Build passa
+[x] Sem erros de compilação
+[x] Não houve mudança de schema; nenhuma migration necessária
 ```
 
  ## Lint
 
 ```
-[ ] Lint passa
-[ ] Sem warnings críticos introduzidos
+[x] Lint passa
+[x] Sem warnings críticos introduzidos (aviso preexistente em `app/layout.tsx`)
 ```
 
  ## Testes
 
 ```
-[ ] Unitários passam
-[ ] Integração passa
-[ ] API passa
-[ ] Autorização passa
-[ ] Máquina de estados passa
-[ ] Tracking passa
+[x] Unitários passam
+[x] Integração passa
+[x] API passa
+[x] Autorização passa
+[x] Consistência dos estados persistidos passa
+[x] Tracking: entrega consultada; tracking ausente retorna nulo sem inventar dados
 ```
 
  ## Segurança
 
 ```
-[ ] Cliente não acessa pedido de outro cliente
-[ ] Endpoints administrativos protegidos
-[ ] Dados sensíveis não são expostos
-[ ] Informações de pagamento limitadas
-[ ] Nenhuma credencial/token é retornado
+[x] Cliente não acessa pedido de outro cliente
+[x] Endpoints administrativos protegidos por GENERAL_ADMIN
+[x] CPF e telefone não são expostos nos detalhes
+[x] Informações de pagamento limitadas
+[x] Nenhuma credencial/token é retornado
 ```
 
  ## Integridade
 
 ```
-[ ] Estados válidos
-[ ] Estados inválidos rejeitados
-[ ] Histórico consistente
-[ ] Pagamento consistente
-[ ] Rastreamento consistente
-[ ] Preços históricos preservados
+[x] Estados válidos
+[x] Estados fora do conjunto aprovado não são apresentados como válidos
+[x] Histórico consistente
+[x] Pagamento consistente
+[x] Rastreamento consistente
+[x] Preços históricos preservados
 ```
 
  ## Performance
 
 ```
-[ ] Sem N+1 crítico
-[ ] Paginação aplicada
-[ ] Ordenação determinística
-[ ] Consultas relevantes avaliadas
+[x] Sem N+1 crítico
+[x] Paginação aplicada
+[x] Ordenação determinística
+[x] Consultas relevantes avaliadas
 ```
 
  ## Rastreabilidade
 
 ```
-[ ] RF-026 coberto
-[ ] RF-027 coberto
-[ ] RF-028 coberto
-[ ] RN-014 coberto
-[ ] UC-007 coberto
-[ ] UC-008 coberto
-[ ] Testes associados aos critérios
+[x] RF-026 coberto
+[x] RF-027 coberto
+[x] RF-028 coberto
+[x] RN-014 coberto
+[x] UC-007 coberto
+[x] UC-008 coberto
+[x] Testes associados aos critérios
 ```
 
  ## Escopo
 
 ```
-[ ] ALLOWED_CHANGES respeitado
-[ ] FORBIDDEN_CHANGES não violado
-[ ] Scope Guard validado
-[ ] Nenhum Scope Creep
-[ ] Alterações incidentais justificadas
+[x] ALLOWED_CHANGES respeitado
+[x] FORBIDDEN_CHANGES não violado
+[x] Scope Guard validado
+[x] Nenhum Scope Creep
+[x] Não houve alterações incidentais
 ```
 
 ---
@@ -1272,35 +1124,35 @@ NÃO ALTERAR
 
  A TASK-015 somente pode ser marcada como `DONE` quando:
 
- - [ ] Cliente consegue consultar seu histórico de pedidos.
-- [ ] Cliente consegue consultar detalhes de seus pedidos.
-- [ ] Cliente não consegue acessar pedidos de terceiros.
-- [ ] Administradores acessam pedidos conforme RBAC existente.
-- [ ] Estados do pedido estão definidos.
-- [ ] Transições válidas estão implementadas.
-- [ ] Transições inválidas são rejeitadas.
-- [ ] Histórico de estado possui rastreabilidade adequada.
-- [ ] Informações históricas da compra são preservadas.
-- [ ] Estado de pagamento é apresentado de forma consistente.
-- [ ] Rastreamento é apresentado quando disponível.
-- [ ] Ausência de rastreamento é tratada sem inventar dados.
-- [ ] Eventos de rastreamento possuem ordenação determinística.
-- [ ] Paginação é consistente.
-- [ ] Ordenação é determinística.
-- [ ] Consultas não apresentam N+1 crítico.
-- [ ] Dados sensíveis não são expostos.
-- [ ] Testes unitários passam.
-- [ ] Testes de integração passam.
-- [ ] Testes de API passam.
-- [ ] Testes de autorização passam.
-- [ ] Build passa.
-- [ ] Lint passa.
-- [ ] Documentação está atualizada.
-- [ ] Rastreabilidade está atualizada.
-- [ ] `TASKS.md` está atualizado.
-- [ ] Relatório de execução foi produzido.
-- [ ] Nenhum `FORBIDDEN_CHANGE` ocorreu.
-- [ ] Nenhum Scope Creep ocorreu.
+ - [x] Cliente consegue consultar seu histórico de pedidos.
+- [x] Cliente consegue consultar detalhes de seus pedidos.
+- [x] Cliente não consegue acessar pedidos de terceiros.
+- [x] `GENERAL_ADMIN` consulta pedidos em modo somente leitura; outros papéis administrativos não têm acesso.
+- [x] Estados são apresentados conforme os contratos existentes.
+- [x] São apresentados somente `PENDING_PAYMENT`, `PAYMENT_CONFIRMED` e `EXPIRED`.
+- [x] Nenhuma transição manual ou automática de estado foi introduzida.
+- [x] A consulta preserva a rastreabilidade já existente sem criar histórico fictício.
+- [x] Informações históricas da compra são preservadas.
+- [x] Estado de pagamento é apresentado de forma consistente.
+- [x] Informações de envio persistidas são apresentadas.
+- [x] Ausência de rastreamento é tratada sem inventar dados.
+- [x] Rastreamento/código/eventos só são retornados quando persistidos por fonte aprovada.
+- [x] Paginação é consistente.
+- [x] Ordenação é determinística.
+- [x] Consultas não apresentam N+1 crítico.
+- [x] Dados sensíveis não são expostos.
+- [x] Testes unitários passam.
+- [x] Testes de integração passam.
+- [x] Testes de API passam.
+- [x] Testes de autorização passam.
+- [x] Build passa.
+- [x] Lint passa.
+- [x] Documentação está atualizada.
+- [x] Rastreabilidade está atualizada.
+- [x] `TASKS.md` está atualizado.
+- [x] Relatório de execução foi produzido.
+- [x] Nenhum `FORBIDDEN_CHANGE` ocorreu.
+- [x] Nenhum Scope Creep ocorreu.
 
 ---
 
@@ -1310,8 +1162,6 @@ NÃO ALTERAR
 
 ```
 cliente consegue acessar pedido de terceiro
-        OU
-transição inválida é aceita
         OU
 pedido histórico apresenta preço incorreto
         OU
@@ -1348,80 +1198,68 @@ BLOCKED
 
  # 45\. Relatório de execução
 
- Ao finalizar:
+## TASK Execution Report
 
-```
 TASK: TASK-015
-STATUS: DONE | FAILED | BLOCKED
+Status: DONE
+Branch: `feature/TASK-015-orders-history-tracking`
+Commits: nenhum (alterações ainda não commitadas)
 
-Resumo:
-<resumo objetivo>
+### Primary Changes
 
-Implementado:
-- ...
-- ...
-- ...
+- APIs paginadas de histórico e detalhe para o cliente, com isolamento por proprietário.
+- Consultas administrativas de lista e detalhe somente para `GENERAL_ADMIN`.
+- Projeção de pagamento, itens, valores históricos, endereço de entrega minimizado e estado de envio.
+- Endpoint de entrega/rastreamento retorna somente Shipment persistido e `tracking: null` quando não há tracking armazenado.
+- Validação de paginação; ordenação determinística por data e ID; sem N+1.
+- Testes unitários e de integração/API, sem migration ou alteração de RBAC.
 
-Pedidos:
-- histórico: PASS/FAIL
-- detalhes: PASS/FAIL
-- estados: PASS/FAIL
-- transições: PASS/FAIL
+### Incidental Changes
 
-Autorização:
-- cliente: PASS/FAIL
-- isolamento entre clientes: PASS/FAIL
-- admin/RBAC: PASS/FAIL
+- Nenhuma.
 
-Rastreamento:
-- consulta: PASS/FAIL
-- eventos: PASS/FAIL
-- ordenação: PASS/FAIL
+### Tests Executed
 
-Integração:
-- Payment: PASS/FAIL
-- Order: PASS/FAIL
-- Shipment/Tracking: PASS/FAIL
+- `node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run --no-file-parallelism`: 34 arquivos e 108 testes aprovados.
+- `npm run quality` executado com `.env.local`: aprovado (format, lint, typecheck, testes e build).
+- O lint reporta somente o aviso preexistente `react(only-export-components)` em `app/layout.tsx`.
+- Uma execução paralela anterior falhou transitoriamente no teste preexistente `checkout-api-flow` (409 na criação e erro na limpeza de categoria). O teste isolado e a execução completa subsequente passaram.
 
-Testes:
-- unit: PASS/FAIL
-- integration: PASS/FAIL
-- API: PASS/FAIL
-- authorization: PASS/FAIL
-- state machine: PASS/FAIL
+### Quality Gates
 
-Quality Gates:
-- build: PASS/FAIL
-- lint: PASS/FAIL
-- testes aplicáveis: PASS/FAIL
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (aviso preexistente em `app/layout.tsx`) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS |
+| Acceptance | PASS |
+| Regression | PASS |
 
-Rastreabilidade:
-- RF-026: ...
-- RF-027: ...
-- RF-028: ...
-- RN-014: ...
-- UC-007: ...
-- UC-008: ...
+### Scope Validation
 
-Scope Guard:
-- PASS/FAIL
+Allowed Changes: PASS
+Incidental Changes: PASS (nenhuma)
+Forbidden Changes: PASS
+Scope Creep: NONE
 
-Alterações incidentais:
-- nenhuma
-ou
-- <justificativa>
+### Definition of Done
 
-Bloqueios:
-- nenhum
-ou
-- <bloqueio>
+PASS
 
-Estado final:
-<DONE | FAILED | BLOCKED>
+### Rastreabilidade
 
-Próxima TASK:
-TASK-016 — somente após autorização explícita.
-```
+- RF-026 / UC-007: histórico paginado do cliente e consulta administrativa; `GET /api/orders` e `GET /api/admin/orders`.
+- RF-027: detalhe preserva snapshots e limita os dados de pagamento/endereço; `GET /api/orders/{orderId}`.
+- RF-028 / UC-008: entrega e ausência de tracking são apresentadas sem fabricar dados; `GET /api/orders/{orderId}/tracking`.
+- RN-014: estados `PENDING_PAYMENT`, `PAYMENT_CONFIRMED` e `EXPIRED` apresentados conforme persistência; nenhuma transição nova.
+- Testes: `tests/unit/order-query.test.ts` e `tests/integration/order-api-flow.test.ts`.
+
+### Próxima TASK
+
+TASK-016 permanece `BLOCKED`; não foi iniciada.
 
 ---
 
