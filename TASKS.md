@@ -29,7 +29,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | DONE |
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | DONE |
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | DONE |
-|    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | BLOCKED |
+|    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | DONE |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | BLOCKED |
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
@@ -335,7 +335,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-016 — Checkpoint PHASE-03
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-015`
 **Relacionados:** RF-015–028, RN-008–014, UC-004–008
@@ -345,6 +345,10 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **FORBIDDEN_CHANGES:** novas funcionalidades administrativas da PHASE-04.
 **Critérios de aceitação/Testes:** carrinho → checkout → pagamento → pedido → histórico/rastreamento funciona; idempotência e integridade passam.
 **DoD específico:** PHASE-04 torna-se elegível.
+
+**Prontidão (2026-11-03): PASS.** TASK-011 a TASK-015 estão `DONE`; seus relatórios e Quality Gates estão registrados; PostgreSQL local respondeu; o mock local aprovado está disponível. Estratégia acordada: cenário integrado pelas APIs/Route Handlers com PostgreSQL local; timeout será simulado por gateway substituto somente nos testes. A ausência de UI completa de checkout não bloqueia a validação por API. Branch `feature/TASK-016-phase03-checkpoint`; transições `BLOCKED → READY → IN_PROGRESS`.
+
+**Execução concluída (2026-11-03):** transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`; PHASE-03 validada. Fluxo ponta a ponta por APIs/Route Handlers, isolamento, webhook assinado/rejeitado/duplicado, idempotência, estados, auditoria e rastreamento sem dados fictícios passaram. `npm run quality` passou: 35 arquivos/109 testes, formatação, typecheck e build; lint mantém aviso preexistente em `app/layout.tsx`. Relatório em `docs/TASKS/TASK016.MD`. PHASE-04 elegível; TASK-017 não iniciada.
 
 ---
 

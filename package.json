@@ -10,7 +10,7 @@
     "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
     "identity:create-admin": "node --conditions=react-server --experimental-strip-types --disable-warning=ExperimentalWarning --env-file-if-exists=.env.local scripts/create-first-admin.ts",
     "lint": "oxlint app src tests scripts vitest.config.ts next.config.ts",
-    "test": "vitest run",
+    "test": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,json}\" .prettierrc.json",
