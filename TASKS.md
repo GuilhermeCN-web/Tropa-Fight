@@ -28,7 +28,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    12 | TASK-012 | PHASE-03 | HIGH       | TASK-011                   | DONE |
 |    13 | TASK-013 | PHASE-03 | CRITICAL   | TASK-012                   | DONE |
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | DONE |
-|    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | BLOCKED |
+|    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | DONE |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | BLOCKED |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | BLOCKED |
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
@@ -320,7 +320,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-015 — Pedidos, histórico e rastreamento
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-03 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-014`
 **Relacionados:** RF-026, RF-027, RF-028, RN-014, UC-007, UC-008
@@ -328,8 +328,10 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **Artefatos esperados:** APIs/UI de pedidos, histórico, status e rastreamento.
 **ALLOWED_CHANGES:** módulos orders/shipping/customer-area; testes; `TASKS.md`.
 **FORBIDDEN_CHANGES:** inventar política de cancelamento/devolução, alterar fluxo de pagamento sem ADR.
-**Critérios de aceitação/Testes:** cliente só acessa seus próprios pedidos; administrador acessa conforme permissão; transições inválidas de estado são rejeitadas.
-**DoD específico:** matriz de estados e testes de autorização concluídos.
+**Critérios de aceitação/Testes:** cliente só acessa seus próprios pedidos; `GENERAL_ADMIN` pode consultar pedidos em modo somente leitura; pagamento é apresentado conforme contrato da TASK-014; estados exibidos limitam-se a `PENDING_PAYMENT`, `PAYMENT_CONFIRMED` e `EXPIRED`; entrega/rastreamento apresentam somente dados persistidos, sem valores fictícios. Nenhuma transição manual/automática ou alteração de RBAC.
+**DoD específico:** histórico, detalhes, estados existentes, rastreamento disponível, paginação e autorização de leitura cobertos por testes.
+**Prontidão (2026-11-03): PASS.** TASK-014 e seus artefatos estão `DONE`; estados pós-pagamento, escopo somente leitura, acesso `GENERAL_ADMIN` e comportamento sem tracking foram aprovados e registrados em `docs/planning/answered-questions.md`.
+**Execução concluída (2026-11-03):** transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`; branch `feature/TASK-015-orders-history-tracking`. Histórico, detalhe, leitura administrativa `GENERAL_ADMIN`, projeção dos estados aprovados e APIs de entrega foram implementados sem migrações ou mutações de estado. `npm run quality` passou: 34 arquivos/108 testes, format, lint, typecheck e build; lint mantém aviso preexistente em `app/layout.tsx`. Uma execução paralela anterior teve falha transitória no teste preexistente de checkout; teste isolado e execução completa subsequente passaram. Relatório em `docs/TASKS/TASK015.MD`. TASK-016 permanece BLOCKED e não foi iniciada.
 
 ## TASK-016 — Checkpoint PHASE-03
 

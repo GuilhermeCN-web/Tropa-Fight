@@ -1211,6 +1211,17 @@ Infraestrutura
 
 ---
 
+# Decisões aprovadas para TASK-015 — Pedidos, histórico e rastreamento
+
+**Aprovação:** responsável do projeto, registrada em 2026-11-03.
+
+- Estados de pedido nesta entrega: `PENDING_PAYMENT`, `PAYMENT_CONFIRMED` e `EXPIRED`. `PAYMENT_CONFIRMED` preserva o contrato implementado na TASK-014. Nenhuma transição para `PROCESSING`, `SHIPPED` ou `DELIVERED` será criada nesta TASK.
+- Consultas administrativas de pedidos serão somente de leitura e autorizadas exclusivamente para o papel existente `GENERAL_ADMIN`. Nenhum papel ou permissão RBAC será criado ou alterado.
+- Histórico, detalhes e entrega exporão apenas dados já persistidos. Não criar rastreamento, código, transportadora, eventos ou estados fictícios; ausência de dados de tracking é válida.
+- Não incluir operações de mudança de estado, cancelamento, devolução ou reembolso.
+
+---
+
  # Próximo passo
 
  A elicitação deverá começar pela **Rodada 1 — Escopo comercial e operação da V1**.
