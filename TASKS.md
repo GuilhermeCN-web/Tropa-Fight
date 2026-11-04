@@ -30,7 +30,7 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    14 | TASK-014 | PHASE-03 | HIGH       | TASK-013                   | DONE |
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | DONE |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | DONE |
-|    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | BLOCKED |
+|    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | DONE |
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
@@ -354,16 +354,18 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
 ## TASK-017 — Avaliações e favoritos
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / CRITICAL
 **Dependências:** `DEPENDS_ON: TASK-016`
 **Relacionados:** RF-029, RF-030, RN-015, RN-016, UC-009
 **Objetivo:** Implementar avaliações de produtos e favoritos/wishlist.
 **Artefatos esperados:** Review, Favorite e operações públicas/privadas correspondentes.
-**ALLOWED_CHANGES:** módulos reviews/favorites/customer-area; testes; `TASKS.md`.
+**ALLOWED_CHANGES:** módulos reviews/favorites/customer-area; persistência/migrations diretamente necessárias; APIs/contratos de reviews/favorites; testes; documentação diretamente necessária; `TASKS.md`.
 **FORBIDDEN_CHANGES:** sistema social, chat interno, recomendações algorítmicas.
 **Critérios de aceitação/Testes:** cliente só pode avaliar conforme regra aprovada; usuário só acessa seus favoritos; avaliações inválidas não são publicadas.
 **DoD específico:** autorização e regras de publicação testadas.
+**Decisões aprovadas e prontidão (2026-11-04):** avaliação de produto somente para cliente autenticado com pedido `PAYMENT_CONFIRMED` contendo o produto; uma por cliente/produto; nota 1–5; comentário opcional até 2.000 caracteres; criação e edição começam `PENDING`; edição da própria avaliação, inclusive `REJECTED`, retorna para `PENDING`; publicação/moderação na TASK-019; avaliações públicas ocultas quando o produto está inativo; favoritos e avaliações próprias são preservados. Avaliação geral do site fora do escopo. Definition of Ready: PASS; branch `feature/TASK-017-reviews-favorites`; transições `BLOCKED → READY → IN_PROGRESS`. Especificação e respostas em `docs/TASKS/TASK017.MD` e `docs/planning/answered-questions.md`.
+**Execução concluída (2026-11-04):** transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. Migration `012_reviews_favorites.sql`; APIs, ownership, elegibilidade de compra paga, moderação pendente e favoritos implementados. `npm run quality` passou: 37 arquivos/117 testes, formatação, typecheck e build; lint com aviso preexistente em `app/layout.tsx`. Migrations aplicadas duas vezes. Relatório em `docs/TASKS/TASK017.MD`. TASK-018 permanece BLOCKED e não foi iniciada.
 
 ## TASK-018 — Administração de catálogo, estoque e pedidos
 

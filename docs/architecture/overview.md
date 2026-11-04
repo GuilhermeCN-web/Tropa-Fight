@@ -14,7 +14,9 @@
 
 `shipping` administra opções de entrega, cotação de frete, modalidade selecionada, expedição e rastreamento. Para a TASK-013 há cotação local `STANDARD` fixa de R$ 20,00 com prazo de 5 dias úteis, sem feriados modelados; transportadoras reais e rastreamento externo permanecem pendentes.
 
-`reviews` implementa avaliações de produtos, regras de elegibilidade, denúncias e moderação. A exigência de compra verificada e as políticas de publicação deverão ser confirmadas no escopo funcional.
+`reviews` implementa avaliações de produtos com compra verificada. Para a TASK-017, somente clientes com pedido pago contendo o produto podem avaliar; novas avaliações e edições ficam pendentes de moderação, que será entregue na TASK-019. Denúncias permanecem fora do escopo aprovado.
+
+`favorites` mantém a lista privada de produtos favoritos do cliente autenticado, com isolamento por propriedade.
 
 `administration` reúne os casos de uso administrativos para gestão de catálogo, estoque, pedidos, clientes, cupons e permissões. A autorização deve ser validada no servidor e respeitar os papéis definidos para cada operação.
 
@@ -75,6 +77,6 @@ A etapa inicial (TASK-001/TASK-002) executou somente o front React/TypeScript em
 * Regras de cancelamento, devolução e reembolso, incluindo recomposição fora da expiração aprovada.
 * Transportadoras reais e rastreamento externo.
 * Regras de cancelamento, devolução e reembolso.
-* Política de cupons, avaliações e moderação.
+* Política de cupons e de denúncias de avaliações.
 * Estratégia mobile e canais de notificação.
 * Requisitos operacionais de backup, retenção e recuperação.

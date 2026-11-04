@@ -689,58 +689,25 @@ reembolsado
 
  # Rodada 10 — Avaliações e favoritos
 
- ## 1\. Quem poderá avaliar um produto?
+## 1. Quem poderá avaliar um produto?
 
- **R:**
+**Aprovado em 2026-11-04 para TASK-017:** somente cliente autenticado que possua pedido `PAYMENT_CONFIRMED` contendo o produto pode criar avaliação. A avaliação é por produto, não uma avaliação geral do site. A elegibilidade é verificada pela associação do cliente, pedido pago e item do pedido.
 
- A documentação define que a avaliação será realizada por cliente elegível.
+## 2. Quantidade e edição
 
- **Pergunta:** somente quem efetivamente comprou o produto poderá avaliar?
+**Aprovado em 2026-11-04 para TASK-017:** uma avaliação por cliente/produto. O cliente pode editar a própria avaliação. Qualquer edição retorna o estado para `PENDING`, retirando-a da consulta pública até nova moderação. Uma avaliação `REJECTED` também pode ser corrigida pelo próprio autor e volta a `PENDING`.
 
- ## 2\. Quantas avaliações um cliente poderá fazer?
+## 3. Nota e comentário
 
- **R:**
+**Aprovado em 2026-11-04 para TASK-017:** nota inteira de 1 a 5 estrelas; comentário opcional, limitado a 2.000 caracteres.
 
- Ainda não definido.
+## 4. Publicação e produto inativo
 
- **Pergunta:** o cliente poderá ter:
+**Aprovado em 2026-11-04 para TASK-017:** avaliação nova começa `PENDING`; a moderação administrativa será implementada na TASK-019. Somente avaliações `PUBLISHED` de produtos publicados aparecem publicamente. Se o produto for arquivado/inativo, avaliações públicas ficam ocultas, avaliações próprias permanecem consultáveis privadamente e favoritos são preservados; não se cria nova avaliação. O autor ainda pode editar sua avaliação enquanto o produto estiver inativo; ela permanece privada/oculta e, após edição, fica `PENDING`.
 
- - uma avaliação por produto;
-- várias avaliações;
-- uma avaliação por pedido?
+## 5. Denúncias
 
- ## 3\. O cliente poderá editar sua avaliação?
-
- **R:**
-
- Ainda não definido.
-
- **Pergunta:** depois de publicar uma avaliação, ele poderá alterar nota/comentário?
-
- ## 4\. Quem poderá denunciar avaliações?
-
- **R:**
-
- Ainda não definido.
-
- **Pergunta:** somente clientes autenticados poderão denunciar ou qualquer visitante poderá denunciar?
-
- ## 5\. Como funcionará a moderação?
-
- **R:**
-
- Gestores e administradores poderão moderar avaliações.
-
- **Pergunta:** quais estados existirão?
-
- Por exemplo:
-
-```
-pendente
-publicada
-oculta
-removida
-```
+Denúncias de avaliações não fazem parte do escopo autorizado da TASK-017 e permanecem como decisão futura.
 
 ---
 

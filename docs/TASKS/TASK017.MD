@@ -1,6 +1,6 @@
 # TASK-017 — Avaliações e favoritos
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-04)\
  **Phase/Priority:** PHASE-04 / CRITICAL\
  **Dependência:** `DEPENDS_ON: TASK-016`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -199,6 +199,18 @@ alteração de regras comerciais não relacionadas
 - eventual ambiguidade de requisito estiver registrada para decisão antes da implementação.
 
  **Importante:** se alguma regra de negócio necessária não estiver definida nos requisitos aprovados, não inventar comportamento. Registrar o bloqueio.
+
+ **Decisões aprovadas em 2026-11-04:**
+
+ - somente cliente autenticado com pedido `PAYMENT_CONFIRMED` contendo o produto pode criar avaliação; avaliações gerais do site estão fora do escopo;
+- uma avaliação por cliente/produto; o autor pode editar a própria avaliação;
+- nota inteira de 1 a 5; comentário opcional de até 2.000 caracteres;
+- nova avaliação começa `PENDING`; publicação/moderação administrativa pertence à TASK-019;
+- edição de avaliação `PUBLISHED` ou `REJECTED` retorna a avaliação para `PENDING`, removendo-a das consultas públicas até nova moderação;
+- somente avaliações `PUBLISHED` de produtos publicados aparecem publicamente;
+- produto arquivado/inativo oculta avaliações públicas, preserva avaliação própria e favorito, impede nova avaliação e permite editar a avaliação própria, que permanece privada/oculta.
+
+ **Prontidão (2026-11-04): PASS.** TASK-016 está `DONE`; contratos existentes de identidade, produtos, pedidos, itens do pedido e pagamentos estão disponíveis; elegibilidade, limite, edição, publicação, validação e produto inativo foram definidos. Branch `feature/TASK-017-reviews-favorites`; transições `BLOCKED → READY → IN_PROGRESS`.
 
 ---
 
@@ -558,26 +570,26 @@ avaliação não publicável
 
  ### Review
 
- - [ ] rating válido;
-- [ ] rating inválido;
-- [ ] conteúdo válido;
-- [ ] conteúdo inválido;
-- [ ] produto inexistente;
-- [ ] cliente inválido;
-- [ ] cliente não elegível;
-- [ ] avaliação duplicada, quando aplicável;
-- [ ] estado inicial correto;
-- [ ] publicação conforme regra;
-- [ ] invariantes do domínio.
+ - [x] rating válido;
+- [x] rating inválido;
+- [x] conteúdo válido;
+- [x] conteúdo inválido;
+- [x] produto inexistente;
+- [x] cliente inválido/fora do papel de cliente;
+- [x] cliente não elegível;
+- [x] avaliação duplicada, quando aplicável;
+- [x] estado inicial correto;
+- [x] publicação conforme regra;
+- [x] invariantes do domínio.
 
  ### Favorite
 
- - [ ] criação válida;
-- [ ] produto inexistente;
-- [ ] duplicidade;
-- [ ] remoção;
-- [ ] ownership;
-- [ ] invariantes.
+ - [x] criação válida;
+- [x] produto inexistente;
+- [x] duplicidade;
+- [x] remoção;
+- [x] ownership;
+- [x] invariantes.
 
 ---
 
@@ -585,15 +597,15 @@ avaliação não publicável
 
  Devem validar, no mínimo:
 
- - [ ] criação de avaliação persistida;
-- [ ] leitura de avaliações;
-- [ ] isolamento por cliente;
-- [ ] persistência de favoritos;
-- [ ] remoção de favoritos;
-- [ ] restrições de integridade;
-- [ ] unicidade;
-- [ ] transações aplicáveis;
-- [ ] comportamento em concorrência quando houver risco de duplicidade.
+ - [x] criação de avaliação persistida;
+- [x] leitura de avaliações;
+- [x] isolamento por cliente;
+- [x] persistência de favoritos;
+- [x] remoção de favoritos;
+- [x] restrições de integridade;
+- [x] unicidade;
+- [x] transações aplicáveis;
+- [x] comportamento em concorrência quando houver risco de duplicidade.
 
 ---
 
@@ -628,15 +640,15 @@ HTTP 404 quando recurso inexistente
 
  Obrigatórios:
 
- - [ ] cliente A não consegue acessar favoritos do cliente B;
-- [ ] cliente A não consegue editar avaliação do cliente B;
-- [ ] `customerId` enviado no payload não permite impersonação;
-- [ ] usuário não autenticado não cria avaliação;
-- [ ] usuário não autenticado não altera favoritos;
-- [ ] tentativa de manipulação de `reviewId` é rejeitada;
-- [ ] tentativa de manipulação de `customerId` é rejeitada;
-- [ ] dados sensíveis não aparecem na resposta;
-- [ ] logs não expõem credenciais ou segredos.
+ - [x] cliente A não consegue acessar favoritos do cliente B;
+- [x] cliente A não consegue editar avaliação do cliente B;
+- [x] `customerId` enviado no payload não permite impersonação;
+- [x] usuário não autenticado não cria avaliação;
+- [x] usuário não autenticado não altera favoritos;
+- [x] tentativa de manipulação de `reviewId` é rejeitada;
+- [x] tentativa de manipulação de `customerId` é rejeitada;
+- [x] dados sensíveis não aparecem na resposta pública;
+- [x] nenhuma credencial/segredo é registrada pelos novos fluxos.
 
 ---
 
@@ -661,35 +673,35 @@ duas avaliações simultâneas do mesmo cliente/produto
 
  ### Avaliações
 
- - [ ] cliente consegue avaliar conforme regra aprovada;
-- [ ] avaliação possui autor corretamente associado;
-- [ ] somente avaliação válida é aceita;
-- [ ] regras de elegibilidade são respeitadas;
-- [ ] avaliações inválidas não são publicadas;
-- [ ] regras de publicação são determinísticas;
-- [ ] cliente não consegue alterar avaliação de outro cliente;
-- [ ] avaliações públicas respeitam o estado de publicação;
-- [ ] duplicidade é tratada conforme requisito.
+ - [x] cliente consegue avaliar conforme regra aprovada;
+- [x] avaliação possui autor corretamente associado;
+- [x] somente avaliação válida é aceita;
+- [x] regras de elegibilidade são respeitadas;
+- [x] avaliações inválidas não são publicadas;
+- [x] regras de publicação são determinísticas;
+- [x] cliente não consegue alterar avaliação de outro cliente;
+- [x] avaliações públicas respeitam o estado de publicação;
+- [x] duplicidade é tratada conforme requisito.
 
  ### Favoritos
 
- - [ ] cliente consegue adicionar produto aos favoritos;
-- [ ] cliente consegue remover favorito;
-- [ ] cliente consegue consultar seus favoritos;
-- [ ] cliente não consegue acessar favoritos de outro cliente;
-- [ ] duplicidade é impedida;
-- [ ] produto inválido é rejeitado.
+ - [x] cliente consegue adicionar produto aos favoritos;
+- [x] cliente consegue remover favorito;
+- [x] cliente consegue consultar seus favoritos;
+- [x] cliente não consegue acessar favoritos de outro cliente;
+- [x] duplicidade é impedida;
+- [x] produto inválido é rejeitado.
 
  ### Qualidade
 
- - [ ] testes unitários passam;
-- [ ] testes de integração passam;
-- [ ] testes de API passam;
-- [ ] testes de autorização passam;
-- [ ] build passa;
-- [ ] lint passa;
-- [ ] documentação necessária está atualizada;
-- [ ] rastreabilidade está atualizada.
+ - [x] testes unitários passam;
+- [x] testes de integração passam;
+- [x] testes de API passam;
+- [x] testes de autorização passam;
+- [x] build passa;
+- [x] lint passa, com aviso preexistente documentado;
+- [x] documentação necessária está atualizada;
+- [x] rastreabilidade está atualizada.
 
 ---
 
@@ -697,11 +709,11 @@ duas avaliações simultâneas do mesmo cliente/produto
 
  | Requisito | Implementação | Teste | Evidência |
 | --- | --- | --- | --- |
-| RF-029 | Review | testes de Review/API | relatório |
-| RF-030 | Favorite | testes de Favorite/API | relatório |
-| RN-015 | regras de Review | testes de domínio/autorização | relatório |
-| RN-016 | regras de Favorite | testes de domínio/autorização | relatório |
-| UC-009 | fluxos Review/Favorite | testes de integração/E2E aplicáveis | relatório |
+| RF-029 | `src/modules/reviews/**`; `/api/products/{productId}/reviews`, `/api/customer/reviews`, `/api/reviews/{reviewId}` | `tests/unit/review-domain.test.ts`; `tests/integration/review-favorite-flow.test.ts` | `npm run quality`; seção 31 |
+| RF-030 | `src/modules/favorites/**`; `/api/customer/favorites` e `/api/customer/favorites/{productId}` | `tests/integration/review-favorite-flow.test.ts` | `npm run quality`; seção 31 |
+| RN-015 | validação, elegibilidade, estados e ownership em `src/modules/reviews/**` | testes de domínio/API em `review-domain.test.ts` e `review-favorite-flow.test.ts` | `npm run quality`; seção 31 |
+| RN-016 | ownership, unicidade e persistência em `src/modules/favorites/**` | `tests/integration/review-favorite-flow.test.ts` | `npm run quality`; seção 31 |
+| UC-009 | APIs públicas/privadas de Review e Favorite | `tests/integration/review-favorite-flow.test.ts` | 117 testes e build aprovados; seção 31 |
 
 A matriz deve ser atualizada com referências reais aos arquivos, testes, endpoints ou commits produzidos.
 
@@ -925,127 +937,96 @@ TASK relacionada:
 
  ## Antes de iniciar
 
- - [ ] TASK-016 = DONE
-- [ ] TASK-017 = READY
-- [ ] requisitos revisados
-- [ ] regras de negócio revisadas
-- [ ] arquitetura existente revisada
-- [ ] padrões de módulos anteriores revisados
-- [ ] dependências confirmadas
-- [ ] Definition of Ready satisfeita
-- [ ] bloqueios registrados
+- [x] TASK-016 = DONE
+- [x] TASK-017 passou por READY antes de IN_PROGRESS
+- [x] requisitos revisados
+- [x] regras de negócio revisadas
+- [x] arquitetura existente revisada
+- [x] padrões de módulos anteriores revisados
+- [x] dependências confirmadas
+- [x] Definition of Ready satisfeita
+- [x] bloqueios pendentes: nenhum
 
  ## Durante implementação
 
- - [ ] Review implementado
-- [ ] Favorite implementado
-- [ ] autorização aplicada
-- [ ] ownership aplicado
-- [ ] validações implementadas
-- [ ] constraints implementadas
-- [ ] testes unitários criados
-- [ ] testes de integração criados
-- [ ] testes de API criados
-- [ ] testes de segurança criados
-- [ ] Scope Guard verificado
-- [ ] nenhuma funcionalidade fora do escopo criada
+- [x] Review implementado
+- [x] Favorite implementado
+- [x] autorização aplicada
+- [x] ownership aplicado
+- [x] validações implementadas
+- [x] constraints implementadas
+- [x] testes unitários criados
+- [x] testes de integração criados
+- [x] testes de API criados
+- [x] testes de segurança criados
+- [x] Scope Guard verificado
+- [x] nenhuma funcionalidade fora do escopo criada
 
  ## Antes de concluir
 
- - [ ] build aprovado
-- [ ] lint aprovado
-- [ ] testes aplicáveis aprovados
-- [ ] documentação atualizada
-- [ ] rastreabilidade atualizada
-- [ ] `ALLOWED_CHANGES` validado
-- [ ] `FORBIDDEN_CHANGES` validado
-- [ ] alterações incidentais justificadas
-- [ ] nenhum Scope Creep
-- [ ] `TASKS.md` atualizado
-- [ ] relatório produzido
-- [ ] estado final registrado
+- [x] build aprovado
+- [x] lint aprovado
+- [x] testes aplicáveis aprovados
+- [x] documentação atualizada
+- [x] rastreabilidade atualizada
+- [x] `ALLOWED_CHANGES` validado
+- [x] `FORBIDDEN_CHANGES` validado
+- [x] alterações incidentais justificadas
+- [x] nenhum Scope Creep
+- [x] `TASKS.md` atualizado
+- [x] relatório produzido
+- [x] estado final registrado
 
 ---
 
- # 31\. Relatório de execução
+ # 31. Relatório de execução
 
- Ao concluir a TASK, produzir:
+ **TASK:** TASK-017
+ **Status:** DONE
+ **Branch:** `feature/TASK-017-reviews-favorites`
+ **Commits:** nenhum; alterações permanecem na branch para revisão.
 
-```
-TASK: TASK-017
-Estado inicial:
-Estado final:
+ ### Primary Changes
 
-Resumo:
-- ...
+ - Criadas entidades, regras, serviços e persistência PostgreSQL para avaliações de produtos e favoritos.
+- Adicionada migration `db/migrations/012_reviews_favorites.sql` com estados, chaves estrangeiras, índices e unicidade por cliente/produto.
+- Criadas APIs de avaliações públicas, avaliações próprias e favoritos privados, autenticadas conforme ownership e sem aceitar identidade fornecida pelo cliente.
+- Avaliação exige pedido `PAYMENT_CONFIRMED` com pagamento `APPROVED` que contenha o produto; começa `PENDING`, limita-se a uma por cliente/produto, nota inteira de 1 a 5 e comentário opcional até 2.000 caracteres.
+- Edição própria de avaliações `PUBLISHED` ou `REJECTED` retorna para `PENDING`; avaliações públicas só aparecem para produtos publicados e elegíveis.
+- Favoritos mantêm isolamento privado, suportam produto arquivado e protegem duplicidade inclusive sob concorrência.
 
-Arquivos alterados:
-- ...
+ ### Incidental Changes
 
-Migrations:
-- ...
+ - `docs/architecture/overview.md`: sincronização mínima da descrição dos módulos `reviews`/`favorites` e das políticas aprovadas; sem mudança do padrão arquitetural.
 
-APIs/contratos:
-- ...
+ ### Testes e Quality Gates
 
-Testes adicionados:
-- ...
+ - Migration aplicada duas vezes via `npm run db:migrate`.
+- `npm test -- tests/unit/review-domain.test.ts tests/integration/review-favorite-flow.test.ts`: 8 testes passaram.
+- `npm run quality`: 37 arquivos, 117 testes passaram; format, lint, typecheck e build aprovados. Lint manteve o aviso preexistente de `app/layout.tsx`.
 
-Testes executados:
-- ...
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (aviso preexistente em `app/layout.tsx`) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS |
+| Acceptance | PASS |
+| Regression | PASS |
 
-Build:
-- PASS/FAIL
+ ### Scope Validation
 
-Lint:
-- PASS/FAIL
+ - Allowed Changes: PASS; resumo em `TASKS.md` alinhado à especificação detalhada.
+- Incidental Changes: PASS; alteração documental mínima e justificada.
+- Forbidden Changes: PASS.
+- Scope Creep: NONE.
 
-Testes:
-- PASS/FAIL
-
-Scope Guard:
-- PASS/FAIL
-
-ALLOWED_CHANGES:
-- PASS/FAIL
-
-FORBIDDEN_CHANGES:
-- PASS/FAIL
-
-Alterações incidentais:
-- Nenhuma
-ou
-- <justificativa>
-
-Rastreabilidade:
-- RF-029 → ...
-- RF-030 → ...
-- RN-015 → ...
-- RN-016 → ...
-- UC-009 → ...
-
-Bloqueios/pêndencias:
-- Nenhum
-ou
-- ...
-
-ADRs:
-- Nenhum
-ou
-- ADR-XXX
-
-Riscos:
-- ...
-
-Observações:
-- ...
-
-Próxima TASK:
-- TASK-018 permanece BLOCKED até TASK-017 estar DONE.
-
-Ação automática:
-- NÃO INICIAR TASK-018.
-```
+ **Definition of Done:** PASS.
+ **Rastreabilidade:** RF-029/RN-015 → `src/modules/reviews/**`, APIs de reviews e testes de domínio/integração; RF-030/RN-016 → `src/modules/favorites/**`, APIs de favorites e testes de integração; UC-009 → fluxos cobertos por `tests/integration/review-favorite-flow.test.ts`.
+ **Bloqueios/pendências:** nenhum dentro do escopo da TASK-017. Denúncias e moderação administrativa permanecem fora desta TASK; a moderação pertence à TASK-019.
+ **Próxima TASK:** TASK-018 permanece `BLOCKED`; não iniciada automaticamente.
 
 ---
 
