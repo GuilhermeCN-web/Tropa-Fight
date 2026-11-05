@@ -20,8 +20,8 @@ let secondCustomerToken: string | undefined
 let adminToken: string | undefined
 let noPurchaseToken: string | undefined
 let routes: {
-  createReview: typeof import('../../app/api/products/[productId]/reviews/route').POST
-  listPublicReviews: typeof import('../../app/api/products/[productId]/reviews/route').GET
+  createReview: typeof import('../../app/api/products/[id]/reviews/route').POST
+  listPublicReviews: typeof import('../../app/api/products/[id]/reviews/route').GET
   listCustomerReviews: typeof import('../../app/api/customer/reviews/route').GET
   updateReview: typeof import('../../app/api/reviews/[reviewId]/route').PATCH
   listFavorites: typeof import('../../app/api/customer/favorites/route').GET
@@ -57,6 +57,9 @@ function request(path: string, method = 'GET', token?: string, body?: unknown) {
 
 const productContext = (productId: string) => ({
   params: Promise.resolve({ productId }),
+})
+const reviewProductContext = (productId: string) => ({
+  params: Promise.resolve({ id: productId }),
 })
 const reviewContext = (reviewId: string) => ({
   params: Promise.resolve({ reviewId }),
@@ -174,10 +177,10 @@ describe.skipIf(!configured)(
       await createOrder(ids.noPurchase, ids.product, ids.variant, false)
       routes = {
         createReview: (
-          await import('../../app/api/products/[productId]/reviews/route')
+          await import('../../app/api/products/[id]/reviews/route')
         ).POST,
         listPublicReviews: (
-          await import('../../app/api/products/[productId]/reviews/route')
+          await import('../../app/api/products/[id]/reviews/route')
         ).GET,
         listCustomerReviews: (
           await import('../../app/api/customer/reviews/route')
@@ -276,7 +279,7 @@ describe.skipIf(!configured)(
         request(`/api/products/${ids.product}/reviews`, 'POST', undefined, {
           rating: 5,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(anonymous!.status).toBe(401)
 
@@ -284,7 +287,7 @@ describe.skipIf(!configured)(
         request(`/api/products/${ids.product}/reviews`, 'POST', adminToken, {
           rating: 5,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(admin!.status).toBe(403)
 
@@ -292,7 +295,7 @@ describe.skipIf(!configured)(
         request(`/api/products/${ids.product}/reviews`, 'POST', customerToken, {
           rating: 6,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(invalidRating!.status).toBe(400)
 
@@ -304,7 +307,7 @@ describe.skipIf(!configured)(
           customerToken,
           { rating: 5 },
         ),
-        productContext(missingProductId),
+        reviewProductContext(missingProductId),
       )
       expect(missingProduct!.status).toBe(404)
 
@@ -313,7 +316,7 @@ describe.skipIf(!configured)(
           rating: 5,
           customerId: ids.secondCustomer,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(impersonation!.status).toBe(400)
 
@@ -326,7 +329,7 @@ describe.skipIf(!configured)(
             rating: 5,
           },
         ),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(ineligible!.status).toBe(403)
     })
@@ -337,7 +340,7 @@ describe.skipIf(!configured)(
           rating: 5,
           comment: '  Ótimo produto  ',
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(created!.status).toBe(201)
       const review = (await created!.json()).review
@@ -354,13 +357,13 @@ describe.skipIf(!configured)(
         request(`/api/products/${ids.product}/reviews`, 'POST', customerToken, {
           rating: 4,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(duplicate!.status).toBe(409)
 
       const hidden = await routes.listPublicReviews(
         request(`/api/products/${ids.product}/reviews`),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect((await hidden!.json()).reviews).toEqual([])
 
@@ -377,7 +380,7 @@ describe.skipIf(!configured)(
       )
       const visible = await routes.listPublicReviews(
         request(`/api/products/${ids.product}/reviews`),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       const publicBody = await visible!.json()
       expect(publicBody.reviews).toHaveLength(1)
@@ -565,7 +568,7 @@ describe.skipIf(!configured)(
             secondCustomerToken,
             { rating: 4 },
           ),
-          productContext(ids.concurrentProduct),
+          reviewProductContext(ids.concurrentProduct),
         )
       const responses = await Promise.all([submit(), submit()])
       expect(responses.map((response) => response!.status).sort()).toEqual([
@@ -585,7 +588,7 @@ describe.skipIf(!configured)(
       )
       const publicResult = await routes.listPublicReviews(
         request(`/api/products/${ids.product}/reviews`),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(publicResult!.status).toBe(404)
 
@@ -593,7 +596,7 @@ describe.skipIf(!configured)(
         request(`/api/products/${ids.product}/reviews`, 'POST', customerToken, {
           rating: 3,
         }),
-        productContext(ids.product),
+        reviewProductContext(ids.product),
       )
       expect(newReview!.status).toBe(409)
 

@@ -4,14 +4,14 @@ import {
   getPublicReviews,
 } from '../../../../../src/modules/reviews/presentation/http'
 
-type Context = { params: Promise<{ productId: string }> }
+type Context = { params: Promise<{ id: string }> }
 
 export async function GET(request: NextRequest, context: Context) {
-  const { productId } = await context.params
+  const { id: productId } = await context.params
   return getPublicReviews(request, productId)
 }
 
 export async function POST(request: NextRequest, context: Context) {
-  const { productId } = await context.params
+  const { id: productId } = await context.params
   return createReview(request, productId)
 }
