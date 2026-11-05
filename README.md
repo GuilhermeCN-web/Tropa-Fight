@@ -53,6 +53,32 @@ O primeiro Administrador Geral deve ser criado uma única vez pelo comando inter
 
 A aplicação usa Next.js, mantendo React para a interface e executando autenticação no servidor. A TASK-003 usa PostgreSQL local para identidade; não configure banco hospedado nem publique a aplicação. `DATABASE_URL` e demais valores sem prefixo público são lidos somente no servidor e não devem receber credenciais reais no repositório. A recuperação de acesso usa uma porta de e-mail sem provedor real nesta etapa.
 
+### Execução local com Docker (opcional)
+
+Alternativa ao PostgreSQL instalado na máquina. Requer Docker com Compose v2. Continua sendo somente ambiente local: não publica nem provisiona infraestrutura hospedada.
+
+```sh
+docker compose up --build
+```
+
+O Compose sobe três serviços:
+
+| Serviço | Função |
+| --- | --- |
+| `db` | PostgreSQL 18 com volume persistente `postgres-data`, exposto no host em `localhost:5433` |
+| `migrate` | Executa `scripts/db-migrate.mjs` uma vez, após o banco ficar saudável |
+| `app` | Aplicação Next.js em `http://localhost:3000`, iniciada após as migrações |
+
+Os valores padrão (`tropa` / `tropa_local` / `tropa_fight`) servem apenas para desenvolvimento local. Para alterá-los, crie um arquivo `.env` na raiz (ignorado pelo Git) com `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST_PORT`, `APP_HOST_PORT`, `LOG_LEVEL` e `PAYMENT_WEBHOOK_SECRET`.
+
+Criar o primeiro administrador dentro do contêiner:
+
+```sh
+docker compose run --rm -it app npm run identity:create-admin
+```
+
+Para usar o banco do Compose com `npm run dev` no host, configure em `.env.local`: `DATABASE_URL=postgresql://tropa:tropa_local@localhost:5433/tropa_fight`. Para parar: `docker compose down` (adicione `-v` para apagar os dados do banco).
+
 ### Comandos
 
 | Comando | Finalidade |
