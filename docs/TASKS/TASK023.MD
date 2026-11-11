@@ -95,7 +95,7 @@ Ambiente: PostgreSQL 18 em Docker (porta 5433, banco dedicado `tropa_fight_t023`
 
 ### ETAPA-005 — Teste manual (MAN-001)
 
-**Executado pelo responsável em 2026-11-11 — APROVADO.** O responsável percorreu o fluxo pela interface até o pagamento simulado e confirmou que funcionou ("funcionou"), determinando a conclusão da TASK. A passagem específica a 360 px não foi relatada separadamente; a validação formal de responsividade e WCAG fica na TASK-021.
+**Executado pelo responsável em 2026-11-11 — APROVADO.** O responsável percorreu o fluxo pela interface até o pagamento simulado e confirmou que funcionou ("funcionou"), determinando a conclusão da TASK. Em seguida, o responsável repetiu o roteiro com a janela em 360 px e confirmou que tudo funcionou. A validação formal de WCAG fica na TASK-021.
 
 Condições de execução observadas:
 

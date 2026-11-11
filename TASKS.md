@@ -533,7 +533,7 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 - Smoke HTTP das páginas e roteiro automatizado via API do fluxo completo até `PAYMENT_CONFIRMED`: PASS. As execuções usaram um `PAYMENT_WEBHOOK_SECRET` efêmero, porque o valor está vazio no `.env.local` local.
 - **Pendente:** o teste manual MAN-001, em desktop e a 360 px, deve ser executado pelo responsável. A TASK só passa a `DONE` depois dele.
 
-**Conclusão (2026-11-11):** transição `IN_REVIEW → DONE`. O responsável executou o MAN-001 pela interface até o pagamento simulado e o aprovou ("funcionou"), determinando a conclusão. A passagem a 360 px não foi relatada separadamente; a validação formal fica na TASK-021. A TASK-021 continua `BLOCKED` (depende também da TASK-020).
+**Conclusão (2026-11-11):** transição `IN_REVIEW → DONE`. O responsável executou o MAN-001 pela interface até o pagamento simulado e o aprovou ("funcionou"), determinando a conclusão. Em seguida, o responsável confirmou a execução a 360 px, também aprovada. A validação formal de WCAG fica na TASK-021. A TASK-021 continua `BLOCKED` (depende também da TASK-020).
 
 Registro completo: `docs/TASKS/TASK023.MD`.
 
