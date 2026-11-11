@@ -64,7 +64,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | READY   |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
-|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | IN_REVIEW |
+|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
 |    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
 
@@ -488,7 +488,7 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 ## TASK-023 — Telas de produto, carrinho, checkout e pedidos
 
-**Status:** IN_REVIEW
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-017`
 **Relacionados (IDs oficiais):** RF-006, RF-007, RF-008, RF-010, RF-011, RF-013, RF-014; RN-002, RN-003, RN-005, RN-018; RNF-020, RNF-021, RNF-023; UC-005 a UC-011; ADR-006, ADR-007, ADR-008, ADR-016, ADR-020
@@ -532,6 +532,8 @@ Ambas conforme o contrato da seção 12 do `README.md`.
   - Formatação, typecheck e build: OK.
 - Smoke HTTP das páginas e roteiro automatizado via API do fluxo completo até `PAYMENT_CONFIRMED`: PASS. As execuções usaram um `PAYMENT_WEBHOOK_SECRET` efêmero, porque o valor está vazio no `.env.local` local.
 - **Pendente:** o teste manual MAN-001, em desktop e a 360 px, deve ser executado pelo responsável. A TASK só passa a `DONE` depois dele.
+
+**Conclusão (2026-11-11):** transição `IN_REVIEW → DONE`. O responsável executou o MAN-001 pela interface até o pagamento simulado e o aprovou ("funcionou"), determinando a conclusão. A passagem a 360 px não foi relatada separadamente; a validação formal fica na TASK-021. A TASK-021 continua `BLOCKED` (depende também da TASK-020).
 
 Registro completo: `docs/TASKS/TASK023.MD`.
 

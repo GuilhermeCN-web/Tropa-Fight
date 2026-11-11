@@ -95,10 +95,12 @@ Ambiente: PostgreSQL 18 em Docker (porta 5433, banco dedicado `tropa_fight_t023`
 
 ### ETAPA-005 — Teste manual (MAN-001)
 
-**PENDENTE — deve ser executado e registrado pelo responsável**, em desktop e a 360 px, conforme o roteiro acima. Para executar localmente:
+**Executado pelo responsável em 2026-11-11 — APROVADO.** O responsável percorreu o fluxo pela interface até o pagamento simulado e confirmou que funcionou ("funcionou"), determinando a conclusão da TASK. A passagem específica a 360 px não foi relatada separadamente; a validação formal de responsividade e WCAG fica na TASK-021.
 
-- defina `PAYMENT_WEBHOOK_SECRET` com um valor aleatório no `.env.local`;
-- rode `npm run payment:simulate` com o mesmo `.env.local` da aplicação.
+Condições de execução observadas:
+
+- o app e o `payment:simulate` rodaram a partir do worktree da branch, contra o banco do Docker Compose (`localhost:5433`), com `DATABASE_URL` informado na linha de comando, porque o PostgreSQL local na porta 5432 estava parado;
+- o `PAYMENT_WEBHOOK_SECRET` precisou ser preenchido no `.env.local` e o servidor reiniciado.
 
 ### ETAPA-006 — Conclusão
 
@@ -116,8 +118,8 @@ Nenhuma alteração INCIDENTAL ou FORBIDDEN. Não houve mudança em APIs, contra
 
 **Itens em aberto:**
 
-- MAN-001 pendente.
+- Usabilidade do script: quando a conexão com o banco é recusada, o script imprime uma mensagem vazia, e o comando exibido na tela de pagamento não inclui `DATABASE_URL`. Não bloqueia o fluxo; melhoria possível em manutenção.
 - O `vitest.config.ts` inclui só `tests/**/*.test.ts`, por isso `tests/unit/catalog-browser.test.tsx`, que já existia, nunca é executado. Os testes desta TASK foram escritos em `.ts` para contornar isso. A correção fica fora do escopo da TASK.
 - O `README.md`, seção 12, ainda diz que o script "depende de confirmação". A frase precisa ser ajustada em manutenção documental, porque o `README.md` não está em `ALLOWED_CHANGES`.
 
-**Estado:** `IN_REVIEW`, aguardando somente o MAN-001.
+**Estado:** `DONE` (2026-11-11). Transições `IN_PROGRESS → IN_REVIEW → DONE`.
