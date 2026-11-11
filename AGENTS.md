@@ -542,6 +542,26 @@ Depois de concluir uma TASK:
 
 A próxima TASK somente poderá ser iniciada mediante autorização explícita.
 
+### Execução contínua autorizada
+
+Quando o responsável autorizar explicitamente a execução contínua, o agente pode iniciar a próxima TASK elegível depois de concluir a atual. Exemplos de autorização: "Execute todas as TASKs READY respeitando dependências" ou uma lista nominal de TASKs.
+
+Nesse caso, o agente deve:
+
+* repetir integralmente o ciclo para cada TASK: seleção, dependências, Definition of Ready, branch, Quality Gates, Definition of Done, atualização do `TASKS.md` e relatório;
+* limitar-se às TASKs abrangidas pela autorização;
+* parar imediatamente diante de `BLOCKER`, `SCOPE ESCALATION`, falha de Quality Gate ou TASK que não atenda à Definition of Ready;
+* manter no máximo uma TASK em `IN_PROGRESS`, salvo autorização explícita para paralelismo.
+
+## Manutenção fora de TASK
+
+Alterações que não pertencem a nenhuma TASK (por exemplo: documentação, ambiente local ou correção após `DONE`) só podem ser feitas com autorização explícita do responsável. Elas devem:
+
+* usar branch `chore/<descricao>` ou `fix/<descricao>`, nunca `main`;
+* não alterar requisitos, regras de negócio, contratos públicos, arquitetura, autenticação, autorização ou segurança; nesses casos, é necessário criar uma TASK;
+* usar commits no formato `<tipo>(<escopo>): <descrição> [MAINT]`;
+* ser registradas na seção "Alterações fora do backlog" do `TASKS.md`.
+
 ## Relatório obrigatório
 
 Ao concluir uma TASK, entregue:

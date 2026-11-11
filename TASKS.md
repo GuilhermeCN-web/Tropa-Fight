@@ -10,6 +10,36 @@ Política incidental padrão:
 
 Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 
+## Mapeamento de referências legadas
+
+Por decisão de 2026-11-11 (DIV-001 e DIV-002), os IDs oficiais são os do `README.md`. As TASK-001 a TASK-017 foram registradas com referências que, em parte, têm outro significado. O texto histórico **não foi alterado**. Para rastreabilidade, use a coluna "IDs oficiais".
+
+| TASK | Referências registradas (legadas) | IDs oficiais |
+| --- | --- | --- |
+| 001 | RNF-001, RNF-002, RNF-013 | RNF-016, RNF-017, RNF-018 (fundação de qualidade e camadas) |
+| 002 | RNF-011, RNF-012, RNF-018 | RNF-011, RNF-012, RNF-013, RNF-019 |
+| 003 | RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001 | RF-001; RN-016, RN-018; RNF-004, RNF-006, RNF-009; UC-001–003 |
+| 004 | RF-023, RF-024, RF-026, RNF-006–008 | RF-019, RF-028; RN-019; RNF-007, RNF-013, RNF-015; UC-021, UC-023 |
+| 005 | RNF-001–018 (com RNF-010 e RNF-014–017 redefinidos) | RNF-001–018 originais e RNF-019–023 |
+| 006 | RF-003–006, UC-002 | RF-003, RF-004, RF-006, RF-020, RF-021; RN-006; UC-004, UC-005, UC-014 |
+| 007 | RF-007, RF-008, RF-021, RN-004, RN-005, UC-003 | RF-007, RF-020; RN-002; UC-005, UC-014 |
+| 008 | RF-009–012, UC-002, UC-003 | RF-003, RF-005; UC-004 |
+| 009 | RF-013, RF-014, RN-006, RN-007, UC-010 | RF-015, RF-016, RF-022; RN-003, RN-004, RN-007; RNF-010; UC-015 |
+| 010 | RF-003–014, RN-004–007, UC-002, UC-003, UC-010 | Somatório das TASK-006 a TASK-009 acima |
+| 011 | RF-015–017, RN-008, RN-009, UC-004 | RF-008; RN-002, RN-003; UC-006, UC-007 |
+| 012 | RF-018, RF-019, RN-010, UC-005 | RF-009, RF-026; RN-013, RN-014; UC-018 |
+| 013 | RF-020–023, RN-011, RN-012, UC-006 | RF-002, RF-010, RF-012; RN-003, RN-004, RN-005, RN-012; RNF-010; UC-008, UC-010 |
+| 014 | RF-024, RF-025, RN-013, RNF-009 | RF-011; RN-008–011; RNF-008; UC-009 |
+| 015 | RF-026–028, RN-014, UC-007, UC-008 | RF-012, RF-013, RF-014, RF-023; RN-008, RN-018; RNF-009; UC-011, UC-016 |
+| 016 | RF-015–028, RN-008–014, UC-004–008 | Somatório das TASK-011 a TASK-015 acima |
+| 017 | RF-029, RF-030, RN-015, RN-016, UC-009 | RF-017, RF-018; RN-015, RN-021; RNF-009; UC-012, UC-013 |
+
+As TASK-018 a TASK-023 já usam IDs oficiais. Nos relatórios detalhados (`docs/TASKS/TASK0nn.MD`) e nos checkpoints, as referências também são legadas e devem ser lidas por esta tabela.
+
+## Convenção de registro de execução
+
+A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/`) são registradas como **ETAPA-001 a ETAPA-006**. O termo "Gate" fica reservado aos Quality Gates do `AGENTS.md` (Build, Lint, Unit, Integration, API, Security, Acceptance, Regression). Os registros anteriores que usam "GATE-001–006" referem-se a etapas e não foram reescritos.
+
 ## Índice de execução
 
 | Ordem | TASK     | Fase     | Prioridade | Dependências               | Estado  |
@@ -31,11 +61,12 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | DONE |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | DONE |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | DONE |
-|    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
+|    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | READY   |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
-|    21 | TASK-021 | PHASE-04 | HIGH       | TASK-020                   | BLOCKED |
-|    22 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
+|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
+|    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
+|    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
 
 ---
 
@@ -367,70 +398,195 @@ Nenhuma TASK pode iniciar automaticamente outra TASK após sua conclusão.
 **Decisões aprovadas e prontidão (2026-11-04):** avaliação de produto somente para cliente autenticado com pedido `PAYMENT_CONFIRMED` contendo o produto; uma por cliente/produto; nota 1–5; comentário opcional até 2.000 caracteres; criação e edição começam `PENDING`; edição da própria avaliação, inclusive `REJECTED`, retorna para `PENDING`; publicação/moderação na TASK-019; avaliações públicas ocultas quando o produto está inativo; favoritos e avaliações próprias são preservados. Avaliação geral do site fora do escopo. Definition of Ready: PASS; branch `feature/TASK-017-reviews-favorites`; transições `BLOCKED → READY → IN_PROGRESS`. Especificação e respostas em `docs/TASKS/TASK017.MD` e `docs/planning/answered-questions.md`.
 **Execução concluída (2026-11-04):** transições `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`. Migration `012_reviews_favorites.sql`; APIs, ownership, elegibilidade de compra paga, moderação pendente e favoritos implementados. `npm run quality` passou: 37 arquivos/117 testes, formatação, typecheck e build; lint com aviso preexistente em `app/layout.tsx`. Migrations aplicadas duas vezes. Relatório em `docs/TASKS/TASK017.MD`. TASK-018 permanece BLOCKED e não foi iniciada.
 
-## TASK-018 — Administração de catálogo, estoque e pedidos
+## TASK-018 — Administração de catálogo, estoque, pedidos e clientes
 
-**Status:** BLOCKED
+**Status:** READY
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-017`
-**Relacionados:** RF-031, RF-032, RF-033, RF-034, UC-010–UC-013
-**Objetivo:** Consolidar operações administrativas sobre produtos, estoque, pedidos e clientes.
-**Artefatos esperados:** painel administrativo, filtros, operações autorizadas e visão operacional.
-**ALLOWED_CHANGES:** módulos admin/catalog/inventory/orders/customers; testes; `TASKS.md`.
-**FORBIDDEN_CHANGES:** permissões não aprovadas, alteração unilateral de RBAC, funcionalidades de ERP.
-**Critérios de aceitação/Testes:** cada função administrativa respeita permissões; operações críticas são auditadas; clientes não acessam recursos administrativos.
-**DoD específico:** testes RBAC e fluxos administrativos passam.
+**Relacionados (IDs oficiais):** RF-023, RF-024, RF-031, RF-032, RF-033, RF-034; RN-016, RN-018, RN-019; RNF-006, RNF-009; UC-014, UC-015, UC-016, UC-017; ADR-011, ADR-020
+**Escopo revisado (2026-11-11, decisões R2 e R3):** prevalece sobre `docs/TASKS/TASK018.MD` onde houver conflito. As APIs administrativas de catálogo, estoque e pedidos já existem (TASK-006/007/009/015). Esta TASK só completa o que falta e valida o restante.
+**Objetivo:**
+1. Adicionar filtros por estado e período a `GET /api/admin/orders`.
+2. Criar a consulta administrativa de clientes (`GET /api/admin/customers` e `GET /api/admin/customers/{customerId}`), conforme o contrato da seção 12 do `README.md`.
+3. Comprovar por testes que as APIs existentes de catálogo e estoque atendem RF-031/RF-032, com RBAC.
 
-## TASK-019 — Cupons, avaliações e usuários administrativos
+**Artefatos esperados:** filtros de pedidos; módulo de consulta de clientes somente leitura; testes de API e RBAC.
+**ALLOWED_CHANGES:** `src/modules/orders/**` (consulta e filtros); `src/modules/customers/**` (novo módulo de consulta, somente leitura); `app/api/admin/orders/route.ts`; `app/api/admin/customers/**`; `tests/unit/**` e `tests/integration/**` de pedidos, clientes e RBAC administrativo; `docs/TASKS/TASK018.MD`; `TASKS.md`.
+**FORBIDDEN_CHANGES:** novos papéis ou permissões; transições de estado de pedido; expor CPF, telefone, endereço ou senha de clientes; alterações em catálogo e estoque além de testes; migrations; interface administrativa; funcionalidades de ERP ou relatórios.
+**Critérios de aceitação:**
+- Filtros `status`, `from` (inclusivo) e `to` (exclusivo) funcionam isolados e combinados. Valores inválidos retornam 400.
+- A listagem de clientes retorna somente `id`, `email`, `status`, `createdAt` e `ordersCount`, com paginação e filtros de e-mail parcial (sem diferenciar caixa) e de `status`.
+- O detalhe do cliente inclui o resumo de pedidos (`id`, `status`, `totalCents`, `createdAt`) e retorna 404 para cliente inexistente ou para conta administrativa.
+- `CUSTOMER` e `CATALOG_MANAGER` recebem 403; sem sessão, 401.
+- As suítes de catálogo e estoque passam e cobrem: `GENERAL_ADMIN` e `CATALOG_MANAGER` permitidos; `CUSTOMER` com 403.
+- Nenhuma consulta altera estado.
+
+**Testes necessários:** integração/API de filtros e clientes; RBAC; regressão completa (`npm run quality` com `.env.local`).
+**DoD específico:** contrato da seção 12 do README atendido; gates aprovados.
+**Prontidão (2026-11-11): PASS.** Dependência TASK-017 `DONE`; requisitos oficiais definidos (DIV-001); perfis decididos (DIV-010); contrato e Scope Guard definidos. Transição `BLOCKED → READY`. A TASK não foi iniciada.
+
+## TASK-019 — Moderação de avaliações e usuários administrativos
 
 **Status:** BLOCKED
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-018`
-**Relacionados:** RF-035, RF-036, RF-037, RF-038, RN-017, UC-014
-**Objetivo:** Completar administração de promoções, avaliações e usuários administrativos.
-**Artefatos esperados:** gestão de cupons, moderação de avaliações e gestão de administradores/roles.
-**ALLOWED_CHANGES:** módulos admin/promotions/reviews/users; testes; `TASKS.md`.
-**FORBIDDEN_CHANGES:** criação de novos papéis sem decisão; bypass de autorização; exclusão de histórico de auditoria.
-**Critérios de aceitação/Testes:** apenas usuários autorizados administram usuários; avaliações moderadas deixam rastros; operações críticas são auditadas.
-**DoD específico:** RBAC, auditoria e testes de autorização completos.
+**Relacionados (IDs oficiais):** RF-025, RF-026, RF-027, RF-035, RF-036, RF-037, RF-038; RN-015, RN-016, RN-019, RN-022, RN-023; RNF-006, RNF-007; UC-018, UC-019, UC-020; ADR-011, ADR-012, ADR-020
+**Escopo revisado (2026-11-11, decisão R2):** prevalece sobre `docs/TASKS/TASK019.MD`. Cupons e promoções já são administráveis (TASK-012); RF-035/036 são apenas validados por testes.
+**Objetivo:**
+1. Moderação de avaliações: `GET /api/admin/reviews` e `PATCH /api/admin/reviews/{reviewId}`.
+2. Gestão de contas administrativas: `GET`, `POST` e `PATCH /api/admin/users`.
 
-## TASK-020 — Notificações, auditoria e observabilidade
+Ambas conforme o contrato da seção 12 do `README.md`.
+**Artefatos esperados:** casos de uso de moderação e de gestão de usuários administrativos; auditoria dessas operações; testes.
+**ALLOWED_CHANGES:** `src/modules/reviews/**`; `src/modules/identity/**` (casos de uso de contas administrativas); `src/modules/audit/**` (somente novos tipos de evento); `app/api/admin/reviews/**`; `app/api/admin/users/**`; migration `013_*` **somente** para garantir RN-023 (um papel por usuário) por restrição de banco, se necessário; testes de reviews, identidade e RBAC; `docs/TASKS/TASK019.MD`; `TASKS.md`.
+**FORBIDDEN_CHANGES:**
+- criar papéis ou permissões;
+- alterar política de senha, sessão ou recuperação;
+- excluir fisicamente usuários, avaliações ou auditoria;
+- permitir ao administrador editar o conteúdo de avaliações;
+- motivo de rejeição, notificação ao autor ou denúncias (não definidos);
+- gerir contas `CUSTOMER` por `/admin/users`;
+- interface administrativa;
+- alterar regras de cupons e promoções.
+
+**Critérios de aceitação:**
+- Moderação só a partir de `PENDING`, para `PUBLISHED` ou `REJECTED`; outras transições retornam 409. `PUBLISHED` passa a aparecer na consulta pública conforme as regras da TASK-017. Cada moderação é auditada com ator e resultado.
+- Criação de conta administrativa: e-mail único, política de senha do ADR-012, `role` ∈ {`GENERAL_ADMIN`, `CATALOG_MANAGER`}.
+- Cada usuário possui exatamente um papel (RN-023).
+- Desativar uma conta revoga suas sessões.
+- Desativar ou rebaixar o último `GENERAL_ADMIN` ativo retorna 409 (RN-022).
+- `CATALOG_MANAGER` e `CUSTOMER` recebem 403 em todas as rotas desta TASK (sem escalonamento de privilégio).
+- As suítes de cupons e promoções continuam passando.
+
+**Testes necessários:** domínio, integração e API de moderação e de contas administrativas; segurança e RBAC; regressão completa.
+**DoD específico:** RBAC e auditoria das novas operações testados; gates aprovados.
+
+## TASK-020 — Notificações de pedido, health check e consolidação de auditoria
 
 **Status:** BLOCKED
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-019`
-**Relacionados:** RF-026, RF-038, RNF-006, RNF-011, RNF-012, UC-015
-**Objetivo:** Integrar notificações necessárias, consolidar auditoria e preparar observabilidade operacional.
-**Artefatos esperados:** eventos/notificações, logs estruturados, métricas, health checks e auditoria.
-**ALLOWED_CHANGES:** módulos notifications/audit/observability; configuração operacional; testes; `TASKS.md`.
-**FORBIDDEN_CHANGES:** registrar segredos, criar canais não aprovados, alterar regras comerciais.
-**Critérios de aceitação/Testes:** eventos relevantes geram notificações previstas; falhas relevantes são observáveis; dados sensíveis não aparecem indevidamente nos logs.
-**DoD específico:** health checks, logs e métricas essenciais validados.
+**Relacionados (IDs oficiais):** RF-019, RF-028; RN-019; RNF-007, RNF-013, RNF-014; UC-021, UC-023; ADR-014
+**Escopo revisado (2026-11-11, decisão R7):** prevalece sobre `docs/TASKS/TASK020.MD`.
+**Objetivo:**
+1. Acrescentar ao serviço de notificações (adaptador mock) os tipos `ORDER_CREATED` e `PAYMENT_APPROVED`, disparados **após** o commit da criação do pedido e da aprovação do pagamento.
+2. Criar `GET /api/health`.
+3. Revisar se as operações das TASK-018/019 estão auditadas e se os logs não contêm dados sensíveis.
+
+**Artefatos esperados:** novos tipos de notificação e seus pontos de disparo; endpoint de health; testes.
+**ALLOWED_CHANGES:** `src/modules/notifications/**`; pontos de disparo em `src/modules/checkout/presentation/**` e `src/modules/payments/**`, limitados à chamada pós-commit; `app/api/health/route.ts`; `src/infrastructure/**` (verificação de conectividade do banco); testes; `docs/architecture/infrastructure-baseline.md`; `TASKS.md`.
+**FORBIDDEN_CHANGES:** provedor real ou novos canais; registrar dados pessoais ou segredos em notificações ou logs; alterar regras ou estados de pedido e pagamento; filas, jobs ou métricas externas; expor detalhes internos no health.
+**Critérios de aceitação:**
+- Cada evento gera no máximo uma notificação (chave de deduplicação).
+- Uma falha do adaptador de notificação não reverte nem altera pedido ou pagamento.
+- `/api/health` retorna 200 com banco disponível e 503 com banco indisponível, sem detalhes internos.
+- Os testes de privacidade de logs passam.
+- As operações das TASK-018/019 aparecem na auditoria.
+
+**Testes necessários:** unitários de notificação; integração de disparo pós-commit; API de health; regressão completa.
+**DoD específico:** health, notificações de pedido e auditoria validados; gates aprovados.
+
+## TASK-023 — Telas de produto, carrinho, checkout e pedidos
+
+**Status:** BLOCKED
+**Phase/Priority:** PHASE-04 / HIGH
+**Dependências:** `DEPENDS_ON: TASK-017`
+**Relacionados (IDs oficiais):** RF-006, RF-007, RF-008, RF-010, RF-011, RF-013, RF-014; RN-002, RN-003, RN-005, RN-018; RNF-020, RNF-021, RNF-023; UC-005 a UC-011; ADR-006, ADR-007, ADR-008, ADR-016, ADR-020
+**Origem:** decisão do responsável em 2026-11-11 (substitui a recomendação R8): a V1 terá telas de carrinho, checkout e pedidos. A página de produto é incluída porque é o único ponto de entrada para adicionar itens ao carrinho pela interface.
+**Objetivo:** criar as páginas `/products/[id]`, `/cart`, `/checkout`, `/orders` e `/orders/[id]`, consumindo **somente** as APIs existentes, e ligar o catálogo (`/catalog`) à página de produto.
+**Artefatos esperados:**
+- páginas e componentes React;
+- navegação no layout;
+- script local `npm run payment:simulate -- <paymentId> <evento>`, que assina o evento com `PAYMENT_WEBHOOK_SECRET` e o envia a `POST /api/payments/webhook`, para demonstrar a aprovação;
+- testes.
+
+**ALLOWED_CHANGES:** `app/products/**`; `app/cart/**`; `app/checkout/**`; `app/orders/**`; `app/layout.tsx` e estilos globais (navegação); componentes `.tsx` em `src/modules/{catalog,cart,checkout,orders,payments}/presentation/`; link do card em `src/modules/catalog/presentation/catalog-browser.tsx`; `scripts/simulate-payment-webhook.*` e a entrada correspondente em `package.json`; `tests/unit/**` de componentes; `docs/TASKS/TASK023.MD`; `TASKS.md`.
+**FORBIDDEN_CHANGES:**
+- alterar APIs, contratos, regras comerciais ou migrations;
+- usar no navegador totais calculados no cliente como fonte de verdade;
+- criar endpoint de simulação de pagamento ou qualquer outro endpoint;
+- solicitar ou armazenar dados de cartão;
+- interface administrativa, imagens de produto ou edição de perfil;
+- novas dependências de UI sem justificativa registrada.
+
+**Critérios de aceitação:**
+- Fluxo completo pela interface: produto → variante → carrinho → cupom → checkout (endereço existente ou novo) → cotação → confirmação de valores alterados → pedido → escolha do meio de pagamento → aprovação via `payment:simulate` → pedido exibido como `PAYMENT_CONFIRMED` no histórico.
+- Erros da API são exibidos de forma compreensível: estoque insuficiente, cupom inválido, cotação divergente e expiração. Uma resposta 401 leva ao login.
+- A `Idempotency-Key` é gerada por tentativa de criação de pedido e reutilizada em reenvio.
+- Os valores exibidos são sempre os retornados pelo servidor.
+- As páginas são utilizáveis de 360 px até desktop, com rótulos, foco visível e navegação por teclado. A validação formal de WCAG fica na TASK-021.
+- O script de simulação só funciona com o segredo local e não altera o contrato do webhook.
+
+**Testes necessários:** unitários de componentes e funções de apresentação (padrão de `catalog-browser.test.tsx`); smoke HTTP das páginas; roteiro manual curto do fluxo completo; regressão completa.
+**DoD específico:** fluxo completo demonstrável localmente; gates aprovados.
+**Pendência de prontidão:** confirmar o script local `payment:simulate` como mecanismo de demonstração da aprovação de pagamento. Após a confirmação, a TASK pode passar a `READY`. Ela não depende tecnicamente das TASK-018 a TASK-020 e pode ser executada em paralelo, se houver autorização explícita para mais de uma TASK `IN_PROGRESS`.
 
 ## TASK-021 — Segurança, acessibilidade e testes E2E
 
 **Status:** BLOCKED
 **Phase/Priority:** PHASE-04 / HIGH
-**Dependências:** `DEPENDS_ON: TASK-020`
-**Relacionados:** RNF-003, RNF-004, RNF-005, RNF-006, RNF-014, UC-001–UC-015
-**Objetivo:** Executar validação transversal de segurança, acessibilidade, responsividade e fluxos ponta a ponta.
-**Artefatos esperados:** testes E2E, verificações de acessibilidade, validações de autorização e relatório de segurança.
-**ALLOWED_CHANGES:** UI, testes E2E/a11y, configuração de qualidade e correções diretamente necessárias; `TASKS.md`.
-**FORBIDDEN_CHANGES:** alteração de requisitos, mudança arquitetural, novas funcionalidades comerciais.
-**Critérios de aceitação/Testes:** fluxos críticos funcionam em desktop/mobile; controles essenciais são acessíveis; autorização é validada; regressões críticas não permanecem.
-**DoD específico:** resultados dos testes registrados e problemas críticos resolvidos ou formalmente bloqueados.
+**Dependências:** `DEPENDS_ON: TASK-020,TASK-023`
+**Relacionados (IDs oficiais):** RNF-001, RNF-002, RNF-004, RNF-006, RNF-009, RNF-017, RNF-020, RNF-021, RNF-022, RNF-023; RN-016, RN-017, RN-018; UC-001 a UC-021; ADR-015, ADR-020
+**Escopo revisado (2026-11-11):** prevalece sobre `docs/TASKS/TASK021.MD`.
+**Objetivo:**
+1. Testes E2E dos fluxos com interface: cadastro, login, recuperação, perfil, catálogo e os fluxos da TASK-023.
+2. Testes de API dos fluxos administrativos.
+3. Verificação WCAG 2.2 AA e de responsividade (360 px) nas páginas existentes.
+4. Execução nos motores Chromium, Firefox e WebKit (RNF-023).
+5. Registro do ambiente e método de medição de desempenho (RNF-022) e uma medição de referência.
+6. Ampliação do teste arquitetural a `src/modules/**`, com a exceção do ADR-020.
+7. Relatório de segurança: RBAC, ownership, webhook e segredos.
 
-## TASK-022 — Checkpoint PHASE-04 e readiness de lançamento
+**ALLOWED_CHANGES:** `tests/e2e/**`; `tests/architecture/**`; configuração de E2E e acessibilidade; dependências de desenvolvimento justificadas (ferramenta E2E e verificador de acessibilidade); correções de acessibilidade e responsividade diretamente necessárias em `app/**` e nos componentes `.tsx`; **opcional e autorizado (R6):** limitador simples de tentativas de login, somente se houver tempo; `docs/TASKS/TASK021.MD`; `TASKS.md`.
+**FORBIDDEN_CHANGES:** alteração de requisitos; mudança arquitetural; novas funcionalidades comerciais; enfraquecer ou remover testes; desativar a verificação arquitetural para fazê-la passar.
+**Critérios de aceitação:**
+- Fluxos críticos passam em E2E nos três motores, em desktop e a 360 px.
+- Nenhuma violação WCAG 2.2 AA grave ou crítica permanece sem registro.
+- O teste arquitetural cobre `src/modules/**`; violações além da exceção do ADR-020 são corrigidas ou registradas.
+- Ambiente e método do RNF-022 estão registrados, com uma medição.
+- O relatório de segurança não aponta falhas críticas abertas.
+
+**Testes necessários:** E2E, acessibilidade automatizada, arquitetura e regressão completa.
+**DoD específico:** resultados registrados; problemas críticos resolvidos ou formalmente aceitos.
+
+## TASK-022 — Checkpoint PHASE-04 e readiness da V1
 
 **Status:** BLOCKED
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-021`
-**Relacionados:** todos os RF/RN/RNF/UC/ADR aplicáveis
-**Objetivo:** Executar a validação final da V1, incluindo arquitetura, segurança, dados, backup, observabilidade, testes e rastreabilidade.
-**Artefatos esperados:** checklist de release, relatório final de Quality Gates, matriz de riscos e rastreabilidade atualizada.
-**ALLOWED_CHANGES:** testes, configuração de release, documentação operacional e `TASKS.md`.
-**FORBIDDEN_CHANGES:** funcionalidades novas, alterações de escopo, atalhos de segurança, mudança arquitetural não aprovada.
-**Critérios de aceitação/Testes:** todos os Gates aplicáveis passam; backup/restauração é verificável; autenticação/autorização estão validadas; pagamentos/webhooks são consistentes; rastreabilidade está completa.
-**DoD específico:** V1 pronta para decisão de lançamento, com todas as pendências restantes explicitamente registradas e aceitas.
+**Relacionados:** todos os RF, RN, RNF, UC e ADR oficiais da V1
+**Escopo revisado (2026-11-11):** prevalece sobre `docs/TASKS/TASK022.MD`. A "readiness" refere-se à V1 acadêmica executada **localmente**; não há publicação.
+**Objetivo:** validação final da V1. Inclui:
+- Quality Gates completos;
+- verificação de backup e restore com dump do banco local;
+- rastreabilidade (matriz da seção 18 do README sem lacunas);
+- registro formal dos riscos aceitos: rate limiting ausente, TLS N/A no ambiente local, dívida da camada `application` do checkout (ADR-020), itens fora da V1 e retenção de auditoria (PD-014).
+
+**ALLOWED_CHANGES:** testes; documentação operacional; `docs/checkpoints/**`; `README.md` somente para corrigir a rastreabilidade; `TASKS.md`.
+**FORBIDDEN_CHANGES:** funcionalidades novas; alterações de escopo; atalhos de segurança; mudança arquitetural.
+**Critérios de aceitação:** todos os gates passam; restore verificado; autenticação, autorização, pagamentos e webhooks consistentes; rastreabilidade completa; riscos aceitos registrados.
+**DoD específico:** V1 pronta para apresentação, com limitações conhecidas explicitamente registradas.
+
+---
+
+# Alterações fora do backlog
+
+Registro operacional de mudanças no repositório que não pertencem a nenhuma TASK. A partir de 2026-11-11, toda manutenção fora de TASK deve ser registrada aqui (regra no `AGENTS.md`).
+
+| Data | Commit/Branch | Alteração | TASK | Situação |
+| --- | --- | --- | --- | --- |
+| 2026-11-05 | `783b106`, `df4777e` (`chore/docker-local-environment`) | `Dockerfile`, `docker-compose.yml`, `.dockerignore` e seção Docker no README; ambiente somente local | Nenhuma | Aceita como manutenção (decisão de 2026-11-11, DIV-006) |
+| 2026-11-05 | `77a8d93` | Segmento dinâmico `[productId]` → `[id]` em `app/api/products/[id]/reviews`, sem mudar a URL pública; teste de integração ajustado | Marcado `[TASK-017]` após o `DONE` | Aceita como manutenção (decisão de 2026-11-11, DIV-006) |
+| 2026-11-05 a 2026-11-11 | `chore/docs-sincronizacao-documentacao` | Sincronização (2026-11-05) e reconciliação aprovada (2026-11-11) da documentação com o código: README reestruturado, `docs/README.md`, `docs/diagrams/`, registro de divergências, notas e aditivos em ADRs, ADR-020, cláusulas no `AGENTS.md`, escopo revisado das TASK-018 a TASK-022, TASK-023 criada e TASK-018 `READY`. Nenhum código-fonte alterado | Nenhuma | Aprovada; reconciliação aplicada em 2026-11-11 (pacote R1–R18) |
+
+# Reconciliação documental (2026-11-11)
+
+O responsável aprovou o pacote de recomendações R1–R18 em 2026-11-11, **exceto a R8**: a V1 terá telas de carrinho, checkout e pedidos (TASK-023). As decisões aplicadas e o estado de cada divergência estão em `docs/planning/divergencias-documentacao.md`. Efeitos no backlog:
+
+- IDs oficiais definidos; mapeamento legado acima (DIV-001, DIV-002).
+- TASK-018 a TASK-022 com escopo revisado; TASK-023 criada; TASK-021 passa a depender também da TASK-023.
+- TASK-018 marcada `READY` (DoR atendida). As demais permanecem `BLOCKED` por dependência. A TASK-023 também aguarda a confirmação do script `payment:simulate`.
+- Nenhuma TASK foi iniciada. A execução das TASK-018 a TASK-023 depende de autorização explícita, que pode ser contínua conforme o `AGENTS.md`.
 
 ---
 
@@ -522,14 +678,16 @@ A fase deve entregar:
 Saída esperada:
 
 ```text
-TASK-017 → TASK-018 → TASK-019 → TASK-020 → TASK-021 → TASK-022
+TASK-017 → TASK-018 → TASK-019 → TASK-020 ─┐
+TASK-017 → TASK-023 ──────────────────────────┴→ TASK-021 → TASK-022
 ```
 
 A fase deve entregar:
 
 * avaliações;
 * favoritos;
-* administração;
+* administração por API;
+* telas de produto, carrinho, checkout e pedidos;
 * usuários administrativos;
 * notificações;
 * auditoria;
@@ -569,7 +727,9 @@ flowchart TD
     T017 --> T018[TASK-018]
     T018 --> T019[TASK-019]
     T019 --> T020[TASK-020]
+    T017 --> T023[TASK-023]
     T020 --> T021[TASK-021]
+    T023 --> T021
     T021 --> T022[TASK-022]
 ```
 
@@ -598,6 +758,7 @@ TASK-017
 TASK-018
 TASK-019
 TASK-020
+TASK-023
 TASK-021
 TASK-022
 ```

@@ -34,6 +34,8 @@ A abordagem reduz o custo operacional inicial, permite consistência transaciona
 
 Os módulos não devem depender diretamente de detalhes de infraestrutura. Regras de negócio permanecem no domínio ou na aplicação, conforme sua responsabilidade. A linguagem, o framework e a infraestrutura de hospedagem continuam pendentes de definição.
 
+> **Nota de referência (sincronização documental, 2026-11-05):** a linguagem (TypeScript) e o framework (Next.js) foram decididos no ADR-019. A hospedagem continua pendente. A composição de adaptadores pela camada de apresentação está regulada pelo ADR-020. Esta nota não altera a decisão deste ADR.
+
 ## RF/RN/RNF/UC relacionados
 
 RF de catálogo, comércio, estoque, pedidos e administração; RNF de manutenibilidade, segurança e integridade; UC de compra e gestão administrativa.
@@ -126,6 +128,8 @@ O esquema deverá evoluir por migrações versionadas. Operações críticas de 
 **Aditivo aprovado em 2026-10-22 para TASK-003:** PostgreSQL local está aprovado para persistir identidade, sessões e tokens de recuperação durante esta TASK. Esta decisão não autoriza banco hospedado, ambiente compartilhado ou produção.
 
 Backup, restore e metas de recuperação deverão ser configurados antes de armazenar dados persistentes, conforme `docs/architecture/infrastructure-baseline.md`.
+
+**Aditivo aprovado em 2026-11-11 (DIV-004):** PostgreSQL local é o banco transacional de **todos os módulos** do Tropa Fight (identidade, auditoria, catálogo, estoque, carrinho, promoções, cupons, checkout, pedidos, pagamentos, avaliações e favoritos), com esquema versionado em `db/migrations/`. Isso formaliza o uso adotado desde a TASK-006. Banco hospedado, ambientes compartilhados e produção continuam fora de escopo e `PENDING_APPROVAL`.
 
 ## RF/RN/RNF/UC relacionados
 
@@ -465,6 +469,8 @@ Adotar controle de acesso baseado em papéis e permissões, validado no servidor
 
 Para TASK-003, o Administrador Geral possui todas as permissões de identidade/autorização implementadas nesta TASK; Customer pode consultar somente o próprio perfil; Gestor de Catálogo não recebe permissões de identidade. Em 2026-10-22, o responsável aprovou explicitamente que a edição de perfil fique fora da TASK-003. Permissões de catálogo foram definidas e concedidas pela TASK-006. Em 2026-10-26, o responsável aprovou a permissão comercial `promotions.manage`, concedida exclusivamente ao papel `GENERAL_ADMIN` pela TASK-012. Nenhuma outra permissão comercial é antecipada por esta decisão.
 
+**Aditivo aprovado em 2026-11-11 (DIV-010):** a V1 possui somente os papéis `CUSTOMER`, `GENERAL_ADMIN` e `CATALOG_MANAGER`; Gestor de estoque, Atendimento e Financeiro não serão criados. Cada usuário possui exatamente um papel (RN-023). O último `GENERAL_ADMIN` ativo não pode ser desativado nem perder o papel (RN-022). A consulta de clientes, a moderação de avaliações e a gestão de usuários administrativos são exclusivas de `GENERAL_ADMIN`, usando as permissões de identidade existentes ou a verificação do papel. Nenhum papel ou permissão novo é criado.
+
 ## Justificativa
 
 A autorização centralizada reduz acessos indevidos e permite ampliar os perfis administrativos sem replicar regras em cada componente da interface.
@@ -528,6 +534,8 @@ RF de cadastro, login, recuperação de acesso, perfil, pedidos e administraçã
 ## Status
 
 PROPOSED
+
+**Adiado para depois da V1 (2026-11-11):** a V1 não usa fila nem job. As operações rodam dentro da requisição, e a expiração de pedidos é aplicada nas transações de checkout.
 
 ## Contexto
 
@@ -609,7 +617,9 @@ RF de administração, estoque, pedidos e pagamentos; RN de rastreabilidade; RNF
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-11, pelo responsável do projeto. Ferramentas: Vitest (unitário, integração e arquitetura). E2E e acessibilidade serão definidos na TASK-021.
 
 ## Contexto
 
@@ -653,7 +663,9 @@ Todos os requisitos funcionais e regras de negócio; RNF de qualidade, confiabil
 
 ## Status
 
-PROPOSED
+ACCEPTED
+
+**Aprovação:** 2026-11-11, pelo responsável do projeto. A V1 é exclusivamente web responsiva, com critérios em RNF-021 e RNF-023; aplicativo nativo e PWA ficam fora da V1.
 
 ## Contexto
 
@@ -695,6 +707,8 @@ RF de navegação, catálogo, carrinho, checkout e administração; RNF de usabi
 
 PROPOSED
 
+**Adiado para depois da V1 (2026-11-11):** nenhum parâmetro comercial é administrável na V1 além de cupons e promoções.
+
 ## Contexto
 
 O Tropa Fight poderá possuir parâmetros comerciais que mudam ao longo do tempo, como limites de cupons, opções de entrega, regras promocionais e configurações operacionais.
@@ -734,6 +748,8 @@ RF de administração, cupons, catálogo, estoque e logística; RN de validaçã
 ## Status
 
 PROPOSED
+
+**Adiado para depois da V1 (2026-11-11):** as APIs não são versionadas na V1; mudanças de contrato seguem o processo de TASK e Scope Guard.
 
 ## Contexto
 
@@ -779,6 +795,12 @@ ACCEPTED
 
 TASK-003 exige executar autenticação, autorização e persistência no servidor. A base atual usa React com Vite exclusivamente no navegador. Em 2026-10-22, o responsável aprovou migrar a aplicação para Next.js e incluir backend e PostgreSQL local nesta TASK.
 
+## Problema
+
+> Seção acrescentada na sincronização documental de 2026-11-05 para completar o formato do ADR. O texto apenas reformula o contexto acima, sem alterar a decisão.
+
+A base React/Vite executada só no navegador não consegue autenticar, autorizar nem persistir dados com segurança no servidor, como a TASK-003 exige.
+
 ## Decisão
 
 Adotar Next.js com App Router como framework React da aplicação, substituindo Vite e preservando a organização modular em camadas aprovada. Route Handlers/API e código de servidor executarão os casos de uso; domínio e aplicação permanecerão independentes do framework. A autenticação será própria, sem biblioteca ou provedor externo de identidade.
@@ -803,6 +825,52 @@ A migração altera scripts e configuração de desenvolvimento/build e exige ad
 
 ## RF/RN/RNF/UC relacionados
 
-RF-001, RN-001, RN-002, RNF-004, RNF-005, UC-001; TASK-003.
+IDs oficiais: RF-001; RN-016, RN-018; RNF-004, RNF-006, RNF-009; UC-001–003; TASK-003. A redação original citava RF-001, RN-001, RN-002, RNF-004, RNF-005 e UC-001, que são referências legadas (ver "Mapeamento de referências legadas" no `TASKS.md`).
 
-\n
+---
+
+# ADR-020 — Apresentação como ponto de composição dos adaptadores
+
+## Status
+
+ACCEPTED
+
+**Aprovação:** 2026-11-11, pelo responsável do projeto (DIV-005).
+
+## Contexto
+
+O ADR-002 define que a apresentação chama apenas casos de uso. No código, `src/modules/*/presentation/` instancia repositórios e adaptadores de `infrastructure` (por exemplo, `new PostgresPromotionRepository()`) e os entrega aos serviços de aplicação. O módulo `checkout` não possui camada `application`. O teste `tests/architecture/layer-dependencies.test.ts` verifica apenas `src/<camada>/` e não cobre `src/modules/**`.
+
+## Problema
+
+Formalizar onde ocorre a composição de dependências sem refatorar todos os módulos às vésperas da entrega, e restabelecer uma verificação automatizada das camadas.
+
+## Alternativas consideradas
+
+1. Aceitar a apresentação como ponto de composição, com restrições, e ampliar o teste.
+2. Criar um módulo de composição dedicado e refatorar todos os handlers.
+3. Manter a regra original e refatorar até que o teste ampliado passe.
+
+## Decisão
+
+A camada `presentation` de cada módulo pode **importar e instanciar** adaptadores de `infrastructure` para entregá-los aos casos de uso. Ela não pode conter regras de negócio, SQL nem chamadas diretas a métodos de repositório que contenham regra comercial, salvo a dívida técnica registrada abaixo. As demais restrições do ADR-002 continuam valendo:
+
+- `domain` não depende de nenhuma outra camada;
+- `application` não depende de `presentation` nem de `infrastructure`;
+- `infrastructure` não depende de `presentation`.
+
+O teste arquitetural deve passar a cobrir `src/modules/**`, permitindo somente a exceção `presentation → infrastructure`. A ampliação é feita na TASK-021.
+
+**Dívida técnica aceita:** os handlers do módulo `checkout` chamam diretamente os repositórios PostgreSQL de checkout e endereços, que concentram a orquestração transacional. A criação da camada `application` do checkout fica para depois da V1 e é registrada no checkpoint TASK-022.
+
+## Justificativa
+
+Formaliza a prática existente com custo mínimo e devolve uma verificação automatizada às camadas, preservando a independência de domínio e aplicação, que é o objetivo central do ADR-002.
+
+## Consequências
+
+Novos módulos seguem o mesmo padrão. Uma regra de negócio nova não pode ser escrita em `presentation` nem em repositório. Se o teste ampliado revelar outras violações, elas devem ser registradas e tratadas na TASK-021.
+
+## RF/RN/RNF/UC relacionados
+
+RNF-016, RNF-017, RNF-018; ADR-001, ADR-002; TASK-021, TASK-022.

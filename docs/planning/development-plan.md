@@ -1,5 +1,11 @@
 # Plano de Desenvolvimento — Tropa Fight
 
+> **Documento histórico (sincronização documental, 2026-11-05).** Este é o plano preliminar anterior à decomposição do backlog. Como o próprio documento previa (seção 6), o backlog definitivo foi decomposto no `TASKS.md`, cujas fases PHASE-01 a PHASE-04 são as vigentes. O roadmap das seções 5 e 6 abaixo, com PHASE-01 a PHASE-10 e TASK macro 001–012, **não corresponde** às fases e TASKs atuais, que usam os mesmos IDs com outros significados. O "Estado atual" da seção 14 também está superado.
+>
+> Continuam sendo referência:
+> - as pendências PD-001 a PD-014 da seção 3, que são o esquema de PD usado pelo backlog (esquema oficial por decisão de 2026-11-11; situação atual no `README.md`);
+> - os itens de escopo da seção 2, cuja inclusão ou exclusão da V1 foi decidida em 2026-11-11 (README, seções 2 e 3).
+
 **Versão:** 1.0
 **Status:** PLANEJAMENTO EM DEFINIÇÃO
 **Tipo:** Plano de desenvolvimento de software
