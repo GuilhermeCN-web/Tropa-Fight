@@ -4,6 +4,16 @@ export type OrderStatus = 'PENDING_PAYMENT' | 'PAYMENT_CONFIRMED' | 'EXPIRED'
 
 export type OrderPage = { page: number; pageSize: number }
 
+export type AdminOrderFilters = {
+  status?: OrderStatus
+  /** Inclusive lower bound of `createdAt`. */
+  from?: Date
+  /** Exclusive upper bound of `createdAt`. */
+  to?: Date
+}
+
+export type AdminOrderQuery = { page: OrderPage; filters: AdminOrderFilters }
+
 export type OrderListItem = {
   id: string
   status: OrderStatus
@@ -77,14 +87,73 @@ export class OrderQueryValidationError extends Error {
   }
 }
 
-export function parseOrderPage(params: URLSearchParams): OrderPage {
+const pageKeys = ['page', 'pageSize'] as const
+const adminFilterKeys = ['status', 'from', 'to'] as const
+
+function assertSupportedKeys(
+  params: URLSearchParams,
+  supported: readonly string[],
+) {
   for (const key of params.keys()) {
-    if (key !== 'page' && key !== 'pageSize')
+    if (!supported.includes(key))
       throw new OrderQueryValidationError('Unsupported order query parameter.')
     if (params.getAll(key).length !== 1)
       throw new OrderQueryValidationError('Duplicate order query parameter.')
   }
+}
 
+export function parseOrderPage(params: URLSearchParams): OrderPage {
+  assertSupportedKeys(params, pageKeys)
+  return parsePagination(params)
+}
+
+/**
+ * ISO-8601 date (`YYYY-MM-DD`, interpreted as 00:00 UTC) or date-time with an
+ * explicit offset (`Z` or `±hh:mm`). Calendar-invalid values are rejected.
+ */
+const isoDatePattern =
+  /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2}))?$/
+
+function parseIsoInstant(value: string): Date {
+  const match = isoDatePattern.exec(value)
+  if (!match) throw new OrderQueryValidationError('Invalid order date filter.')
+  const [, year, month, day, hour] = match
+  const parsed = new Date(hour === undefined ? `${value}T00:00:00Z` : value)
+  if (Number.isNaN(parsed.getTime()))
+    throw new OrderQueryValidationError('Invalid order date filter.')
+  const calendar = new Date(
+    Date.UTC(Number(year), Number(month) - 1, Number(day)),
+  )
+  if (
+    calendar.getUTCFullYear() !== Number(year) ||
+    calendar.getUTCMonth() !== Number(month) - 1 ||
+    calendar.getUTCDate() !== Number(day)
+  )
+    throw new OrderQueryValidationError('Invalid order date filter.')
+  return parsed
+}
+
+export function parseAdminOrderQuery(params: URLSearchParams): AdminOrderQuery {
+  assertSupportedKeys(params, [...pageKeys, ...adminFilterKeys])
+  const filters: AdminOrderFilters = {}
+  const status = params.get('status')
+  if (status !== null) {
+    if (!isOrderStatus(status))
+      throw new OrderQueryValidationError('Invalid order status filter.')
+    filters.status = status
+  }
+  const from = params.get('from')
+  if (from !== null) filters.from = parseIsoInstant(from)
+  const to = params.get('to')
+  if (to !== null) filters.to = parseIsoInstant(to)
+  if (filters.from && filters.to && filters.from >= filters.to)
+    throw new OrderQueryValidationError(
+      'Order date filter `from` must be earlier than `to`.',
+    )
+  return { page: parsePagination(params), filters }
+}
+
+function parsePagination(params: URLSearchParams): OrderPage {
   const parseInteger = (key: string, fallback: number, max: number) => {
     const value = params.get(key)
     if (value === null) return fallback

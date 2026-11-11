@@ -1,4 +1,5 @@
 import type {
+  AdminOrderFilters,
   OrderDetail,
   OrderPage,
   OrderPageResult,
@@ -6,7 +7,10 @@ import type {
 
 export interface OrderQueryRepository {
   listForCustomer(customerId: string, page: OrderPage): Promise<OrderPageResult>
-  listForAdmin(page: OrderPage): Promise<OrderPageResult>
+  listForAdmin(
+    page: OrderPage,
+    filters: AdminOrderFilters,
+  ): Promise<OrderPageResult>
   findForCustomer(
     customerId: string,
     orderId: string,
@@ -25,8 +29,8 @@ export class OrderQueryService {
     return this.repository.listForCustomer(customerId, page)
   }
 
-  listForAdmin(page: OrderPage) {
-    return this.repository.listForAdmin(page)
+  listForAdmin(page: OrderPage, filters: AdminOrderFilters = {}) {
+    return this.repository.listForAdmin(page, filters)
   }
 
   findForCustomer(customerId: string, orderId: string) {

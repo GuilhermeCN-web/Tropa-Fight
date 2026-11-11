@@ -2,6 +2,7 @@ import 'server-only'
 import type { Pool } from 'pg'
 import { getDatabasePool } from '../../../infrastructure/database/pool'
 import type {
+  AdminOrderFilters,
   OrderDetail,
   OrderItemView,
   OrderListItem,
@@ -198,8 +199,26 @@ export class PostgresOrderQueryRepository implements OrderQueryRepository {
     return this.list('WHERE o.customer_id=$1', [customerId], page)
   }
 
-  listForAdmin(page: OrderPage): Promise<OrderPageResult> {
-    return this.list('', [], page)
+  listForAdmin(
+    page: OrderPage,
+    filters: AdminOrderFilters,
+  ): Promise<OrderPageResult> {
+    const conditions: string[] = []
+    const values: unknown[] = []
+    if (filters.status) {
+      values.push(filters.status)
+      conditions.push(`o.status=$${values.length}`)
+    }
+    if (filters.from) {
+      values.push(filters.from)
+      conditions.push(`o.created_at>=$${values.length}`)
+    }
+    if (filters.to) {
+      values.push(filters.to)
+      conditions.push(`o.created_at<$${values.length}`)
+    }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+    return this.list(where, values, page)
   }
 
   findForCustomer(
