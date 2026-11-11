@@ -8,6 +8,7 @@
     "build": "npm run typecheck && next build",
     "start": "next start",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
+    "payment:simulate": "node --env-file-if-exists=.env.local scripts/simulate-payment-webhook.mjs",
     "identity:create-admin": "node --conditions=react-server --experimental-strip-types --disable-warning=ExperimentalWarning --env-file-if-exists=.env.local scripts/create-first-admin.ts",
     "lint": "oxlint app src tests scripts vitest.config.ts next.config.ts",
     "test": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run",
