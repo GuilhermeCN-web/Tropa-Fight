@@ -61,7 +61,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    15 | TASK-015 | PHASE-03 | HIGH       | TASK-014                   | DONE |
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | DONE |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | DONE |
-|    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | READY   |
+|    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
 |    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
@@ -400,7 +400,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 
 ## TASK-018 — Administração de catálogo, estoque, pedidos e clientes
 
-**Status:** READY
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-017`
 **Relacionados (IDs oficiais):** RF-023, RF-024, RF-031, RF-032, RF-033, RF-034; RN-016, RN-018, RN-019; RNF-006, RNF-009; UC-014, UC-015, UC-016, UC-017; ADR-011, ADR-020
@@ -424,6 +424,14 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 **Testes necessários:** integração/API de filtros e clientes; RBAC; regressão completa (`npm run quality` com `.env.local`).
 **DoD específico:** contrato da seção 12 do README atendido; gates aprovados.
 **Prontidão (2026-11-11): PASS.** Dependência TASK-017 `DONE`; requisitos oficiais definidos (DIV-001); perfis decididos (DIV-010); contrato e Scope Guard definidos. Transição `BLOCKED → READY`. A TASK não foi iniciada.
+
+**Execução concluída (2026-11-11):** autorizada pelo responsável em paralelo com a TASK-023 ("Realize a TASK-018 e 023 em paralelo"). Transições `READY → IN_PROGRESS → IN_REVIEW → DONE` na branch `feature/TASK-018-admin-pedidos-clientes`.
+- Filtros `status`, `from` (inclusivo) e `to` (exclusivo) em `GET /api/admin/orders`, com 400 para valores inválidos e para `from >= to`.
+- Novo módulo somente leitura `src/modules/customers/` com `GET /api/admin/customers` e `GET /api/admin/customers/{customerId}`, sem CPF, telefone, endereço ou senha.
+- Testes: `tests/unit/order-query.test.ts`, `tests/unit/customer-query.test.ts` e `tests/integration/admin-management-flow.test.ts`, que também cobre o RBAC de catálogo e estoque.
+- `npm run quality`: 39 arquivos/174 testes, formatação, lint (aviso preexistente em `app/layout.tsx`), typecheck e build aprovados.
+- Nota de ambiente: testes executados no PostgreSQL do Docker Compose (porta 5433), com `PAYMENT_WEBHOOK_SECRET` efêmero, porque o do `.env.local` está vazio.
+- Sem alterações incidentais. Registro completo em `docs/TASKS/TASK018.MD`. A TASK-019 permanece `BLOCKED` e não foi iniciada.
 
 ## TASK-019 — Moderação de avaliações e usuários administrativos
 

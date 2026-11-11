@@ -3,7 +3,7 @@
 > **Escopo revisado em 2026-11-11.** O bloco da TASK-018 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
 
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-11)\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependência:** `DEPENDS_ON: TASK-017`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -1586,3 +1586,67 @@ TASK-018 = DONE
 ```
 TASK-019
 ```
+
+---
+
+ # Registro de execução (2026-11-11)
+
+ **TASK:** TASK-018
+ **Status:** DONE
+ **Autorização:** "Realize a TASK-018 e 023 em paralelo" (responsável, 2026-11-11), que autoriza esta TASK e a TASK-023 `IN_PROGRESS` ao mesmo tempo.
+ **Branch:** `feature/TASK-018-admin-pedidos-clientes`
+ **Transições:** `READY → IN_PROGRESS → IN_REVIEW → DONE`.
+
+ ### ETAPA-001 — Recontextualização e prontidão
+
+ - TASK-017 `DONE`; DoR registrada em 2026-11-11 como PASS; escopo revisado do `TASKS.md` adotado como fonte normativa.
+
+ ### ETAPA-002/003 — Planejamento e implementação
+
+ **Primary changes**
+
+ - `src/modules/orders/domain/order-query.ts`: `parseAdminOrderQuery` com filtros `status`, `from` (inclusivo) e `to` (exclusivo). Aceita data ISO-8601 (`YYYY-MM-DD`, lida como 00:00 UTC) ou data-hora com fuso explícito. Rejeita com 400 datas inválidas no calendário, data-hora sem fuso, `from >= to`, estado desconhecido, parâmetro duplicado ou não suportado. A consulta do cliente (`parseOrderPage`) continua aceitando somente paginação.
+ - `src/modules/orders/application/order-query.ts`, `infrastructure/postgres-order-query.ts` e `presentation/order-http.ts`: filtros aplicados em SQL parametrizado em `GET /api/admin/orders`. A autorização `GENERAL_ADMIN` não mudou.
+ - Novo módulo somente leitura `src/modules/customers/` (domain, application, infrastructure, presentation):
+   - lista com `id`, `email`, `status`, `createdAt` e `ordersCount`, paginada (padrão 20, máximo 100) e ordenada por cadastro mais recente;
+   - filtro de e-mail parcial sem diferenciar caixa, com `%`, `_` e `\\` tratados como caracteres literais, e filtro de `status`;
+   - detalhe com o resumo dos pedidos (`id`, `status`, `totalCents`, `createdAt`);
+   - 404 para cliente inexistente, id malformado ou conta administrativa;
+   - somente colunas não sensíveis são lidas: sem hash de senha, CPF, telefone ou endereço.
+ - Rotas `app/api/admin/customers/route.ts` e `app/api/admin/customers/[customerId]/route.ts`, compostas na apresentação conforme o ADR-020.
+
+ **Incidental changes:** nenhuma.
+
+ ### ETAPA-004 — Testes e validação automatizada
+
+ - `tests/unit/order-query.test.ts`: filtros válidos, combinados e inválidos; consulta do cliente sem filtros administrativos.
+ - `tests/unit/customer-query.test.ts`: validação de parâmetros e escape de curingas.
+ - `tests/integration/admin-management-flow.test.ts` (PostgreSQL real):
+   - filtros isolados, combinados, limites inclusivo/exclusivo e dez casos inválidos com 400;
+   - clientes: campos aprovados, ausência de dados sensíveis, filtros, paginação, exclusão de contas administrativas, detalhe e 404;
+   - RBAC: `GENERAL_ADMIN` permitido; `CUSTOMER` e `CATALOG_MANAGER` com 403; sem sessão, 401;
+   - consultas não alteram usuários nem pedidos (comparação de estado antes e depois);
+   - catálogo (produtos, categorias, marcas) e estoque: `GENERAL_ADMIN` e `CATALOG_MANAGER` permitidos, `CUSTOMER` com 403 e sem sessão 401 (RF-031/RF-032).
+ - `npm run quality`: formatação, lint, typecheck, 39 arquivos/174 testes e build aprovados. O lint manteve o aviso preexistente de `app/layout.tsx`.
+ - **Nota de ambiente:** o PostgreSQL local na porta 5432 estava parado, então os testes rodaram no contêiner do Docker Compose (porta 5433, `DATABASE_URL` sobrescrito na linha de comando). O `PAYMENT_WEBHOOK_SECRET` do `.env.local` está vazio, o que faz `checkout-api-flow` falhar com 503. A execução final usou um segredo aleatório efêmero na linha de comando. Nenhum arquivo de ambiente foi alterado.
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (aviso preexistente) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS (handlers das rotas exercitados com sessão real) |
+| Security | PASS (RBAC, sem dados sensíveis, SQL parametrizado, curingas escapados) |
+| Acceptance | PASS |
+| Regression | PASS (174 testes) |
+
+ ### ETAPA-005 — Teste manual
+
+ Não aplicável: a TASK não tem interface. Os critérios são verificados pelos testes de API.
+
+ ### ETAPA-006 — Conclusão
+
+ - Scope Guard: todos os arquivos alterados estão em `ALLOWED_CHANGES`; nenhuma migration, papel, permissão, transição de estado, interface ou alteração de catálogo e estoque.
+ - Item em aberto fora do escopo: a matriz de rastreabilidade do `README.md` ainda diz "a criar" na coluna de testes da TASK-018. O `README.md` não está em `ALLOWED_CHANGES`; atualizar em manutenção documental.
+ - Próxima TASK na cadeia: TASK-019 (depende da TASK-018). Não iniciada.
