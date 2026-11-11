@@ -156,7 +156,9 @@ export function CatalogBrowser({
             <ul className="catalog-product-grid" aria-label="Produtos">
               {result.items.map((product) => (
                 <li key={product.id} className="catalog-product-card">
-                  <h2>{product.name}</h2>
+                  <h2>
+                    <a href={`/products/${product.id}`}>{product.name}</a>
+                  </h2>
                   <p>{product.brand.name}</p>
                   {product.categories.length > 0 ? (
                     <p>
