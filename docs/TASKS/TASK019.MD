@@ -1,5 +1,8 @@
 # TASK-019 — Cupons, avaliações e usuários administrativos
 
+> **Escopo revisado em 2026-11-11.** O bloco da TASK-019 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
+
+
  **Status:** BLOCKED\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependência:** `DEPENDS_ON: TASK-018`\

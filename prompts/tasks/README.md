@@ -27,6 +27,8 @@ Workflows gerados a partir do backlog e especificações. **Gerar prompts não e
 | TASK-021 | Segurança, acessibilidade e testes E2E | 6 | `DEPENDS_ON: TASK-020` | `task-021/` | `task-021/prompt-task-021-etapa-001-recontextualizacao.md` |
 | TASK-022 | Checkpoint PHASE-04 e readiness de lançamento | 5 | `DEPENDS_ON: TASK-021` | `task-022/` | `task-022/prompt-task-022-etapa-001-recontextualizacao.md` |
 
+> **Atualização de 2026-11-11:** as TASK-018 a TASK-022 tiveram o escopo revisado no `TASKS.md`, que prevalece sobre os prompts destas pastas. A TASK-023 (telas de produto, carrinho, checkout e pedidos) foi criada sem pasta de prompts; use `docs/TASKS/TASK023.MD`. Nos registros, as etapas destes prompts passam a se chamar ETAPA-001 a ETAPA-006.
+
 ## Regras globais
 
 - Respeite AGENTS.md, TASKS.md, docs/TASKS/TASKNNN.MD, ADRs, arquitetura, requisitos, dependências e Scope Guard.

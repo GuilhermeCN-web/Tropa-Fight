@@ -8,6 +8,16 @@ Em 2026-10-21, o responsável autorizou formalizar um baseline sem contratar ser
 
 O responsável autorizou migrar a aplicação local de Vite para Next.js e executar o backend de identidade no mesmo processo da aplicação, usando PostgreSQL local. Esta autorização se limita à TASK-003: não inclui banco hospedado, ambiente compartilhado, produção, contratação ou envio real de e-mail. As declarações de baseline abaixo descrevem a conclusão da TASK-002 e são supersedidas somente para o desenvolvimento local desta TASK.
 
+### Estado efetivo do ambiente local (sincronização de 2026-11-05)
+
+Os parágrafos acima registram o histórico das TASK-002 e TASK-003. O estado atual do repositório é:
+
+- uma aplicação Next.js com Route Handlers e PostgreSQL 18 local;
+- persistência de **todos os módulos** (migrations 001–012), conforme o `ALLOWED_CHANGES` das TASK-006 a TASK-017. formalizado no aditivo de 2026-11-11 ao ADR-003;
+- configuração de servidor em `.env.local`: `DATABASE_URL`, `LOG_LEVEL` e `PAYMENT_WEBHOOK_SECRET` (segredo HMAC do mock de pagamento, TASK-014);
+- uma alternativa local opcional com `docker-compose.yml`: serviços `db` (PostgreSQL 18, porta de host 5433, volume `postgres-data`), `migrate` e `app` (porta 3000). Aceita como manutenção em 2026-11-11. Os valores padrão do Compose servem somente para desenvolvimento e podem ser sobrescritos por um `.env` ignorado pelo Git;
+- nenhum ambiente remoto, provedor de runtime ou publicação.
+
 O ambiente local é o único ambiente provisionado nesta etapa. Ambientes compartilhados, staging e produção ficam registrados para evolução futura; sua criação depende de nova autorização e de escolhas de provedor. Nenhum serviço ou custo é assumido por este documento.
 
 ## Ambientes
@@ -27,7 +37,7 @@ O front atual não precisa de credenciais. Quando um backend for aprovado, secre
 
 ## Persistência
 
-Para TASK-003, PostgreSQL local foi aprovado pelo responsável e está conectado somente à aplicação local para dados de identidade. Banco hospedado, ambientes compartilhados, produção e persistência comercial permanecem fora de escopo e `PENDING_APPROVAL`.
+Para TASK-003, PostgreSQL local foi aprovado pelo responsável e conectado somente à aplicação local para dados de identidade. Desde a TASK-006, as TASKs comerciais passaram a persistir seus dados no mesmo banco local, conforme seus `ALLOWED_CHANGES`, uso formalizado no aditivo de 2026-11-11 ao ADR-003. Banco hospedado, ambientes compartilhados e produção permanecem fora de escopo e `PENDING_APPROVAL`.
 
 Não guardar dados comerciais ou pessoais em armazenamento do navegador como substituto de persistência do sistema. Quando banco for autorizado, acesso ocorrerá pelo backend, nunca diretamente do browser.
 
@@ -53,13 +63,13 @@ Supabase Storage guarda os dados do objeto como arquivo em armazenamento de obje
 
 **Disponibilidade:** meta mensal de 99%, aprovada pelo responsável em 2026-10-23. Aplica-se a um futuro ambiente hospedado; não há serviço hospedado nem medição de disponibilidade neste baseline local.
 
-Esta meta é rastreada como RNF-010. Não representa SLA contratado.
+Esta meta é rastreada como RNF-019 (registrada até 2026-11-11 como RNF-010). Não representa SLA contratado.
 
 ## Logs, métricas, saúde e alertas
 
-No ambiente local, usar o logger existente e a saída do Vite; não registrar tokens, credenciais, dados de pagamento ou dados pessoais. O front atual não envia telemetria externa.
+No ambiente local, usar o logger existente (`src/infrastructure/logger.ts`) e a saída do servidor Next.js. A saída do Vite valia até a TASK-003. Não registrar tokens, credenciais, dados de pagamento ou dados pessoais; a sanitização fica em `src/modules/privacy`. A aplicação não envia telemetria externa.
 
-As verificações manuais locais cobrem início do servidor, resposta HTTP e renderização do estado de saúde da aplicação. O front não expõe endpoints HTTP de liveness/readiness e não simula health check de banco ou serviços inexistentes.
+As verificações manuais locais cobrem início do servidor, resposta HTTP e renderização do estado de saúde da aplicação na página inicial (`src/presentation/App.tsx`). A aplicação não expõe endpoints HTTP de liveness/readiness, inclusive de banco. O healthcheck do serviço `db` no Docker Compose (`pg_isready`) verifica somente o contêiner do banco. Health checks da aplicação são escopo da TASK-020.
 
 Quando houver ambiente hospedado, observar disponibilidade e latência HTTP, erros de aplicação, falhas de dependências, recursos do runtime e, quando existir banco, conexões, latência, erros e capacidade. Alertas devem cobrir indisponibilidade, degradação, falha de backup e falha de restore. Ferramenta, destino, retenção e thresholds numéricos permanecem pendentes de provedor e metas aprovados. Logs e métricas devem minimizar dados e respeitar controle de acesso.
 
@@ -84,7 +94,7 @@ Staging só poderá ser criado após escolha e autorização explícita do prove
 | AC-003 — Configuração | `.env.example`, `.env` ignorado e seção Configuração |
 | AC-004 — Secrets | Seção Configuração e secrets; nenhuma credencial no front |
 | AC-005/006 — Backup e restore | Seção Backup e restauração |
-| AC-007/008 — RPO/RTO | RPO de até 24 horas e RTO de até 8 horas, aprovados em 2026-10-23; restore ainda não testado |
+| AC-007/008 — RPO/RTO | RPO de até 24 horas e RTO de até 8 horas, aprovados em 2026-10-23. Restore de dump sintético validado em 2026-10-23 (TASK-005); restore da rotina operacional ainda não executado |
 | AC-009/010 — Observabilidade e dados sensíveis | Seção Logs, métricas, saúde e alertas |
 | AC-011 — Decisões | ADR-003, ADR-014 e matriz de decisões |
 | AC-012 — Infraestrutura aprovada | Nenhum provedor ou ambiente remoto provisionado |
@@ -97,7 +107,7 @@ Staging só poderá ser criado após escolha e autorização explícita do prove
 | Provedor externo na etapa atual | NENHUM; decisão aprovada | Sem contratação ou publicação |
 | Development compartilhado / staging | NÃO PROVISIONADOS; reavaliar mediante autorização | Este baseline |
 | Produção | `PENDING_APPROVAL` | Sem infraestrutura, custo ou deploy |
-| Persistência futura | Estratégia relacional aprovada; motor/provedor pendentes | ADR-003 |
+| Persistência | Estratégia relacional aprovada; PostgreSQL local para todos os módulos (aditivo de 2026-11-11); provedor hospedado pendente | ADR-003 |
 | Secrets | Estratégia provider-neutral aprovada; ferramenta pendente | Este baseline |
 | Backup/restore futuro | Supabase Storage selecionado; bucket privado e ciclo de arquivo sintético validado; automação/rotina operacional futura | Decisão e validação do responsável em 2026-10-23 e este baseline |
 | RPO / RTO | RPO ≤ 24h; RTO ≤ 8h | Metas aprovadas em 2026-10-23; execução de restore pendente |

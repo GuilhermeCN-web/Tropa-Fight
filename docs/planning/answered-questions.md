@@ -1015,6 +1015,8 @@ Sim. Testar em ambiente isolado antes de produção e, depois, pelo menos anualm
 
  ## Decisão adicional — RNFs ausentes na matriz (2026-10-23)
 
+ > **Nota (sincronização documental, 2026-11-05):** a premissa abaixo não se confirmou. Os IDs RNF-010 e RNF-014–017 tinham descrições no `README.md` original (histórico do Git anterior ao commit `cc8b7e1`), com outros significados. As decisões de conteúdo continuam válidas. A reconciliação dos IDs está em DIV-002 (`divergencias-documentacao.md`).
+
  Como não havia descrições canônicas para RNF-010 e RNF-014–017 no repositório, o responsável aprovou os seguintes textos propostos:
 
  - RNF-010: disponibilidade mensal de 99% em futuro ambiente hospedado; não constitui SLA contratado.
@@ -1106,30 +1108,32 @@ Infraestrutura
 
  ## Status
 
- | Item | Status |
-| --- | --- |
-| Escopo V1 | PENDENTE |
-| Catálogo | PENDENTE |
-| Conta de cliente | PENDENTE |
-| Variantes/SKU | PENDENTE |
-| Estoque | PENDENTE |
-| Carrinho | PENDENTE |
-| Checkout | PENDENTE |
-| Pagamento | PENDENTE |
-| Pedidos | PENDENTE |
-| Entrega | PENDENTE |
-| Cupons | PENDENTE |
-| Avaliações | PENDENTE |
-| Favoritos | PENDENTE |
-| Administração | PENDENTE |
-| Permissões/RBAC | PENDENTE |
-| Auditoria | PENDENTE |
-| LGPD | PENDENTE |
-| Notificações | PENDENTE |
-| Backup/recuperação | PENDENTE |
-| Desempenho | PENDENTE |
-| Arquitetura | PENDENTE |
-| Tecnologias | PENDENTE |
+ Atualizado na sincronização documental de 2026-11-05, com base exclusivamente nas decisões registradas neste documento, nos ADRs e no `TASKS.md`. `PARCIAL` significa que parte das perguntas da rodada foi decidida e parte continua aberta.
+
+ | Item | Status | Onde está decidido / o que falta |
+| --- | --- | --- |
+| Escopo V1 | DECIDIDO | Decisões de 2026-11-11 (abaixo); README, seções 2 e 3 |
+| Catálogo | DECIDIDO | TASK-006; imagens fora da V1; categorias cadastráveis (PD-001 não bloqueante) |
+| Conta de cliente | PARCIAL | Cadastro, senha, sessão e endereços decididos; edição de perfil fora da V1; menores de idade em aberto, não bloqueante |
+| Variantes/SKU | DECIDIDO | ADR-004, TASK-007 |
+| Estoque | PARCIAL | Reserva e baixa (ADR-005); estoque mínimo e recomposição após cancelamento abertos |
+| Carrinho | DECIDIDO | Rodada 5, ADR-006 |
+| Checkout | DECIDIDO | Adendo TASK-013, ADR-007; checkout como visitante não existe (carrinho exige autenticação) |
+| Pagamento | DECIDIDO | Mock e estados (TASK-014, ADR-008); gateway real fora da V1; simulação local na TASK-023 (a confirmar) |
+| Pedidos | DECIDIDO | Estados da V1 (TASK-015); cancelamento, reembolso, troca e estados de envio fora da V1 |
+| Entrega | DECIDIDO | Cotação local fixa (ADR-010); integração real fora da V1 |
+| Cupons | DECIDIDO | Rodada 9 e adendo TASK-013; desconto sobre frete aberto |
+| Avaliações | DECIDIDO | Rodada 10; moderação por `GENERAL_ADMIN` (TASK-019); denúncias fora |
+| Favoritos | DECIDIDO | Rodada 10, TASK-017 |
+| Administração | DECIDIDO | Adendo à Rodada 11 (2026-11-11); administração somente por API |
+| Permissões/RBAC | DECIDIDO | Três papéis, um por usuário, proteção do último `GENERAL_ADMIN` (ADR-011) |
+| Auditoria | PARCIAL | Adendo à Rodada 12; retenção aberta |
+| LGPD | DECIDIDO PARA A V1 | Exclusão de conta e anonimização fora da V1; retenção de auditoria em aberto, não bloqueante |
+| Notificações | DECIDIDO | Somente adaptador mock; eventos de conta, pedido criado e pagamento aprovado (TASK-020) |
+| Backup/recuperação | PARCIAL | Rodada 15 decidida; automação operacional aberta |
+| Desempenho | PARCIAL | Metas aprovadas; ambiente e método de medição abertos |
+| Arquitetura | DECIDIDO | ADR-001, ADR-002, ADR-019, ADR-020 |
+| Tecnologias | DECIDIDO PARA A V1 | Next.js e PostgreSQL local; V1 sem hospedagem, fila nem storage de imagens |
 
 ---
 
@@ -1187,9 +1191,34 @@ Infraestrutura
 - Histórico, detalhes e entrega exporão apenas dados já persistidos. Não criar rastreamento, código, transportadora, eventos ou estados fictícios; ausência de dados de tracking é válida.
 - Não incluir operações de mudança de estado, cancelamento, devolução ou reembolso.
 
+
+---
+
+# Decisões aprovadas em 2026-11-11 — reconciliação e escopo final da V1
+
+**Aprovação:** responsável do projeto, pacote de recomendações R1–R18, exceto a R8. Detalhes em `divergencias-documentacao.md`.
+
+**Adendo à Rodada 11 (administração e permissões):**
+
+- Papéis da V1: `CUSTOMER`, `GENERAL_ADMIN` e `CATALOG_MANAGER`. Gestor de estoque, Atendimento e Financeiro não existem.
+- Cada usuário possui um único papel. O último `GENERAL_ADMIN` ativo não pode ser desativado nem perder o papel.
+- `GENERAL_ADMIN` administra clientes (consulta), pedidos (consulta com filtros), moderação de avaliações e usuários administrativos. `CATALOG_MANAGER` mantém catálogo e estoque.
+- A consulta de clientes expõe somente e-mail, status, data de cadastro e número de pedidos, mais o resumo dos pedidos no detalhe. Não expõe CPF, telefone nem endereço.
+- A administração é feita somente por API; não há interface administrativa na V1.
+
+**Escopo da V1:**
+
+- Fora da V1: importação CSV; painel de vendas e relatórios; alerta de estoque mínimo; cancelamento, devolução, troca e reembolso; estados de pedido após `PAYMENT_CONFIRMED`; logística e gateway reais; confirmação de e-mail; edição de perfil; exclusão de conta e anonimização; imagens de produto.
+- Rate limiting: risco aceito. Um limitador opcional de login pode entrar na TASK-021.
+- Notificações (Rodada 14): somente o adaptador mock, com eventos de conta, `ORDER_CREATED` e `PAYMENT_APPROVED`. Endpoint `/api/health` na TASK-020.
+- **Interface do cliente (decisão que substitui a R8):** a V1 terá telas de produto (seleção de variante), carrinho, checkout e pedidos (TASK-023).
+- Proposta pendente de confirmação: script local `payment:simulate` para demonstrar a aprovação do pagamento.
+
 ---
 
  # Próximo passo
+
+ > **Nota (sincronização documental, 2026-11-05):** a orientação abaixo é histórica. A elicitação inicial já ocorreu, e as decisões passaram a ser tomadas na prontidão de cada TASK. As perguntas ainda em aberto estão na tabela "Controle da elicitação" acima e em `divergencias-documentacao.md`.
 
  A elicitação deverá começar pela **Rodada 1 — Escopo comercial e operação da V1**.
 
