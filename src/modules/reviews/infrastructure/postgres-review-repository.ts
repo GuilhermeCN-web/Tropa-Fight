@@ -3,7 +3,9 @@ import { randomUUID } from 'node:crypto'
 import type { Pool, PoolClient } from 'pg'
 import { getDatabasePool } from '../../../infrastructure/database/pool'
 import type {
+  AdminReview,
   CustomerReview,
+  ModerationDecision,
   PublicReview,
   Review,
   ReviewInput,
@@ -12,7 +14,13 @@ import type {
   ReviewPatch,
   ReviewStatus,
 } from '../domain/review'
-import { ReviewError, isReviewStatus } from '../domain/review'
+import {
+  ReviewError,
+  assertModeratable,
+  isReviewStatus,
+} from '../domain/review'
+import { createAuditEvent } from '../../audit/domain/audit-event'
+import { insertAuditEvent } from '../../audit/infrastructure/audit-repository'
 import type { ReviewRepository } from '../application/review-repository'
 
 type ReviewRow = {
@@ -260,6 +268,89 @@ export class PostgresReviewRepository implements ReviewRepository {
       page: page.page,
       pageSize: page.pageSize,
       total: Number(count.rows[0]?.total ?? '0'),
+    }
+  }
+
+  async listForModeration(
+    status: ReviewStatus,
+    page: ReviewPage,
+  ): Promise<ReviewPageResult<AdminReview>> {
+    const count = await this.pool.query<{ total: string }>(
+      'SELECT count(*)::text AS total FROM product_reviews WHERE status=$1',
+      [status],
+    )
+    const offset = (page.page - 1) * page.pageSize
+    const rows = await this.pool.query<ReviewRow & { product_name: string }>(
+      `SELECT r.id,r.product_id,r.customer_id,r.rating,r.comment,r.status,
+              r.created_at,r.updated_at,r.published_at,p.name AS product_name
+         FROM product_reviews r
+         JOIN catalog_products p ON p.id=r.product_id
+        WHERE r.status=$1
+        ORDER BY r.created_at ASC,r.id ASC LIMIT $2 OFFSET $3`,
+      [status, page.pageSize, offset],
+    )
+    return {
+      reviews: rows.rows.map((row) => ({
+        ...mapReview(row),
+        productName: row.product_name,
+      })),
+      page: page.page,
+      pageSize: page.pageSize,
+      total: Number(count.rows[0]?.total ?? '0'),
+    }
+  }
+
+  async moderate(
+    actorId: string,
+    reviewId: string,
+    decision: ModerationDecision,
+  ): Promise<AdminReview | null> {
+    const client = await this.pool.connect()
+    try {
+      await client.query('BEGIN')
+      const current = await client.query<{ status: string }>(
+        'SELECT status FROM product_reviews WHERE id=$1 FOR UPDATE',
+        [reviewId],
+      )
+      const row = current.rows[0]
+      if (!row) {
+        await rollback(client)
+        return null
+      }
+      if (!isReviewStatus(row.status))
+        throw new Error('Stored review status is invalid.')
+      assertModeratable(row.status)
+      const updated = await client.query<ReviewRow & { product_name: string }>(
+        `UPDATE product_reviews r
+            SET status=$2::review_status,
+                published_at=CASE WHEN $2::review_status='PUBLISHED' THEN now() ELSE NULL END,
+                updated_at=now()
+           FROM catalog_products p
+          WHERE r.id=$1 AND p.id=r.product_id
+          RETURNING r.id,r.product_id,r.customer_id,r.rating,r.comment,r.status,
+                    r.created_at,r.updated_at,r.published_at,p.name AS product_name`,
+        [reviewId, decision],
+      )
+      await insertAuditEvent(
+        client,
+        createAuditEvent({
+          actorId,
+          action:
+            decision === 'PUBLISHED' ? 'REVIEW_PUBLISHED' : 'REVIEW_REJECTED',
+          resourceType: 'ProductReview',
+          resourceId: reviewId,
+          result: 'SUCCESS',
+          source: 'reviews.moderation',
+        }),
+      )
+      await client.query('COMMIT')
+      const review = updated.rows[0]!
+      return { ...mapReview(review), productName: review.product_name }
+    } catch (error) {
+      await rollback(client).catch(() => undefined)
+      throw error
+    } finally {
+      client.release()
     }
   }
 }
