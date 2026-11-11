@@ -64,7 +64,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | READY   |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
-|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | BLOCKED |
+|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | IN_PROGRESS |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
 |    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
 
@@ -488,7 +488,7 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 ## TASK-023 — Telas de produto, carrinho, checkout e pedidos
 
-**Status:** BLOCKED
+**Status:** IN_PROGRESS
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-017`
 **Relacionados (IDs oficiais):** RF-006, RF-007, RF-008, RF-010, RF-011, RF-013, RF-014; RN-002, RN-003, RN-005, RN-018; RNF-020, RNF-021, RNF-023; UC-005 a UC-011; ADR-006, ADR-007, ADR-008, ADR-016, ADR-020
@@ -520,6 +520,8 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 **Testes necessários:** unitários de componentes e funções de apresentação (padrão de `catalog-browser.test.tsx`); smoke HTTP das páginas; roteiro manual curto do fluxo completo; regressão completa.
 **DoD específico:** fluxo completo demonstrável localmente; gates aprovados.
 **Pendência de prontidão:** confirmar o script local `payment:simulate` como mecanismo de demonstração da aprovação de pagamento. Após a confirmação, a TASK pode passar a `READY`. Ela não depende tecnicamente das TASK-018 a TASK-020 e pode ser executada em paralelo, se houver autorização explícita para mais de uma TASK `IN_PROGRESS`.
+
+**Prontidão (2026-11-11): PASS.** O responsável determinou "Realize a TASK-018 e 023 em paralelo", o que (a) confirma o script local `payment:simulate` como mecanismo de demonstração, encerrando a pendência de prontidão, e (b) autoriza explicitamente duas TASKs `IN_PROGRESS` ao mesmo tempo (TASK-018 e TASK-023). Dependência TASK-017 `DONE`. Transições `BLOCKED → READY → IN_PROGRESS`. Branch `feature/TASK-023-telas-cliente`.
 
 ## TASK-021 — Segurança, acessibilidade e testes E2E
 
