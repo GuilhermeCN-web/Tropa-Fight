@@ -64,7 +64,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | READY   |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
-|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | IN_PROGRESS |
+|    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | IN_REVIEW |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
 |    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
 
@@ -488,7 +488,7 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 ## TASK-023 — Telas de produto, carrinho, checkout e pedidos
 
-**Status:** IN_PROGRESS
+**Status:** IN_REVIEW
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-017`
 **Relacionados (IDs oficiais):** RF-006, RF-007, RF-008, RF-010, RF-011, RF-013, RF-014; RN-002, RN-003, RN-005, RN-018; RNF-020, RNF-021, RNF-023; UC-005 a UC-011; ADR-006, ADR-007, ADR-008, ADR-016, ADR-020
@@ -522,6 +522,18 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 **Pendência de prontidão:** confirmar o script local `payment:simulate` como mecanismo de demonstração da aprovação de pagamento. Após a confirmação, a TASK pode passar a `READY`. Ela não depende tecnicamente das TASK-018 a TASK-020 e pode ser executada em paralelo, se houver autorização explícita para mais de uma TASK `IN_PROGRESS`.
 
 **Prontidão (2026-11-11): PASS.** O responsável determinou "Realize a TASK-018 e 023 em paralelo", o que (a) confirma o script local `payment:simulate` como mecanismo de demonstração, encerrando a pendência de prontidão, e (b) autoriza explicitamente duas TASKs `IN_PROGRESS` ao mesmo tempo (TASK-018 e TASK-023). Dependência TASK-017 `DONE`. Transições `BLOCKED → READY → IN_PROGRESS`. Branch `feature/TASK-023-telas-cliente`.
+
+**Execução (2026-11-11):** transição `IN_PROGRESS → IN_REVIEW`.
+
+- Implementadas as páginas `/products/[id]`, `/cart`, `/checkout`, `/orders` e `/orders/[id]`, a navegação global, o link do catálogo para o produto e o script `npm run payment:simulate`. Nenhuma API, contrato ou migration foi alterado.
+- `npm run quality`: PASS.
+  - Testes: 39 arquivos e 138 testes, sendo 21 novos.
+  - Lint: 0 erros e 27 avisos `only-export-components`.
+  - Formatação, typecheck e build: OK.
+- Smoke HTTP das páginas e roteiro automatizado via API do fluxo completo até `PAYMENT_CONFIRMED`: PASS. As execuções usaram um `PAYMENT_WEBHOOK_SECRET` efêmero, porque o valor está vazio no `.env.local` local.
+- **Pendente:** o teste manual MAN-001, em desktop e a 360 px, deve ser executado pelo responsável. A TASK só passa a `DONE` depois dele.
+
+Registro completo: `docs/TASKS/TASK023.MD`.
 
 ## TASK-021 — Segurança, acessibilidade e testes E2E
 
