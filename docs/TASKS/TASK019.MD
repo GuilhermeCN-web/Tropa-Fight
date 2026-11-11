@@ -3,7 +3,7 @@
 > **Escopo revisado em 2026-11-11.** O bloco da TASK-019 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
 
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-11)\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependência:** `DEPENDS_ON: TASK-018`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -1567,3 +1567,82 @@ funcionalidades de TASK-020+
 ```
 TASK-019 = DONE
 ```
+
+---
+
+ # Registro de execução (2026-11-11)
+
+ **TASK:** TASK-019
+ **Status:** DONE
+ **Autorização:** "inicie a TASK-019" (responsável, 2026-11-11), após o merge dos PRs #20 e #21.
+ **Branch:** `feature/TASK-019-moderacao-usuarios-admin`
+ **Transições:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`.
+
+ ### ETAPA-001 — Recontextualização e prontidão
+
+ - TASK-018 `DONE`, mergeada na `main`. Verificação da `main` após o merge: 41 arquivos/195 testes e typecheck aprovados.
+ - Contratos da seção 12 do `README.md`, RN-022/RN-023 e Scope Guard do `TASKS.md` adotados como fonte normativa.
+
+ ### ETAPA-002/003 — Planejamento e implementação
+
+ **Primary changes**
+
+ - **Moderação** (`src/modules/reviews/**`, `app/api/admin/reviews/**`):
+   - fila `GET /api/admin/reviews?status=`, com padrão `PENDING`, paginação e ordem da mais antiga para a mais nova;
+   - `PATCH /api/admin/reviews/{reviewId}` aceita somente `{ "status": "PUBLISHED" | "REJECTED" }`. Transições fora de `PENDING` retornam 409, id inexistente ou malformado retorna 404 e corpo inválido retorna 400;
+   - bloqueio da linha (`FOR UPDATE`), atualização de `published_at` e auditoria na mesma transação;
+   - acesso exclusivo de `GENERAL_ADMIN`, como nas demais consultas administrativas de leitura.
+ - **Contas administrativas** (`src/modules/identity/**`, `app/api/admin/users/**`):
+   - domínio `admin-account.ts`: validação de criação e alteração e regra RN-022 (`assertKeepsAGeneralAdmin`);
+   - serviço `admin-account-service.ts`, que faz o hash da senha via porta injetada;
+   - repositório PostgreSQL com advisory lock transacional para RN-022, revogação de sessões ao desativar e auditoria transacional;
+   - apresentação `admin-users-http.ts`, composta conforme o ADR-020, com as permissões `identity.users.read`, `identity.users.manage` e `identity.users.manage` + `identity.roles.manage`.
+ - **RN-023:** `db/migrations/013_identity_single_role.sql`, com índice único em `identity_user_roles(user_id)`.
+ - **Auditoria:** novos tipos `REVIEW_PUBLISHED` e `REVIEW_REJECTED`. O papel e o novo status vão no campo sanitizado `reasonCode`; nenhum e-mail ou senha é gravado na auditoria.
+
+ **Decisões de implementação dentro do contrato**
+
+ - Alterações sem efeito (por exemplo, manter `ACTIVE`) retornam 200 sem gerar evento de auditoria.
+ - A desativação da própria conta é permitida, desde que respeite a RN-022: o contrato não define outra restrição.
+ - `GET /api/admin/users` não aceita parâmetros, porque o contrato não define filtros nem paginação.
+
+ **Incidental changes**
+
+ - `docs/diagrams/data-model.md`: registro da migration 013. É uma alteração mínima, exigida pela regra de manutenção de `docs/diagrams/README.md`.
+
+ ### ETAPA-004 — Testes e validação automatizada
+
+ - Unitários: `admin-account-domain.test.ts` (criação, alteração e RN-022) e `review-moderation-domain.test.ts` (fila, corpo e transições).
+ - Integração (`admin-moderation-users-flow.test.ts`): roda em schema isolado com todas as migrations, para que a RN-022 seja testada sem interferência de outros administradores de teste. Cobre:
+   - publicação visível na consulta pública e rejeição oculta;
+   - 409 fora de `PENDING`, 400 para edição de conteúdo ou motivo, 404;
+   - auditoria com ator;
+   - criação com login efetivo, duplicidade, senha fraca e papel inválido;
+   - índice único de papel;
+   - revogação de sessões;
+   - troca de papel mantendo um único papel;
+   - RN-022 em todas as combinações e sob concorrência;
+   - contas `CUSTOMER` fora do escopo de gestão;
+   - 403 para `CATALOG_MANAGER` e `CUSTOMER` e 401 sem sessão, sem escalonamento de privilégio.
+ - O teste de concorrência foi executado 3 vezes, sem instabilidade.
+ - `npm run quality`: 44 arquivos/234 testes; formatação, lint (sem avisos novos), typecheck e build aprovados.
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (27 avisos preexistentes) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS (RBAC, sem escalonamento, sessões revogadas, senha com hash, auditoria sem dados sensíveis) |
+| Acceptance | PASS |
+| Regression | PASS (cupons e promoções incluídos) |
+
+ ### ETAPA-005 — Teste manual
+
+ Não aplicável: a TASK não possui interface. Os critérios são verificados pelos testes de API.
+
+ ### ETAPA-006 — Conclusão
+
+ - Scope Guard: nenhum papel ou permissão criado; política de senha e sessão inalterada; nenhuma exclusão física; sem edição de conteúdo de avaliação, motivo ou notificação; sem gestão de `CUSTOMER`; sem interface; regras de cupons e promoções inalteradas.
+ - Próxima TASK na cadeia: TASK-020, ainda não iniciada.

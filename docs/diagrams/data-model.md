@@ -1,6 +1,6 @@
 # Modelo de dados (ER)
 
-Derivado de `db/migrations/001–012`, conforme o estado do repositório em 2026-11-05. Todas as tabelas possuem `created_at`; a maioria também possui `updated_at`. Para simplificar o diagrama, colunas de auditoria e alguns campos de snapshot foram omitidos. Em caso de divergência, a fonte de verdade são as migrations.
+Derivado de `db/migrations/001–013`, conforme o estado do repositório em 2026-11-11. Todas as tabelas possuem `created_at`; a maioria também possui `updated_at`. Para simplificar o diagrama, colunas de auditoria e alguns campos de snapshot foram omitidos. Em caso de divergência, a fonte de verdade são as migrations.
 
 ```mermaid
 erDiagram
@@ -265,6 +265,7 @@ erDiagram
 
 ## Restrições não visíveis no diagrama
 
+- `identity_user_roles`: único por `user_id` (migration 013, RN-023): cada usuário tem exatamente um papel.
 - `product_reviews`: única por `(customer_id, product_id)`; `published_at` preenchido se e somente se `status = PUBLISHED`.
 - `customer_favorites`: única por `(customer_id, product_id)`.
 - `carts`: no máximo um `ACTIVE` por cliente (índice parcial).
