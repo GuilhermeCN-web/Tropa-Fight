@@ -7,6 +7,7 @@ import {
 import { OrderQueryService } from '../application/order-query'
 import {
   OrderQueryValidationError,
+  parseAdminOrderQuery,
   parseOrderPage,
 } from '../domain/order-query'
 import { PostgresOrderQueryRepository } from '../infrastructure/postgres-order-query'
@@ -79,6 +80,21 @@ function pageOrResponse(request: NextRequest) {
   }
 }
 
+function adminQueryOrResponse(request: NextRequest) {
+  try {
+    return { query: parseAdminOrderQuery(request.nextUrl.searchParams) }
+  } catch (error) {
+    if (error instanceof OrderQueryValidationError)
+      return {
+        response: NextResponse.json(
+          { error: error.message },
+          { status: 400, headers: noStore },
+        ),
+      }
+    throw error
+  }
+}
+
 function notFound() {
   return NextResponse.json(
     { error: 'Order not found.' },
@@ -110,9 +126,12 @@ export async function getAdminOrders(request: NextRequest) {
   const access = await generalAdmin(request)
   if ('response' in access) return access.response
   try {
-    const parsed = pageOrResponse(request)
+    const parsed = adminQueryOrResponse(request)
     if ('response' in parsed) return parsed.response
-    const result = await service.listForAdmin(parsed.page)
+    const result = await service.listForAdmin(
+      parsed.query.page,
+      parsed.query.filters,
+    )
     return NextResponse.json(result, { headers: noStore })
   } catch {
     return failed()
