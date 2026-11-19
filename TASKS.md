@@ -63,7 +63,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | DONE |
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | DONE    |
-|    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
+|    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | DONE    |
 |    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
 |    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
@@ -488,7 +488,7 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 ## TASK-020 — Notificações de pedido, health check e consolidação de auditoria
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-019`
 **Relacionados (IDs oficiais):** RF-019, RF-028; RN-019; RNF-007, RNF-013, RNF-014; UC-021, UC-023; ADR-014
@@ -510,6 +510,20 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 **Testes necessários:** unitários de notificação; integração de disparo pós-commit; API de health; regressão completa.
 **DoD específico:** health, notificações de pedido e auditoria validados; gates aprovados.
+**Prontidão (2026-11-19): PASS.** TASK-019 `DONE` (PR #22 mergeado; `main` verificada com 44 arquivos/234 testes). Início autorizado pelo responsável ("inicie a TASK-020"). Transições `BLOCKED → READY → IN_PROGRESS`, branch `feature/TASK-020-notificacoes-health`.
+
+**Execução concluída (2026-11-19):** transições `IN_PROGRESS → IN_REVIEW → DONE`.
+- **Notificações:** novos tipos `ORDER_CREATED` e `PAYMENT_APPROVED`, enviados por `OrderNotifier` (`src/modules/notifications/`) ao adaptador mock em memória, compartilhado no processo.
+  - Disparados em `checkout-http.ts`, depois do commit do pedido (inclusive em replay com `Idempotency-Key`), e em `payment-http.ts`, somente para webhook `processed` com pagamento `APPROVED`.
+  - Chaves de deduplicação: `order-created:<orderId>` e `payment-approved:<paymentId>`.
+  - O destinatário é `customer:<id>`, resolvido pelo pedido; o payload leva só ids e valores, sem e-mail ou outros dados pessoais.
+  - Falhas do adaptador ou da resolução são capturadas e registradas no log sem dados pessoais; a resposta HTTP, o pedido e o pagamento não mudam.
+- **Health:** `GET /api/health` responde `200 {"status":"ok","database":"ok"}` ou `503 {"status":"degraded","database":"unavailable"}`, sem detalhes internos, com sonda `SELECT 1` limitada a 2 s (`src/infrastructure/database/database-health.ts`). Smoke com servidor real: 200 com banco disponível e 503 com banco indisponível.
+- **Revisão de auditoria:** as mutações da TASK-019 (`REVIEW_PUBLISHED`, `REVIEW_REJECTED`, `USER_CREATED`, `USER_UPDATED`, `USER_ROLE_CHANGED`, inclusive a falha `LAST_GENERAL_ADMIN`) aparecem em `GET /api/admin/audit-logs`, sem e-mail nem senha; um teste novo comprova isso. A TASK-018 só tem consultas e, pela política aprovada no `README.md` (auditoria de "mudanças administrativas"), consultas não geram auditoria, como já acontecia com as consultas administrativas de pedidos. Auditar leituras exigiria decisão e TASK próprias.
+- **Testes:** `order-notifications.test.ts`, `notification-post-commit.test.ts` (adaptador falhando não altera pedido nem pagamento) e `health-check.test.ts`; asserções de notificação em `checkout-api-flow.test.ts` (fluxo real: uma notificação por evento, nenhuma em `payment.processing` ou em webhook duplicado); teste de auditoria em `admin-moderation-users-flow.test.ts`. `privacy-logging` passou.
+- `npm run quality`: 47 arquivos/250 testes, formatação, lint (27 avisos preexistentes, nenhum novo), typecheck e build aprovados.
+- **Nota de ambiente:** na primeira execução, o `next build` foi interrompido por um alerta de segurança do Next.js sobre a versão instalada (`next@16.4.2`); a segunda execução passou. A atualização da dependência fica fora do escopo e deve ser tratada em manutenção autorizada.
+- Sem alterações incidentais. A TASK-021 permanece `BLOCKED` e não foi iniciada.
 
 ## TASK-023 — Telas de produto, carrinho, checkout e pedidos
 
