@@ -3,7 +3,7 @@
 > **Escopo revisado em 2026-11-11.** O bloco da TASK-020 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
 
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-19)\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependência:** `DEPENDS_ON: TASK-019`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -1898,3 +1898,38 @@ PARAR E AGUARDAR AUTORIZAÇÃO
  **Condição de encerramento:** `TASK-020 = DONE` somente após todos os Gates obrigatórios passarem e o relatório de execução estar produzido.
 
  A sequência permanece estrita: **`TASK-019 → TASK-020 → TASK-021 → TASK-022`**. A conclusão da `TASK-020` não dispara automaticamente a `TASK-021`.
+
+---
+
+ # Registro de execução (2026-11-19)
+
+ **TASK:** TASK-020 — **Status:** DONE — **Branch:** `feature/TASK-020-notificacoes-health`
+ **Autorização:** "Fiz o merge, verifique e inicie a TASK-020" (responsável, 2026-11-19).
+ **Transições:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`.
+
+ O resumo normativo da execução (implementação, testes, gates e notas) está no bloco da TASK-020 do `TASKS.md`. Complementos:
+
+ **Primary changes**
+
+ - `src/modules/notifications/application/notification-service.ts`: novos tipos `ORDER_CREATED` e `PAYMENT_APPROVED`.
+ - `src/modules/notifications/application/order-notifications.ts`: `OrderNotifier`, que faz a entrega best-effort pós-commit, com deduplicação e log sem dados pessoais.
+ - `src/modules/notifications/infrastructure/postgres-order-recipient-resolver.ts` e `local-order-notifier.ts`: resolução do destinatário e adaptador mock compartilhado.
+ - `src/modules/checkout/presentation/checkout-http.ts` e `src/modules/payments/presentation/payment-http.ts`: somente a chamada pós-commit.
+ - `src/infrastructure/database/database-health.ts` e `app/api/health/route.ts`: health check.
+ - `docs/architecture/infrastructure-baseline.md`: health e notificações.
+ - Testes: `tests/unit/{order-notifications,notification-post-commit,health-check}.test.ts`; asserções em `tests/integration/{checkout-api-flow,admin-moderation-users-flow}.test.ts`.
+
+ **Incidental changes:** nenhuma.
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS (na segunda execução; ver nota de ambiente) |
+| Lint | PASS (avisos preexistentes) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS (`/api/health` com servidor real: 200/503) |
+| Security | PASS (sem dados pessoais em notificações e logs; health sem detalhes internos) |
+| Acceptance | PASS |
+| Regression | PASS (250 testes) |
+
+ **Teste manual:** não aplicável; não há interface nova. O health pode ser conferido em `http://localhost:3000/api/health`.

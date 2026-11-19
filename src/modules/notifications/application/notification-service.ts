@@ -1,5 +1,9 @@
 export type NotificationType =
-  'ACCOUNT_CREATED' | 'PASSWORD_RESET_REQUESTED' | 'PASSWORD_CHANGED'
+  | 'ACCOUNT_CREATED'
+  | 'PASSWORD_RESET_REQUESTED'
+  | 'PASSWORD_CHANGED'
+  | 'ORDER_CREATED'
+  | 'PAYMENT_APPROVED'
 
 export type NotificationRequest = {
   id: string

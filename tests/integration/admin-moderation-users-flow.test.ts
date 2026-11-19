@@ -22,6 +22,7 @@ import {
   POST as createUser,
 } from '../../app/api/admin/users/route'
 import { PATCH as updateUser } from '../../app/api/admin/users/[userId]/route'
+import { GET as listAuditLogs } from '../../app/api/admin/audit-logs/route'
 import { PostgresAdminAccountRepository } from '../../src/modules/identity/infrastructure/postgres-admin-account-repository'
 
 // TASK-019: RF-037, RF-038; RN-015, RN-019, RN-022, RN-023; UC-018–UC-020.
@@ -701,6 +702,40 @@ describe.skipIf(!configured)(
           [ids.catalogManager],
         )
         expect(role.rows[0]?.role_code).toBe('CATALOG_MANAGER')
+      })
+
+      it('exposes TASK-019 operations in the audit log API without personal data (TASK-020)', async () => {
+        const response = await listAuditLogs(
+          request(
+            `/api/admin/audit-logs?actorId=${ids.generalAdmin}&pageSize=100`,
+            'GET',
+            tokens.general,
+          ),
+        )
+        expect(response!.status).toBe(200)
+        const body = await response!.json()
+        const entries = Object.values(body).find(Array.isArray) as Array<{
+          action: string
+          result: string
+          metadata: Record<string, string>
+        }>
+        const actions = new Set(entries.map((entry) => entry.action))
+        for (const action of [
+          'REVIEW_PUBLISHED',
+          'REVIEW_REJECTED',
+          'USER_CREATED',
+          'USER_UPDATED',
+          'USER_ROLE_CHANGED',
+        ])
+          expect(actions).toContain(action)
+        expect(
+          entries.some(
+            (entry) =>
+              entry.result === 'FAILURE' &&
+              entry.metadata.reasonCode === 'LAST_GENERAL_ADMIN',
+          ),
+        ).toBe(true)
+        expect(JSON.stringify(entries)).not.toMatch(/@|password|Tropa#/i)
       })
 
       it('serializes concurrent changes so one active GENERAL_ADMIN always remains', async () => {

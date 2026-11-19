@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { getLocalOrderNotifier } from '../../notifications/infrastructure/local-order-notifier'
 import { requirePermission } from '../../auth/presentation/request-identity'
 import {
   normalizeCreatePaymentInput,
@@ -200,6 +201,13 @@ export async function receivePaymentWebhook(request: NextRequest) {
         { error: 'Payment webhook was rejected.', code: result.reason },
         { status: 409, headers: { 'Cache-Control': 'no-store' } },
       )
+    // Post-commit and best-effort (TASK-020): never alters the payment.
+    if (result.kind === 'processed' && result.payment?.status === 'APPROVED')
+      await getLocalOrderNotifier().paymentApproved({
+        paymentId: result.payment.id,
+        orderId: result.payment.orderId,
+        amountCents: result.payment.amountCents,
+      })
     return NextResponse.json(
       { received: true, duplicate: result.kind === 'duplicate' },
       { headers: { 'Cache-Control': 'no-store' } },

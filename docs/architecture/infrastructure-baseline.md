@@ -69,7 +69,20 @@ Esta meta é rastreada como RNF-019 (registrada até 2026-11-11 como RNF-010). N
 
 No ambiente local, usar o logger existente (`src/infrastructure/logger.ts`) e a saída do servidor Next.js. A saída do Vite valia até a TASK-003. Não registrar tokens, credenciais, dados de pagamento ou dados pessoais; a sanitização fica em `src/modules/privacy`. A aplicação não envia telemetria externa.
 
-As verificações manuais locais cobrem início do servidor, resposta HTTP e renderização do estado de saúde da aplicação na página inicial (`src/presentation/App.tsx`). A aplicação não expõe endpoints HTTP de liveness/readiness, inclusive de banco. O healthcheck do serviço `db` no Docker Compose (`pg_isready`) verifica somente o contêiner do banco. Health checks da aplicação são escopo da TASK-020.
+**Health check da aplicação (TASK-020):** `GET /api/health` é público e sem cache.
+- Executa `SELECT 1` no PostgreSQL com limite de 2 s (`src/infrastructure/database/database-health.ts`).
+- Responde `200 {"status":"ok","database":"ok"}` ou `503 {"status":"degraded","database":"unavailable"}`.
+- Não expõe mensagem de erro, host, porta, versão nem stack.
+- Serve como verificação de liveness e readiness local; não envia nada para fora.
+
+O healthcheck do serviço `db` no Docker Compose (`pg_isready`) continua verificando somente o contêiner do banco.
+
+**Notificações de pedido (TASK-020):** `ORDER_CREATED` e `PAYMENT_APPROVED` são enviadas ao adaptador mock em memória (`MockNotificationAdapter`), sem provedor real (ADR-014).
+- O envio acontece depois do commit da criação do pedido e da aprovação do pagamento.
+- Cada evento tem uma chave de deduplicação (`order-created:<orderId>`, `payment-approved:<paymentId>`).
+- O destinatário é a conta (`customer:<id>`); nenhum e-mail ou outro dado pessoal entra na notificação.
+- Uma falha do adaptador é registrada no log, só com o tipo do evento e o id do pedido, e nunca reverte nem altera o pedido ou o pagamento.
+- O adaptador vive em memória por processo; reiniciar o servidor descarta o histórico de envios.
 
 Quando houver ambiente hospedado, observar disponibilidade e latência HTTP, erros de aplicação, falhas de dependências, recursos do runtime e, quando existir banco, conexões, latência, erros e capacidade. Alertas devem cobrir indisponibilidade, degradação, falha de backup e falha de restore. Ferramenta, destino, retenção e thresholds numéricos permanecem pendentes de provedor e metas aprovados. Logs e métricas devem minimizar dados e respeitar controle de acesso.
 
