@@ -62,7 +62,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    16 | TASK-016 | PHASE-03 | HIGH       | TASK-015                   | DONE |
 |    17 | TASK-017 | PHASE-04 | CRITICAL   | TASK-016                   | DONE |
 |    18 | TASK-018 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
-|    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | BLOCKED |
+|    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | DONE    |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | BLOCKED |
 |    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
@@ -435,7 +435,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 
 ## TASK-019 — Moderação de avaliações e usuários administrativos
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-018`
 **Relacionados (IDs oficiais):** RF-025, RF-026, RF-027, RF-035, RF-036, RF-037, RF-038; RN-015, RN-016, RN-019, RN-022, RN-023; RNF-006, RNF-007; UC-018, UC-019, UC-020; ADR-011, ADR-012, ADR-020
@@ -468,6 +468,23 @@ Ambas conforme o contrato da seção 12 do `README.md`.
 
 **Testes necessários:** domínio, integração e API de moderação e de contas administrativas; segurança e RBAC; regressão completa.
 **DoD específico:** RBAC e auditoria das novas operações testados; gates aprovados.
+**Prontidão (2026-11-11): PASS.** TASK-018 `DONE` (PR #20 mergeado); contratos da seção 12 do `README.md` e Scope Guard definidos; papéis decididos (DIV-010). Início autorizado pelo responsável ("inicie a TASK-019"). Transições `BLOCKED → READY → IN_PROGRESS`, branch `feature/TASK-019-moderacao-usuarios-admin`.
+
+**Execução concluída (2026-11-11):** transições `IN_PROGRESS → IN_REVIEW → DONE`.
+- **Moderação:** `GET /api/admin/reviews?status=` (padrão `PENDING`, paginado) e `PATCH /api/admin/reviews/{reviewId}` com `{ "status": "PUBLISHED" | "REJECTED" }`. Somente a partir de `PENDING`; demais transições retornam 409. A transição usa bloqueio de linha e grava a auditoria (`REVIEW_PUBLISHED`/`REVIEW_REJECTED`, com ator) na mesma transação. O corpo não aceita edição de conteúdo nem motivo de rejeição.
+- **Contas administrativas:** `GET`/`POST /api/admin/users` e `PATCH /api/admin/users/{userId}`.
+  - A criação valida e-mail único, a política de senha do ADR-012 e o papel `GENERAL_ADMIN` ou `CATALOG_MANAGER`.
+  - O `PATCH` altera `status` (`ACTIVE`/`INACTIVE`) e/ou `role`. Desativar revoga as sessões. Contas `CUSTOMER` retornam 404.
+  - RN-022 é verificada sob um advisory lock transacional, o que impede que duas alterações simultâneas deixem o sistema sem `GENERAL_ADMIN` ativo. Tentativas bloqueadas retornam 409 `LAST_GENERAL_ADMIN` e são auditadas como `FAILURE`.
+  - Auditoria: `USER_CREATED`, `USER_UPDATED` e `USER_ROLE_CHANGED`.
+- **RN-023:** migration `013_identity_single_role.sql` com índice único em `identity_user_roles(user_id)`. Aplicada sem conflito nos bancos locais.
+- **Auditoria:** somente os novos tipos de evento `REVIEW_PUBLISHED` e `REVIEW_REJECTED`.
+- **Testes:**
+  - `tests/unit/admin-account-domain.test.ts` e `tests/unit/review-moderation-domain.test.ts`;
+  - `tests/integration/admin-moderation-users-flow.test.ts`, em schema PostgreSQL isolado: 16 testes, incluindo RBAC, auditoria, revogação de sessões, RN-022 (inclusive concorrência) e RN-023. Executado 3 vezes sem instabilidade.
+- `npm run quality`: 44 arquivos/234 testes, incluindo as suítes de cupons e promoções; formatação, lint (27 avisos `only-export-components` já existentes, nenhum novo), typecheck e build aprovados.
+- **Incidental:** `docs/diagrams/data-model.md` passou a registrar a migration 013 (regra de manutenção de `docs/diagrams/README.md`).
+- A TASK-020 permanece `BLOCKED` e não foi iniciada. Registro completo em `docs/TASKS/TASK019.MD`.
 
 ## TASK-020 — Notificações de pedido, health check e consolidação de auditoria
 

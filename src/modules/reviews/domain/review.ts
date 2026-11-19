@@ -22,6 +22,10 @@ export type CustomerReview = Omit<Review, 'customerId'> & {
   productName: string
   productPublicationState: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 }
+/** Administrative moderation view (RF-037, UC-020). */
+export type AdminReview = Review & { productName: string }
+export type ModerationDecision = 'PUBLISHED' | 'REJECTED'
+export type AdminReviewQuery = { page: ReviewPage; status: ReviewStatus }
 export type ReviewPageResult<T> = {
   reviews: T[]
   page: number
@@ -132,4 +136,54 @@ export function parseReviewPage(params: URLSearchParams): ReviewPage {
 
 export function isReviewStatus(value: string): value is ReviewStatus {
   return (reviewStatuses as readonly string[]).includes(value)
+}
+
+/** `GET /admin/reviews?status=` — default `PENDING`, plus pagination. */
+export function parseAdminReviewQuery(
+  params: URLSearchParams,
+): AdminReviewQuery {
+  const pageParams = new URLSearchParams()
+  let status: ReviewStatus = 'PENDING'
+  for (const key of params.keys()) {
+    if (params.getAll(key).length !== 1)
+      throw new ReviewError('Duplicate review query parameter.', 'VALIDATION')
+  }
+  for (const [key, value] of params) {
+    if (key === 'status') {
+      if (!isReviewStatus(value))
+        throw new ReviewError('Invalid review status filter.', 'VALIDATION')
+      status = value
+    } else pageParams.append(key, value)
+  }
+  return { page: parseReviewPage(pageParams), status }
+}
+
+/**
+ * Moderation body: exactly `{ "status": "PUBLISHED" | "REJECTED" }`.
+ * Content edits, rejection reasons and other fields are not accepted.
+ */
+export function normalizeModerationDecision(
+  value: unknown,
+): ModerationDecision {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new ReviewError('Moderation must be an object.', 'VALIDATION')
+  const input = value as Record<string, unknown>
+  const keys = Object.keys(input)
+  if (keys.length !== 1 || keys[0] !== 'status')
+    throw new ReviewError(
+      'Moderation accepts only the status field.',
+      'VALIDATION',
+    )
+  if (input.status !== 'PUBLISHED' && input.status !== 'REJECTED')
+    throw new ReviewError(
+      'Moderation status must be PUBLISHED or REJECTED.',
+      'VALIDATION',
+    )
+  return input.status
+}
+
+/** Only `PENDING` reviews can be moderated (RN-015). */
+export function assertModeratable(current: ReviewStatus) {
+  if (current !== 'PENDING')
+    throw new ReviewError('Only pending reviews can be moderated.', 'CONFLICT')
 }

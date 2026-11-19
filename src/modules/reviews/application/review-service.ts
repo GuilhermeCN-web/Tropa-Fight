@@ -1,7 +1,9 @@
 import {
+  normalizeModerationDecision,
   normalizeReviewInput,
   normalizeReviewPatch,
   ReviewError,
+  type AdminReviewQuery,
   type ReviewPage,
 } from '../domain/review'
 import type { ReviewRepository } from './review-repository'
@@ -59,5 +61,18 @@ export class ReviewService {
   listForCustomer(customerId: string, page: ReviewPage) {
     requirePage(page)
     return this.repository.listForCustomer(requireUuid(customerId), page)
+  }
+
+  listForModeration(query: AdminReviewQuery) {
+    requirePage(query.page)
+    return this.repository.listForModeration(query.status, query.page)
+  }
+
+  moderate(actorId: string, reviewId: string, input: unknown) {
+    return this.repository.moderate(
+      requireUuid(actorId),
+      requireUuid(reviewId),
+      normalizeModerationDecision(input),
+    )
   }
 }
