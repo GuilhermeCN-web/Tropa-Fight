@@ -11,6 +11,7 @@ import {
   revokeSession,
 } from '../../src/modules/identity/infrastructure/identity-repository'
 import { sessionCookieName } from '../../src/modules/auth/application/session-service'
+import { getLocalNotificationAdapter } from '../../src/modules/notifications/infrastructure/local-order-notifier'
 
 const configured = Boolean(process.env.DATABASE_URL)
 const basePool = configured ? getDatabasePool() : undefined
@@ -373,6 +374,22 @@ describe.skipIf(!configured)('checkout authenticated API integration', () => {
     expect((await replayResponse.json()).order.orderId).toBe(
       orderBody.order.orderId,
     )
+    // TASK-020: one ORDER_CREATED notification after commit, even on replay,
+    // addressed to the customer account without personal data.
+    const notifications = () =>
+      getLocalNotificationAdapter().sent.filter(
+        (item) =>
+          item.payload.orderId === orderId &&
+          (item.type === 'ORDER_CREATED' || item.type === 'PAYMENT_APPROVED'),
+      )
+    expect(notifications()).toEqual([
+      expect.objectContaining({
+        type: 'ORDER_CREATED',
+        deduplicationKey: `order-created:${orderId}`,
+        recipient: `customer:${ids.customer}`,
+      }),
+    ])
+    expect(JSON.stringify(notifications())).not.toMatch(/@|cpf|phone|street/i)
 
     const paymentKey = randomUUID()
     const paymentResponse = await routes.createPayment(
@@ -477,6 +494,16 @@ describe.skipIf(!configured)('checkout authenticated API integration', () => {
       approvalEventId,
     )
     expect((await duplicateApproval.json()).duplicate).toBe(true)
+    // TASK-020: PAYMENT_APPROVED is sent once, only for the approval (not for
+    // `payment.processing` nor for the duplicate webhook).
+    expect(notifications().map((item) => item.type)).toEqual([
+      'ORDER_CREATED',
+      'PAYMENT_APPROVED',
+    ])
+    expect(notifications()[1]).toMatchObject({
+      deduplicationKey: `payment-approved:${paymentId}`,
+      payload: { orderId, paymentId, amountCents: '6500' },
+    })
 
     const historyResponse = await routes.listOrders(
       new NextRequest('http://localhost/api/orders', {

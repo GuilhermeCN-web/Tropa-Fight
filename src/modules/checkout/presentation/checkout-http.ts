@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { requirePermission } from '../../auth/presentation/request-identity'
 import { CheckoutError } from '../domain/checkout'
 import { PostgresCheckoutRepository } from '../infrastructure/postgres-checkout-repository'
+import { getLocalOrderNotifier } from '../../notifications/infrastructure/local-order-notifier'
 
 const repository = new PostgresCheckoutRepository()
 const uuidPattern =
@@ -120,6 +121,11 @@ export async function createOrder(request: NextRequest) {
         },
         { status: 409, headers: { 'Cache-Control': 'no-store' } },
       )
+    // Post-commit and best-effort (TASK-020): never alters the order.
+    await getLocalOrderNotifier().orderCreated({
+      orderId: result.orderId,
+      totalCents: result.totalCents,
+    })
     return NextResponse.json(
       { order: result },
       { status: 201, headers: { 'Cache-Control': 'no-store' } },
