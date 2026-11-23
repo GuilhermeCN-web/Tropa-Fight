@@ -83,3 +83,75 @@ describe('layer dependencies', () => {
     expect(violations).toEqual([])
   })
 })
+
+// TASK-021 / ADR-020: the same rules applied inside each module
+// (`src/modules/<module>/<layer>/**`). Top-level `src/<layer>` files count as
+// that layer. Only `presentation → infrastructure` is allowed (composition).
+const moduleForbiddenImports: Record<string, string[]> = {
+  domain: ['application', 'presentation', 'infrastructure'],
+  application: ['presentation', 'infrastructure'],
+  presentation: [],
+  infrastructure: ['presentation'],
+}
+const layers = new Set(Object.keys(moduleForbiddenImports))
+
+/**
+ * Pre-existing violations registered in TASK-021 (identity, auth and audit
+ * application services importing their own infrastructure since
+ * TASK-003/004). Fixing them requires refactoring authentication and audit,
+ * outside TASK-021's scope; they are tracked as technical debt for the
+ * TASK-022 checkpoint. The list is closed: any new violation fails the test,
+ * and an entry that disappears must be removed from here.
+ */
+const registeredModuleViolations = [
+  'modules/audit/application/audit-service.ts imports infrastructure through ../infrastructure/audit-repository',
+  'modules/auth/application/session-service.ts imports infrastructure through ../../identity/infrastructure/identity-repository',
+  'modules/identity/application/identity-service.ts imports infrastructure through ../../../infrastructure/logger',
+  'modules/identity/application/identity-service.ts imports infrastructure through ../infrastructure/identity-repository',
+  'modules/identity/application/identity-service.ts imports infrastructure through ../infrastructure/password-hasher',
+]
+
+function layerOf(file: string): string | undefined {
+  const parts = path.relative(sourceRoot, file).split(path.sep)
+  if (parts[0] === 'modules' && parts.length > 3 && layers.has(parts[2]!))
+    return parts[2]
+  return layers.has(parts[0]!) ? parts[0] : undefined
+}
+
+describe('module layer dependencies (ADR-020)', () => {
+  it('assigns every module source file to a layer', async () => {
+    const files = await collectSourceFiles(path.join(sourceRoot, 'modules'))
+    expect(files.length).toBeGreaterThan(0)
+    expect(
+      files
+        .filter((file) => !layerOf(file))
+        .map((file) => path.relative(sourceRoot, file)),
+    ).toEqual([])
+  })
+
+  it('keeps module imports within the approved direction', async () => {
+    const files = await collectSourceFiles(path.join(sourceRoot, 'modules'))
+    const violations: string[] = []
+    const importPattern =
+      /^\s*(?:import|export)\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/gm
+
+    for (const file of files) {
+      const sourceLayer = layerOf(file)!
+      const forbiddenTargets = moduleForbiddenImports[sourceLayer]!
+      const source = await readFile(file, 'utf8')
+      for (const match of source.matchAll(importPattern)) {
+        const specifier = match[1]!
+        if (!specifier.startsWith('.')) continue
+        const importedFile = await resolveSourceImport(file, specifier)
+        if (!importedFile) continue
+        const targetLayer = layerOf(importedFile)
+        if (targetLayer && forbiddenTargets.includes(targetLayer))
+          violations.push(
+            `${path.relative(sourceRoot, file).split(path.sep).join('/')} imports ${targetLayer} through ${specifier}`,
+          )
+      }
+    }
+
+    expect(violations.sort()).toEqual([...registeredModuleViolations].sort())
+  })
+})
