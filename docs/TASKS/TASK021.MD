@@ -3,7 +3,7 @@
 > **Escopo revisado em 2026-11-11.** O bloco da TASK-021 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
 
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-23)\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependências:** `DEPENDS_ON: TASK-020`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -2891,3 +2891,165 @@ TASK-021
    ↓
 TASK-022
 ```
+
+
+---
+
+ # Registro de execução (2026-11-19 a 2026-11-23)
+
+ **TASK:** TASK-021 — **Status:** DONE — **Branch:** `feature/TASK-021-seguranca-acessibilidade-e2e`
+ **Autorização:** "Fiz o merge, verifique e inicie a TASK-021" (responsável, 2026-11-19), após o merge dos PRs #23 (TASK-020) e #24 (Next.js 16.4.6).
+ **Transições:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`.
+
+ ## ETAPA-001 — Recontextualização e prontidão
+
+ - Dependências TASK-020 e TASK-023 `DONE`. `main` verificada após os merges: `npm ci` com Next.js 16.4.6; `npm run quality` com 47 arquivos/250 testes e build aprovado.
+
+ ## ETAPA-002/003 — Ferramentas e implementação
+
+ **Dependências de desenvolvimento (justificativa)**
+
+| Pacote | Versão | Justificativa |
+|---|---|---|
+| `@playwright/test` | 1.65.0 | Executor E2E com os três motores exigidos pelo RNF-023 (Chromium, Firefox, WebKit) |
+| `playwright-core` | 1.65.0 | Fixado para manter uma única cópia: sem ele, o `@axe-core/playwright` instalava a 1.65.1 e os tipos de `Page` colidiam |
+| `@axe-core/playwright` | 4.14.0 | Verificação automatizada de WCAG 2.2 AA (RNF-020) |
+
+ As versões foram fixadas (exatas) e têm pelo menos duas semanas de publicação. O `package-lock.json` recebeu apenas adições; os campos `libc` foram preservados (o npm local os removeria).
+
+ **Infraestrutura de E2E** (`playwright.config.ts`, `tests/e2e/`)
+
+ - Build de produção (`next build` + `next start`, porta 3100) e banco dedicado `tropa_fight_e2e` (padrão: PostgreSQL do Docker Compose; configurável por `E2E_DATABASE_URL`). O `global-setup.ts` cria o banco se faltar, aplica todas as migrations e semeia dados fixos e idempotentes: administrador geral, gerente de catálogo, produto publicado com variante em estoque e variante sem estoque, e cupom `E2E10`.
+ - Segredo do webhook gerado por execução e compartilhado com o servidor. A aprovação de pagamento é assinada exatamente como no `npm run payment:simulate`.
+ - **Proxy TLS local** (`tests/e2e/https-proxy.mjs`, porta 3443, certificado autoassinado gerado com OpenSSL a cada execução). O cookie de sessão é sempre `Secure` (ADR-012), e o WebKit/Safari descarta cookies `Secure` em `http://localhost`. Sem o proxy, todo login falhava no WebKit. A autenticação não foi alterada, porque isso é proibido; os testes passam a rodar sobre HTTPS, como em produção.
+ - Seis projetos: `chromium`, `firefox` e `webkit` em desktop, e as mesmas três engines a 360 px (RNF-021).
+ - A recuperação de senha não tem provedor de e-mail na V1. O teste grava um token conhecido no banco (com hash, como o repositório) e segue o fluxo pela tela de redefinição.
+ - Script `npm run test:e2e`.
+
+ **Specs**
+
+| Arquivo | Cobertura |
+|---|---|
+| `auth.spec.ts` | Cadastro, login, perfil, logout, credenciais inválidas, política de senha, recuperação e redefinição (UC-001–UC-004) |
+| `storefront.spec.ts` | Compra completa: catálogo → produto → variante → carrinho → cupom inválido e válido → checkout → endereço → cotação → pedido → PIX → aprovação assinada → histórico e detalhe `Pagamento confirmado`. Também cobre variante sem estoque e o redirecionamento ao login de visitante anônimo (UC-005–UC-011) |
+| `accessibility.spec.ts` | axe com tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` e `wcag22aa` em 12 páginas; ausência de rolagem horizontal; teclado (o link "Pular para o conteúdo" é o primeiro foco e leva ao conteúdo) |
+| `admin-api.spec.ts` (`@api`) | Fluxos administrativos contra o servidor real: o gerente de catálogo cria categoria, marca, produto e variante, dá entrada no estoque e publica; filtros de pedidos; consulta de clientes sem dados pessoais; moderação; contas administrativas com revogação de sessão e RN-022; matriz de RBAC (403/401); posse de dados entre clientes; webhook forjado ou sem assinatura; auditoria |
+| `performance.spec.ts` (`@perf`) | Medição de referência do RNF-022 (abaixo) |
+
+ **Teste arquitetural** (`tests/architecture/layer-dependencies.test.ts`)
+
+ - O teste agora cobre `src/modules/**`, com as regras do ADR-002 e a única exceção do ADR-020 (`presentation → infrastructure`). Ele também exige que todo arquivo de módulo pertença a uma camada.
+ - **Violações preexistentes registradas** (lista fechada no próprio teste; qualquer violação nova falha, e uma entrada que deixar de existir precisa ser removida):
+   1. `modules/audit/application/audit-service.ts` → `../infrastructure/audit-repository`
+   2. `modules/auth/application/session-service.ts` → `../../identity/infrastructure/identity-repository`
+   3. `modules/identity/application/identity-service.ts` → `../../../infrastructure/logger`
+   4. `modules/identity/application/identity-service.ts` → `../infrastructure/identity-repository`
+   5. `modules/identity/application/identity-service.ts` → `../infrastructure/password-hasher`
+
+   Todas são `application → infrastructure`, existem desde as TASK-003/004 e corrigi-las exige refatorar autenticação e auditoria, fora do `ALLOWED_CHANGES`. Ficam como dívida técnica para o checkpoint TASK-022, junto com a dívida do checkout já aceita no ADR-020.
+ - Sanidade: uma importação `domain → infrastructure` temporária fez o teste falhar e foi removida.
+
+ **Correções de acessibilidade/responsividade:** nenhuma foi necessária (ver resultados).
+
+ **Limitador de tentativas de login (R6, opcional):** não implementado. O risco de força bruta continua aceito, como já registrado no `README.md`.
+
+ ## ETAPA-004 — Resultados
+
+ **E2E (`npm run test:e2e`, 2026-11-23):** 104 aprovados, 0 falhas, 19 pulados de propósito: os testes `@api` rodam só no Chromium desktop (14) e a medição `@perf` só no Chromium desktop (5).
+
+| Projeto | auth | storefront | accessibility | admin-api | perf |
+|---|---|---|---|---|---|
+| chromium | 4/4 | 3/3 | 9/9 | 7/7 | 1/1 |
+| firefox | 4/4 | 3/3 | 9/9 | pulado | pulado |
+| webkit | 4/4 | 3/3 | 9/9 | pulado | pulado |
+| chromium-360 | 4/4 | 3/3 | 9/9 | — | pulado |
+| firefox-360 | 4/4 | 3/3 | 9/9 | — | pulado |
+| webkit-360 | 4/4 | 3/3 | 9/9 | — | pulado |
+
+ **Acessibilidade (RNF-020) e responsividade (RNF-021):**
+ - **Páginas auditadas:** `/`, `/catalog`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/products/[id]`, `/profile`, `/cart`, `/checkout`, `/orders` e `/orders/[id]`.
+ - **Resultado do axe:** **0 violações de qualquer severidade** em todas essas páginas, nos 6 projetos. Não há rolagem horizontal a 360 px.
+ - **Limite da automação:** ela não substitui uma revisão manual completa de WCAG (por exemplo, leitor de tela e conteúdo). O roteiro manual a 360 px da TASK-023 foi aprovado pelo responsável.
+
+ **Desempenho (RNF-022) — ambiente e método**
+
+ - **Ambiente de referência:**
+   - MacBook com Intel Core i7-9750H, 16 GB, macOS 26.7.1, Node.js 22.14.0;
+   - Next.js 16.4.6 em build de produção atrás do proxy TLS local;
+   - PostgreSQL 18.6 no Docker Compose, na mesma máquina;
+   - Chromium 158 (Playwright 1.65.0); sem carga concorrente.
+ - **APIs:** 2 requisições de aquecimento e 30 medidas por endpoint, com o cliente autenticado. O tempo é a resposta completa vista pelo cliente.
+ - **Páginas:** 1 carga de aquecimento e 10 medidas, do início da navegação até a rede ociosa (`networkidle`), com o título principal visível e sem indicador de carregamento. Inclui a busca de dados no cliente e a janela de ~500 ms que o `networkidle` exige, por isso é um limite superior conservador.
+
+| API | mediana | p95 | máx. |
+|---|---:|---:|---:|
+| `GET /api/products` | 28 ms | 36 ms | 71 ms |
+| `GET /api/products/{id}` | 17 ms | 20 ms | 21 ms |
+| `GET /api/cart` | 27 ms | 31 ms | 34 ms |
+| `POST /api/checkout/quotes` | 30 ms | 33 ms | 36 ms |
+| `GET /api/orders` | 18 ms | 21 ms | 23 ms |
+| `GET /api/orders/{id}` | 18 ms | 22 ms | 32 ms |
+| `GET /api/health` | 9 ms | 11 ms | 11 ms |
+
+| Página | mediana | p95 | máx. |
+|---|---:|---:|---:|
+| `/catalog` | 602 ms | 605 ms | 605 ms |
+| `/products/[id]` | 576 ms | 585 ms | 585 ms |
+| `/cart` | 608 ms | 633 ms | 633 ms |
+| `/checkout` | 595 ms | 606 ms | 606 ms |
+| `/orders` | 598 ms | 603 ms | 603 ms |
+| `/orders/[id]` | 604 ms | 608 ms | 608 ms |
+
+ Metas atendidas: p95 das APIs ≤ 2 s e das páginas críticas ≤ 3 s. Trata-se de uma medição local, com um único usuário; não substitui um teste de carga em ambiente hospedado, que não existe na V1.
+
+ **Relatório de segurança (RBAC, posse de dados, webhook e segredos)**
+
+| Área | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| RBAC | Rotas administrativas: `CUSTOMER` 403 e visitante 401 em 9 rotas; `CATALOG_MANAGER` 403 em clientes, avaliações, usuários e auditoria; sem escalonamento por `/admin/users` | `admin-api.spec.ts`, `admin-management-flow`, `admin-moderation-users-flow`, `catalog-flow`, `inventory-api` | OK |
+| Posse de dados (RN-016) | Outro cliente recebe 404 em pedido, rastreamento e pagamento alheios; histórico vazio | `admin-api.spec.ts`, `order-api-flow`, `review-favorite-flow`, `cart-flow` | OK |
+| Dados pessoais (RN-019) | Consulta de clientes sem CPF, telefone ou endereço; auditoria e notificações sem e-mail nem senha | `admin-api.spec.ts`, `admin-management-flow`, `order-notifications`, `privacy-logging` | OK |
+| Webhook | Assinatura inválida ou ausente → 401 sem alterar o pagamento; eventos idempotentes por `(provider, provider_event_id)`; o simulador só envia para destino local | `admin-api.spec.ts`, `payment-webhook`, `checkout-api-flow`, `payment-simulator-script` | OK |
+| Sessão | Cookie `HttpOnly`, `Secure`, `SameSite=Lax`, 12 h; desativação revoga sessões; logout invalida a sessão | `session-cookie.ts`, `auth.spec.ts`, `admin-moderation-users-flow` | OK |
+| Segredos | Nenhum `.env` versionado além do `.env.example`; nenhum padrão de chave ou segredo nos arquivos versionados; segredos de teste gerados por execução | varredura com `git ls-files` + `grep` | OK |
+| Dependências | `npm audit` sem vulnerabilidades (após o Next.js 16.4.6) | `npm audit` | OK |
+| Força bruta no login | Sem limitador (R6 opcional, não implementado) | `README.md` (risco aceito) | Risco aceito, não crítico |
+
+ Nenhuma falha crítica em aberto.
+
+ **Constatação de compatibilidade:** em `http://localhost`, o WebKit/Safari não guarda o cookie de sessão `Secure`. Afeta só o uso local sem HTTPS (por exemplo, `npm run dev` aberto no Safari). Em HTTPS o login funciona nos três motores. Recomendação para o README/TASK-022: usar Chrome ou Firefox no desenvolvimento local, ou acessar por HTTPS.
+
+ **Limite da verificação do RNF-023:** foram exercitados os motores atuais do Playwright (Chromium 158, Firefox 159 e WebKit 27.2). O Edge usa o motor Chromium e o Safari usa o WebKit. A exigência de "duas versões estáveis mais recentes" de cada navegador de marca não foi verificada individualmente.
+
+ **Quality Gate (`npm run quality`):** formatação, lint (27 avisos `only-export-components` preexistentes, nenhum novo), typecheck, 47 arquivos/252 testes e build aprovados.
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (avisos preexistentes) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS (`admin-api.spec.ts` contra o servidor real) |
+| Security | PASS (relatório acima; nenhuma falha crítica) |
+| Acceptance | PASS |
+| Regression | PASS (252 testes Vitest + 104 E2E) |
+
+ ## ETAPA-005 — Teste manual
+
+ Não houve tela nova. A validação de interface foi automatizada nos três motores, em desktop e a 360 px; o roteiro manual a 360 px da TASK-023 já foi aprovado pelo responsável.
+
+ ## ETAPA-006 — Conclusão
+
+ | Arquivo | Classificação |
+ | --- | --- |
+ | `playwright.config.ts`, `tests/e2e/**` | PRIMARY |
+ | `tests/architecture/layer-dependencies.test.ts` | PRIMARY |
+ | `package.json` (`test:e2e`, dependências de desenvolvimento), `package-lock.json` | PRIMARY |
+ | `.gitignore` (`test-results/`, `playwright-report/`) | PRIMARY (configuração de E2E) |
+ | `docs/TASKS/TASK021.MD`, `TASKS.md` | PRIMARY |
+
+ Nenhuma alteração INCIDENTAL ou FORBIDDEN. Não houve mudança em requisitos, arquitetura, regras comerciais nem testes existentes enfraquecidos.
+
+ **Notas de ambiente:**
+ - O cache padrão de navegadores do Playwright (`~/Library/Caches/ms-playwright`) pertence ao `root` nesta máquina, por uma instalação antiga com `sudo`. Os navegadores foram instalados em `~/Library/Caches/ms-playwright-user`, usando `PLAYWRIGHT_BROWSERS_PATH`. Para usar o caminho padrão, corrija a permissão com `sudo chown -R $USER ~/Library/Caches/ms-playwright` e rode `npx playwright install`.
+ - Os E2E precisam do PostgreSQL do Docker Compose (`docker compose up -d db`) e do OpenSSL no `PATH`.

@@ -13,6 +13,7 @@
     "lint": "oxlint app src tests scripts vitest.config.ts next.config.ts",
     "test": "node --env-file-if-exists=.env.local ./node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,json}\" .prettierrc.json",
     "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,json}\" .prettierrc.json",
@@ -26,11 +27,14 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.0",
     "@types/node": "^24.13.3",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "oxlint": "^1.79.0",
+    "playwright-core": "1.65.0",
     "prettier": "3.9.10",
     "typescript": "~6.0.2",
     "vitest": "5.0.5"

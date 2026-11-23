@@ -65,7 +65,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    19 | TASK-019 | PHASE-04 | HIGH       | TASK-018                   | DONE    |
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | DONE    |
 |    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
-|    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | BLOCKED |
+|    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | DONE    |
 |    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
 
 ---
@@ -578,7 +578,7 @@ Registro completo: `docs/TASKS/TASK023.MD`.
 
 ## TASK-021 — Segurança, acessibilidade e testes E2E
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-020,TASK-023`
 **Relacionados (IDs oficiais):** RNF-001, RNF-002, RNF-004, RNF-006, RNF-009, RNF-017, RNF-020, RNF-021, RNF-022, RNF-023; RN-016, RN-017, RN-018; UC-001 a UC-021; ADR-015, ADR-020
@@ -603,6 +603,19 @@ Registro completo: `docs/TASKS/TASK023.MD`.
 
 **Testes necessários:** E2E, acessibilidade automatizada, arquitetura e regressão completa.
 **DoD específico:** resultados registrados; problemas críticos resolvidos ou formalmente aceitos.
+**Prontidão (2026-11-19): PASS.** TASK-020 e TASK-023 `DONE`; PRs #23 e #24 mergeados; `main` verificada (47 arquivos/250 testes, Next.js 16.4.6). Início autorizado pelo responsável ("inicie a TASK-021"). Transições `BLOCKED → READY → IN_PROGRESS`, branch `feature/TASK-021-seguranca-acessibilidade-e2e`.
+
+**Execução concluída (2026-11-23):** transições `IN_PROGRESS → IN_REVIEW → DONE`. Registro completo em `docs/TASKS/TASK021.MD`.
+- **E2E (Playwright 1.65.0):** 6 projetos (Chromium, Firefox e WebKit em desktop e a 360 px), build de produção, banco dedicado `tropa_fight_e2e` com dados semeados e proxy TLS local. O proxy é necessário porque o WebKit descarta o cookie `Secure` em `http://localhost`; a autenticação não foi alterada. Resultado de `npm run test:e2e`: 104 aprovados, 0 falhas, 19 pulados de propósito (API e desempenho só no Chromium desktop).
+- **Fluxos:** cadastro, login, perfil, logout, recuperação e redefinição; compra completa da TASK-023 até `Pagamento confirmado`; variante sem estoque; redirecionamento de visitante.
+- **API administrativa contra o servidor real:** catálogo e estoque, filtros de pedidos, clientes, moderação, contas administrativas e RN-022, matriz de RBAC, posse de dados entre clientes, webhook forjado e auditoria.
+- **WCAG 2.2 AA (axe 4.14.0):** 0 violações de qualquer severidade em 12 páginas e 6 projetos; sem rolagem horizontal a 360 px; teclado com link de pulo. Nenhuma correção de interface foi necessária.
+- **Arquitetura:** o teste agora cobre `src/modules/**` com a exceção do ADR-020. 5 violações preexistentes `application → infrastructure` (identity, auth, audit) ficam registradas numa lista fechada no próprio teste, como dívida técnica para a TASK-022.
+- **RNF-022:** ambiente e método registrados; p95 das APIs de 11 a 36 ms (meta ≤ 2 s) e das páginas críticas de 585 a 633 ms (meta ≤ 3 s, medida conservadora).
+- **Segurança:** relatório sem falhas críticas abertas (RBAC, posse de dados, webhook, sessão, segredos, `npm audit` limpo). O limitador de login (R6, opcional) não foi implementado; o risco continua aceito.
+- `npm run quality`: 47 arquivos/252 testes; lint sem avisos novos; build aprovado.
+- **Notas:** a verificação do RNF-023 usou os motores atuais, não as "duas versões mais recentes" de cada navegador de marca. O cache de navegadores do Playwright pertence ao `root` nesta máquina; os navegadores foram instalados com `PLAYWRIGHT_BROWSERS_PATH`.
+- Sem alterações incidentais. A TASK-022 permanece `BLOCKED` e não foi iniciada.
 
 ## TASK-022 — Checkpoint PHASE-04 e readiness da V1
 
