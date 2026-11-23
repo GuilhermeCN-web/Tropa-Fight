@@ -719,6 +719,7 @@ Os valores padrão (`tropa` / `tropa_local` / `tropa_fight`) servem só para des
 Comandos úteis:
 
 - Criar o administrador no contêiner: `docker compose run --rm -it app npm run identity:create-admin`.
+- Popular dados de demonstração (catálogo, estoque, cupom `TROPA10` e cliente `cliente.demo@tropafight.local`), com a aplicação no ar e o administrador já criado: `SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... npm run seed:demo`. Usa somente a API, só roda contra `localhost` e pode ser repetido sem duplicar dados. Senha do cliente: `SEED_CUSTOMER_PASSWORD` ou o padrão do script.
 - Usar o banco do Compose com `npm run dev`: em `.env.local`, `DATABASE_URL=postgresql://tropa:tropa_local@localhost:5433/tropa_fight`.
 - Parar: `docker compose down`. Adicione `-v` para apagar os dados.
 
@@ -731,6 +732,7 @@ Comandos úteis:
 | `npm run start` | Servir a versão gerada |
 | `npm run db:migrate` | Aplicar as migrations no PostgreSQL configurado |
 | `npm run identity:create-admin` | Criar o primeiro administrador |
+| `npm run seed:demo` | Popular dados de demonstração via API (somente local) |
 | `npm run payment:simulate -- <paymentId> <evento>` | Enviar um evento assinado ao webhook local do pagamento simulado |
 | `npm run lint` | oxlint em `app`, `src`, `tests` e `scripts` |
 | `npm test` | Testes unitários, de integração e arquiteturais. Os de integração exigem `DATABASE_URL` |
