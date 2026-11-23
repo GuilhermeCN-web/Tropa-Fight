@@ -11,6 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    // `.tsx` included in TASK-022: component tests were silently skipped.
+    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
   },
 })

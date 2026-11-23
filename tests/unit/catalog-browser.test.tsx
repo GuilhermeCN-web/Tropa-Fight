@@ -25,7 +25,8 @@ describe('catalog browser accessibility', () => {
     expect(html).toContain('<label>Categoria')
     expect(html).toContain('<label>Marca')
     expect(html).toContain('aria-label="Paginação do catálogo"')
-    expect(html).toContain('href="/catalog?page=2&pageSize=1"')
+    // Attribute values are HTML-escaped: `&` is rendered as `&amp;`.
+    expect(html).toContain('href="/catalog?page=2&amp;pageSize=1"')
     expect(html).toContain('Nenhum produto encontrado.')
   })
 })
