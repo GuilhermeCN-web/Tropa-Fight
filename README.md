@@ -2,7 +2,7 @@
 
 **Descrição:** plataforma de e-commerce voltada ao público brasileiro para produtos físicos de artes marciais, esportes de combate e treinamento, com área do cliente e área administrativa.
 **Versão planejada:** 1.0
-**Status:** PLANEJAMENTO APROVADO — EM IMPLEMENTAÇÃO. A aprovação é considerada implícita no início da TASK-001 (2026-10-21), conforme decisão de 2026-11-11. O estado de cada TASK fica em [`TASKS.md`](TASKS.md).
+**Status:** V1 IMPLEMENTADA — PRONTA PARA APRESENTAÇÃO (ambiente local). Todas as TASKs do backlog (TASK-001 a TASK-023) foram concluídas; o checkpoint final, com os riscos aceitos e as limitações conhecidas, está em [`docs/checkpoints/PHASE-04-CHECKPOINT.md`](docs/checkpoints/PHASE-04-CHECKPOINT.md). A aprovação do planejamento é considerada implícita no início da TASK-001 (2026-10-21), conforme decisão de 2026-11-11. O estado de cada TASK fica em [`TASKS.md`](TASKS.md).
 
 > **Fonte de verdade.** Este README define **o que construir e por quê**: escopo, requisitos, regras, domínio, arquitetura e APIs. O estado de execução, os commits e os resultados de testes ficam no `TASKS.md`. As decisões arquiteturais estão em [`docs/adr/ADRs.md`](docs/adr/ADRs.md). O histórico das divergências reconciliadas está em [`docs/planning/divergencias-documentacao.md`](docs/planning/divergencias-documentacao.md).
 
@@ -35,11 +35,11 @@ Funcionalidades contempladas, com o estado da especificação:
 | Checkout | Cotação no servidor, endereço, frete local fixo, criação de pedido idempotente | Aprovada |
 | Pagamentos | Mock local de PIX, débito e crédito, webhook assinado e idempotente | Aprovada (somente simulação) |
 | Pedidos | Histórico, detalhe, estado e dados de entrega persistidos; consulta administrativa somente leitura | Aprovada |
-| Avaliações e favoritos | Avaliação por compra verificada, com moderação; lista privada de favoritos | Aprovada; moderação na TASK-019 |
-| Administração | Catálogo, estoque, pedidos (leitura com filtros), consulta de clientes, cupons e promoções, moderação de avaliações, usuários administrativos | Aprovada (2026-11-11); TASK-018/019 |
-| Interface do cliente | Página de produto com seleção de variante, carrinho, checkout (endereço, cotação, pedido, pagamento simulado), histórico e detalhe de pedidos | Aprovada (2026-11-11); TASK-023 |
-| Governança | Auditoria imutável, logs sem dados sensíveis, notificações mock de conta e de pedido, health check | Aprovada; consolidação na TASK-020 |
-| Qualidade e operação | Testes automatizados, acessibilidade, responsividade, backup e restauração | Metas aprovadas; validação nas TASK-021 e TASK-022 |
+| Avaliações e favoritos | Avaliação por compra verificada, com moderação; lista privada de favoritos | Implementada (TASK-017/019) |
+| Administração | Catálogo, estoque, pedidos (leitura com filtros), consulta de clientes, cupons e promoções, moderação de avaliações, usuários administrativos | Implementada por API (TASK-006–019); interface administrativa fora da V1 |
+| Interface do cliente | Página de produto com seleção de variante, carrinho, checkout (endereço, cotação, pedido, pagamento simulado), histórico e detalhe de pedidos | Implementada (TASK-023) |
+| Governança | Auditoria imutável, logs sem dados sensíveis, notificações mock de conta e de pedido, health check | Implementada (TASK-004/020) |
+| Qualidade e operação | Testes automatizados, acessibilidade, responsividade, backup e restauração | Validada (TASK-021/022) |
 
 A interface administrativa não está no escopo da V1: a administração é feita por API.
 
@@ -84,7 +84,7 @@ A interface administrativa não está no escopo da V1: a administração é feit
 - exclusão de conta e anonimização (LGPD);
 - imagens de produto;
 - interface administrativa;
-- rate limiting e proteção contra tentativas abusivas (risco aceito, registrado na TASK-022).
+- rate limiting e proteção contra tentativas abusivas (risco aceito R-01 no checkpoint da TASK-022).
 
 ## 4. Stakeholders e atores
 
@@ -115,39 +115,39 @@ Os critérios de aceitação verificáveis estão na TASK indicada (`TASKS.md` e
 | RF-003 | Catálogo de produtos | MUST | Implementado | 006, 008 |
 | RF-004 | Categorias e marcas | MUST | Implementado | 006 |
 | RF-005 | Pesquisa e filtros | MUST | Implementado | 008 |
-| RF-006 | Detalhes do produto (descrição, preço e variantes; imagens `WON'T`) | MUST | API implementada; página na TASK-023 | 006, 007, 023 |
-| RF-007 | Seleção de variante | MUST | API implementada; seleção na UI na TASK-023 | 007, 023 |
-| RF-008 | Carrinho | MUST | API implementada; tela na TASK-023 | 011, 023 |
+| RF-006 | Detalhes do produto (descrição, preço e variantes; imagens `WON'T`) | MUST | Implementado (API e página) | 006, 007, 023 |
+| RF-007 | Seleção de variante | MUST | Implementado (API e tela) | 007, 023 |
+| RF-008 | Carrinho | MUST | Implementado (API e tela) | 011, 023 |
 | RF-009 | Cupons e promoções | SHOULD | Implementado | 012 |
-| RF-010 | Checkout | MUST | API implementada; tela na TASK-023 | 013, 023 |
-| RF-011 | Pagamento | MUST | Mock implementado; tela na TASK-023 | 014, 023 |
+| RF-010 | Checkout | MUST | Implementado (API e tela) | 013, 023 |
+| RF-011 | Pagamento | MUST | Mock implementado, com tela e simulação local (`npm run payment:simulate`) | 014, 023 |
 | RF-012 | Pedido | MUST | Implementado | 013, 015 |
-| RF-013 | Acompanhamento do pedido | MUST | API implementada; tela na TASK-023 | 015, 023 |
-| RF-014 | Histórico de compras | MUST | API implementada; tela na TASK-023 | 015, 023 |
+| RF-013 | Acompanhamento do pedido | MUST | Implementado (API e tela) | 015, 023 |
+| RF-014 | Histórico de compras | MUST | Implementado (API e tela) | 015, 023 |
 | RF-015 | Estoque | MUST | Implementado | 009, 013 |
 | RF-016 | Movimentação de estoque | MUST | Implementado | 009 |
-| RF-017 | Avaliações | SHOULD | Implementado; moderação na TASK-019 | 017, 019 |
+| RF-017 | Avaliações | SHOULD | Implementado, com moderação | 017, 019 |
 | RF-018 | Favoritos | SHOULD | Implementado | 017 |
-| RF-019 | Notificações (somente adaptador mock na V1) | SHOULD | Eventos de conta implementados; eventos de pedido na TASK-020 | 004, 020 |
+| RF-019 | Notificações (somente adaptador mock na V1) | SHOULD | Implementado: eventos de conta e de pedido (`ORDER_CREATED`, `PAYMENT_APPROVED`) | 004, 020 |
 | RF-020 | Administração de produtos | MUST | Implementado | 006, 007 |
 | RF-021 | Administração de categorias e marcas | MUST | Implementado | 006 |
 | RF-022 | Administração de estoque | MUST | Implementado | 009 |
-| RF-023 | Administração de pedidos | MUST | Consulta implementada; filtros na TASK-018 | 015, 018 |
-| RF-024 | Administração de clientes | MUST | TASK-018 | 018 |
-| RF-025 | Administração de avaliações | SHOULD | TASK-019 | 019 |
+| RF-023 | Administração de pedidos | MUST | Implementado (consulta com filtros) | 015, 018 |
+| RF-024 | Administração de clientes | MUST | Implementado (consulta somente leitura) | 018 |
+| RF-025 | Administração de avaliações | SHOULD | Implementado (moderação) | 019 |
 | RF-026 | Administração de cupons e promoções | SHOULD | Implementado | 012, 019 |
-| RF-027 | Usuários administrativos | MUST | TASK-019 | 019 |
-| RF-028 | Auditoria | MUST | Implementado; consolidação na TASK-020 | 004, 020 |
+| RF-027 | Usuários administrativos | MUST | Implementado | 019 |
+| RF-028 | Auditoria | MUST | Implementado | 004, 020 |
 | RF-029 | Relatórios operacionais | WON'T (V1) | Fora da V1 | — |
 | RF-030 | Integrações externas reais | WON'T (V1) | Somente adaptadores locais simulados | — |
-| RF-031 | Administração de catálogo consolidada (refina RF-020/021) | MUST | APIs existentes; validação na TASK-018 | 018 |
-| RF-032 | Administração de estoque consolidada (refina RF-022) | MUST | APIs existentes; validação na TASK-018 | 018 |
-| RF-033 | Consulta administrativa de pedidos com filtros por status e período (refina RF-023) | MUST | TASK-018 | 018 |
-| RF-034 | Consulta administrativa de clientes (refina RF-024) | MUST | TASK-018 | 018 |
-| RF-035 | Administração de cupons (refina RF-026) | SHOULD | APIs existentes; validação na TASK-019 | 019 |
-| RF-036 | Administração de promoções (refina RF-026) | SHOULD | APIs existentes; validação na TASK-019 | 019 |
-| RF-037 | Moderação de avaliações (refina RF-025) | SHOULD | TASK-019 | 019 |
-| RF-038 | Gestão de usuários administrativos (refina RF-027) | MUST | TASK-019 | 019 |
+| RF-031 | Administração de catálogo consolidada (refina RF-020/021) | MUST | Implementado; validado por testes de API e RBAC | 018 |
+| RF-032 | Administração de estoque consolidada (refina RF-022) | MUST | Implementado; validado por testes de API e RBAC | 018 |
+| RF-033 | Consulta administrativa de pedidos com filtros por status e período (refina RF-023) | MUST | Implementado | 018 |
+| RF-034 | Consulta administrativa de clientes (refina RF-024) | MUST | Implementado | 018 |
+| RF-035 | Administração de cupons (refina RF-026) | SHOULD | Implementado (TASK-012); validado por testes | 019 |
+| RF-036 | Administração de promoções (refina RF-026) | SHOULD | Implementado (TASK-012); validado por testes | 019 |
+| RF-037 | Moderação de avaliações (refina RF-025) | SHOULD | Implementado | 019 |
+| RF-038 | Gestão de usuários administrativos (refina RF-027) | MUST | Implementado | 019 |
 
 ### 5.2 Requisitos aprovados por área
 
@@ -230,7 +230,7 @@ Cada área lista o comportamento aprovado e a origem da decisão. Os critérios 
 **Avaliações e favoritos** (Rodada 10, decisões TASK-017):
 - Só avalia o cliente com pedido `PAYMENT_CONFIRMED` que contenha o produto. Uma avaliação por cliente e produto.
 - Nota inteira de 1 a 5; comentário opcional de até 2.000 caracteres.
-- Criação e edição deixam a avaliação em `PENDING`, inclusive depois de `REJECTED`. A moderação para `PUBLISHED` ou `REJECTED` será feita na TASK-019.
+- Criação e edição deixam a avaliação em `PENDING`, inclusive depois de `REJECTED`. A moderação para `PUBLISHED` ou `REJECTED` é feita pelo `GENERAL_ADMIN`, somente a partir de `PENDING` (TASK-019).
 - Só avaliações `PUBLISHED` de produtos publicados aparecem publicamente.
 - Favoritos são privados e preservados se o produto ficar inativo.
 
@@ -250,29 +250,29 @@ Por decisão de 2026-11-11 (DIV-002):
 
 | RNF | Requisito | Critério / situação |
 | --- | --- | --- |
-| RNF-001 | Interface responsiva para os dispositivos e navegadores suportados | Critérios em RNF-021 e RNF-023 |
-| RNF-002 | Acessibilidade mínima definida e verificável nos fluxos críticos | Critério em RNF-020 |
-| RNF-003 | Metas de desempenho mensuráveis para catálogo, carrinho, checkout e pedidos | Critério em RNF-022 |
+| RNF-001 | Interface responsiva para os dispositivos e navegadores suportados | Critérios em RNF-021 e RNF-023; validado na TASK-021 |
+| RNF-002 | Acessibilidade mínima definida e verificável nos fluxos críticos | Critério em RNF-020; validado na TASK-021 |
+| RNF-003 | Metas de desempenho mensuráveis para catálogo, carrinho, checkout e pedidos | Critério em RNF-022; medido na TASK-021 |
 | RNF-004 | Hash apropriado de senhas; segredos fora do código-fonte | Implementado (`scrypt`; `.env.local`) |
 | RNF-005 | TLS/HTTPS para dados em trânsito | Aplicável a ambiente hospedado; N/A no ambiente local |
 | RNF-006 | Autenticação e autorização adequadas nas operações administrativas | Implementado (RBAC no servidor) |
-| RNF-007 | Auditoria de operações administrativas sensíveis | Implementado; consolidação na TASK-020 |
+| RNF-007 | Auditoria de operações administrativas sensíveis | Implementado (mudanças administrativas; leituras não auditadas, risco R-10) |
 | RNF-008 | Autenticação, idempotência e confirmação de eventos de pagamento | Implementado (HMAC e idempotência) |
 | RNF-009 | Proteção contra acesso não autorizado a dados privados de clientes | Implementado (ownership) |
 | RNF-010 | Integridade de estoque sob compras concorrentes | Implementado (TASK-009/013) |
 | RNF-011 | Backups com frequência, retenção, armazenamento e restauração definidos | Definido: diário, 30 dias, Supabase Storage |
-| RNF-012 | Restauração de backup testável, com critérios de sucesso | Restore sintético validado (TASK-005); RPO ≤ 24 h, RTO ≤ 8 h |
-| RNF-013 | Logs estruturados para erros e eventos operacionais | Implementado; consolidação na TASK-020 |
-| RNF-014 | Falhas críticas observáveis, com alertas | Health check e logs na TASK-020; alertas externos dependem de hospedagem |
+| RNF-012 | Restauração de backup testável, com critérios de sucesso | Restore sintético validado (TASK-005) e restore de dump completo verificado (TASK-022); RPO ≤ 24 h, RTO ≤ 8 h |
+| RNF-013 | Logs estruturados para erros e eventos operacionais | Implementado |
+| RNF-014 | Falhas críticas observáveis, com alertas | Health check (`GET /api/health`) e logs implementados; alertas externos dependem de hospedagem |
 | RNF-015 | Observância à LGPD | Minimização e sanitização implementadas; exclusão de conta fora da V1 |
 | RNF-016 | Testes automatizados proporcionais ao risco | Em vigor (ADR-015) |
-| RNF-017 | Separação entre apresentação, aplicação, domínio e infraestrutura | Em vigor (ADR-002, ADR-020); verificação ampliada na TASK-021 |
+| RNF-017 | Separação entre apresentação, aplicação, domínio e infraestrutura | Em vigor (ADR-002, ADR-020); teste arquitetural cobre `src/modules/**`, com 5 violações preexistentes registradas (risco R-05) |
 | RNF-018 | Evitar dependências desnecessárias entre regras de negócio e serviços externos | Em vigor (portas e adaptadores) |
 | RNF-019 | Disponibilidade | Meta mensal de 99% em futuro ambiente hospedado. Não é SLA (aprovado em 2026-10-23) |
-| RNF-020 | Acessibilidade | Fluxos críticos em WCAG 2.2 nível AA ([W3C](https://www.w3.org/TR/WCAG22/)) |
-| RNF-021 | Responsividade | Fluxos críticos utilizáveis de 360 px até desktop, sem perda de funcionalidade |
-| RNF-022 | Desempenho | p95 de APIs ≤ 2 s e páginas críticas ≤ 3 s em ambiente de referência; ambiente e método registrados antes da validação |
-| RNF-023 | Compatibilidade | Duas versões estáveis mais recentes de Chrome, Edge, Firefox e Safari |
+| RNF-020 | Acessibilidade | Fluxos críticos em WCAG 2.2 nível AA ([W3C](https://www.w3.org/TR/WCAG22/)). Verificação automatizada (axe) sem violações na TASK-021 |
+| RNF-021 | Responsividade | Fluxos críticos utilizáveis de 360 px até desktop, sem perda de funcionalidade. Validado por E2E na TASK-021 |
+| RNF-022 | Desempenho | p95 de APIs ≤ 2 s e páginas críticas ≤ 3 s em ambiente de referência; ambiente e método registrados antes da validação. Medição local na TASK-021: p95 ≤ 36 ms (APIs) e ≤ 633 ms (páginas) |
+| RNF-023 | Compatibilidade | Duas versões estáveis mais recentes de Chrome, Edge, Firefox e Safari. E2E nos motores Chromium, Firefox e WebKit (TASK-021); versões de marca não verificadas individualmente (risco R-11) |
 
 **Fluxos críticos com interface na V1:** cadastro, login, recuperação de senha, perfil, catálogo, produto, carrinho, checkout e pedidos.
 
@@ -296,15 +296,15 @@ As regras detalhadas e vigentes estão em 5.2. RN-021 a RN-023 foram criadas em 
 | RN-012 | Mudança de preço não altera pedido confirmado | Implementada (TASK-013) |
 | RN-013 | Cupom só com critérios atendidos | Implementada (TASK-012) |
 | RN-014 | Cupom expirado, inativo ou esgotado não é usado | Implementada (TASK-012/013) |
-| RN-015 | Avaliações seguem elegibilidade e moderação | Elegibilidade implementada; moderação na TASK-019 |
+| RN-015 | Avaliações seguem elegibilidade e moderação | Implementada: elegibilidade (TASK-017) e moderação (TASK-019) |
 | RN-016 | Administrador só executa o permitido | Implementada (RBAC no servidor) |
-| RN-017 | Nenhuma operação contorna a autorização | Princípio aplicado; validação na TASK-021 |
+| RN-017 | Nenhuma operação contorna a autorização | Implementada; validada por E2E e testes de RBAC (TASK-021) |
 | RN-018 | Dados de um cliente não expostos a outro | Implementada (ownership) |
 | RN-019 | Operações sensíveis auditáveis | Implementada para os eventos aprovados |
 | RN-020 | Cancelamento, devolução, troca e reembolso têm regras próprias | **Fora da V1** (2026-11-11) |
 | RN-021 | Favoritos são privados do cliente, únicos por produto e preservados se o produto ficar inativo | Implementada (TASK-017) |
-| RN-022 | O último `GENERAL_ADMIN` ativo não pode ser desativado nem perder o papel | TASK-019 |
-| RN-023 | Cada usuário possui exatamente um papel (`CUSTOMER`, `GENERAL_ADMIN` ou `CATALOG_MANAGER`) | TASK-019 |
+| RN-022 | O último `GENERAL_ADMIN` ativo não pode ser desativado nem perder o papel | Implementada (TASK-019) |
+| RN-023 | Cada usuário possui exatamente um papel (`CUSTOMER`, `GENERAL_ADMIN` ou `CATALOG_MANAGER`) | Implementada (TASK-019; índice único, migration 013) |
 
 ## 8. Casos de uso
 
@@ -314,25 +314,25 @@ As regras detalhadas e vigentes estão em 5.2. RN-021 a RN-023 foram criadas em 
 | UC-002 | Autenticar cliente | Cliente | Implementado (API e tela) |
 | UC-003 | Recuperar acesso | Cliente | Implementado (e-mail mock) |
 | UC-004 | Navegar pelo catálogo | Visitante/Cliente | Implementado (`/catalog`) |
-| UC-005 | Consultar produto | Visitante/Cliente | API implementada; página na TASK-023 |
-| UC-006 | Adicionar produto ao carrinho | Cliente | API implementada; tela na TASK-023 |
-| UC-007 | Gerenciar carrinho | Cliente | API implementada; tela na TASK-023 |
-| UC-008 | Realizar checkout | Cliente | API implementada; tela na TASK-023 |
-| UC-009 | Processar pagamento | Cliente/Sistema/Provedor | Mock implementado; tela e simulação local na TASK-023 |
+| UC-005 | Consultar produto | Visitante/Cliente | Implementado (API e página) |
+| UC-006 | Adicionar produto ao carrinho | Cliente | Implementado (API e tela) |
+| UC-007 | Gerenciar carrinho | Cliente | Implementado (API e tela) |
+| UC-008 | Realizar checkout | Cliente | Implementado (API e tela) |
+| UC-009 | Processar pagamento | Cliente/Sistema/Provedor | Mock implementado, com tela e simulação local (`npm run payment:simulate`) |
 | UC-010 | Criar pedido | Sistema | Implementado |
-| UC-011 | Acompanhar pedido | Cliente | API implementada; tela na TASK-023 |
-| UC-012 | Avaliar produto | Cliente | Implementado (API); moderação na TASK-019 |
+| UC-011 | Acompanhar pedido | Cliente | Implementado (API e tela) |
+| UC-012 | Avaliar produto | Cliente | Implementado (API), com moderação |
 | UC-013 | Gerenciar favoritos | Cliente | Implementado (API) |
 | UC-014 | Administrar catálogo | Gestor/Admin | Implementado (API) |
 | UC-015 | Administrar estoque | Gestor/Admin | Implementado (API) |
-| UC-016 | Administrar pedidos | Admin Geral | Consulta implementada; filtros na TASK-018 |
-| UC-017 | Administrar clientes | Admin Geral | TASK-018 |
+| UC-016 | Administrar pedidos | Admin Geral | Implementado (API, consulta com filtros) |
+| UC-017 | Administrar clientes | Admin Geral | Implementado (API, somente leitura) |
 | UC-018 | Administrar promoções | Admin Geral | Implementado (API) |
-| UC-019 | Moderar avaliações | Admin Geral | TASK-019 |
-| UC-020 | Gerenciar usuários administrativos | Admin Geral | TASK-019 |
+| UC-019 | Moderar avaliações | Admin Geral | Implementado (API) |
+| UC-020 | Gerenciar usuários administrativos | Admin Geral | Implementado (API) |
 | UC-021 | Auditar operação | Admin Geral | Implementado (API) |
 | UC-022 | Processar integração de entrega | Sistema | Só cotação local (ADR-010); integração real fora da V1 |
-| UC-023 | Enviar notificação | Sistema | Adaptador mock; eventos de pedido na TASK-020 |
+| UC-023 | Enviar notificação | Sistema | Implementado (adaptador mock; eventos de conta e de pedido) |
 
 Fluxos detalhados: `docs/TASKS/TASKnnn.MD`. A interface administrativa não faz parte da V1; UC-014 a UC-021 são atendidos por API.
 
@@ -439,7 +439,7 @@ flowchart TD
 
 **Erros.** `ApplicationError`/`ValidationError` para erros esperados; `InfrastructureError` na camada técnica. Erros inesperados são registrados de forma genérica, sem payload.
 
-**Composição (ADR-020).** A camada `presentation` de cada módulo é o ponto de composição: ela pode instanciar adaptadores de `infrastructure` e entregá-los aos casos de uso, mas não pode conter regra de negócio nem SQL. A ausência da camada `application` no módulo `checkout` é dívida técnica registrada, e não será refatorada na V1. A verificação automatizada das camadas em `src/modules/**` será ampliada na TASK-021.
+**Composição (ADR-020).** A camada `presentation` de cada módulo é o ponto de composição: ela pode instanciar adaptadores de `infrastructure` e entregá-los aos casos de uso, mas não pode conter regra de negócio nem SQL. A ausência da camada `application` no módulo `checkout` é dívida técnica registrada, e não será refatorada na V1. A verificação automatizada das camadas cobre `src/modules/**` desde a TASK-021.
 
 Detalhes: [`docs/architecture/overview.md`](docs/architecture/overview.md) e [`docs/architecture/infrastructure-baseline.md`](docs/architecture/infrastructure-baseline.md).
 
@@ -510,7 +510,7 @@ Todas as rotas ficam sob `/api` e respondem em JSON. Rotas autenticadas usam o c
 | GET | `/customer/favorites` | Cliente | Listar favoritos | 017 |
 | POST, DELETE | `/customer/favorites/{productId}` | Cliente | Favoritar e desfavoritar | 017 |
 
-**Planejadas** (contratos definidos em 2026-11-11, a partir das decisões R2, R3 e R7). Todas usam paginação `page`/`pageSize` (padrão 20, máximo 100), `Cache-Control: no-store` e os códigos de erro 400, 401, 403, 404 e 409, conforme o padrão das APIs existentes.
+**Implementadas nas TASK-018 a TASK-020** (contratos definidos em 2026-11-11, a partir das decisões R2, R3 e R7). Todas usam `Cache-Control: no-store` e os códigos de erro 400, 401, 403, 404 e 409, conforme o padrão das APIs existentes. As listagens de pedidos, clientes e avaliações são paginadas com `page`/`pageSize` (padrão 20, máximo 100). `GET /admin/users` retorna todas as contas administrativas sem paginação nem filtros, porque são poucas; parâmetros de consulta são recusados com 400.
 
 | Método | Rota | Acesso | Finalidade | TASK |
 | --- | --- | --- | --- | --- |
@@ -533,7 +533,7 @@ Nenhum papel ou permissão novo é criado: as rotas usam permissões de identida
 - `/checkout`: endereço, cotação, confirmação de valores alterados, criação do pedido com `Idempotency-Key` e escolha do meio de pagamento simulado;
 - `/orders` e `/orders/[id]`: histórico, detalhe e entrega.
 
-O mock de pagamento não envia webhooks sozinho. Para demonstrar a aprovação, a TASK-023 prevê o script local `npm run payment:simulate`, que assina o evento com `PAYMENT_WEBHOOK_SECRET` e o envia ao webhook existente. Não cria endpoint nem altera o contrato de pagamento. Este item depende de confirmação antes do `READY`.
+O mock de pagamento não envia webhooks sozinho. Para demonstrar a aprovação, use o script local `npm run payment:simulate -- <paymentId> <evento>` (TASK-023, aprovado em 2026-11-11). Ele assina o evento com `PAYMENT_WEBHOOK_SECRET` e o envia ao webhook existente. Não cria endpoint nem altera o contrato de pagamento, e só aceita destino local (`PAYMENT_SIMULATE_URL`, padrão `http://localhost:3000`). Eventos: `payment.processing`, `payment.approved`, `payment.failed`, `payment.cancelled` e `payment.expired`.
 
 ## 13. Tecnologias
 
@@ -564,15 +564,15 @@ Ainda pendentes: hospedagem, gateway de pagamento, transportadora, provedor de e
 - sanitização de logs (módulo `privacy`);
 - segredos (`DATABASE_URL` e `PAYMENT_WEBHOOK_SECRET`) somente no servidor, via `.env.local` fora do Git;
 - consultas SQL parametrizadas;
-- nenhum dado de cartão armazenado.
+- nenhum dado de cartão armazenado;
+- verificação de segurança automatizada: RBAC, ownership, webhook forjado e segredos versionados, com relatório em `docs/TASKS/TASK021.MD`.
 
 **Pendente:**
 
-- rate limiting e proteção contra tentativas abusivas: fora da V1, risco aceito na TASK-022. Se houver tempo, um limitador no login pode entrar na TASK-021;
+- rate limiting e proteção contra tentativas abusivas: fora da V1, risco aceito R-01 (o limitador opcional de login não foi implementado);
 - TLS em ambiente hospedado;
 - política de retenção e exclusão de dados (LGPD: Rodada 12);
-- gestão de segredos em ambiente hospedado;
-- relatório de segurança da TASK-021.
+- gestão de segredos em ambiente hospedado.
 
 ## 15. Estratégia de testes
 
@@ -580,8 +580,9 @@ Ainda pendentes: hospedagem, gateway de pagamento, transportadora, provedor de e
 | --- | --- | --- |
 | Unitário | `tests/unit/` | Domínio de catálogo, variantes, estoque, carrinho, desconto, cupom, promoção, checkout, pagamento, webhook, avaliações, política de senha, hash, auditoria e privacidade |
 | Integração/API | `tests/integration/` | Fluxos com PostgreSQL local de identidade, catálogo, busca, variantes, estoque, carrinho, cupom, checkout, pedidos, pagamento, avaliações e favoritos. Exigem `.env.local` com `DATABASE_URL` |
-| Arquitetural | `tests/architecture/` | Direção de dependência entre camadas. Hoje não cobre `src/modules/**`; ampliação com a exceção do ADR-020 na TASK-021 |
-| E2E, acessibilidade, responsividade, desempenho | — | Planejados para a TASK-021, sobre os fluxos com interface (incluindo os da TASK-023); nenhum existe ainda |
+| Unitário de componentes | `tests/unit/*.test.tsx` | Renderização de componentes React (executados a partir da TASK-022) |
+| Arquitetural | `tests/architecture/` | Direção de dependência entre camadas em `src/` e `src/modules/**`, com a exceção do ADR-020 e 5 violações preexistentes registradas em lista fechada |
+| E2E, acessibilidade, responsividade, desempenho | `tests/e2e/` (Playwright + axe) | Cadastro, login, recuperação, compra completa, API administrativa, WCAG 2.2 AA e medição do RNF-022, nos motores Chromium, Firefox e WebKit, em desktop e a 360 px. Executar com `npm run test:e2e` (ver "Desenvolvimento local") |
 
 Os Quality Gates e a Definition of Done estão no [`AGENTS.md`](AGENTS.md). O resultado de cada execução fica registrado no `TASKS.md`.
 
@@ -592,13 +593,16 @@ Os Quality Gates e a Definition of Done estão no [`AGENTS.md`](AGENTS.md). O re
 | Concorrência no estoque | Técnico | Alta/Alta | Atualização condicional e reserva transacional (TASK-009/013) |
 | Webhook duplicado ou forjado | Segurança/Integração | Média/Alta | HMAC e idempotência por evento (TASK-014) |
 | Rastreabilidade de TASKs antigas com IDs legados | Processo | Média/Média | IDs oficiais definidos e mapeamento legado no `TASKS.md` (2026-11-11) |
-| Arquitetura sem verificação automatizada nos módulos | Arquitetural | Alta/Média | ADR-020 e teste ampliado na TASK-021 |
+| Dívida arquitetural nos módulos | Arquitetural | Média/Média | Teste ampliado a `src/modules/**` (TASK-021); dívida do checkout (ADR-020) e 5 violações preexistentes registradas (riscos R-04 e R-05) |
 | Ausência de cancelamento e reembolso | Negócio | Baixa (V1 acadêmica)/Média | Fora da V1, registrado como limitação conhecida |
-| Prazo apertado para TASK-018 a TASK-023 | Cronograma | Alta/Alta | Escopo reduzido (2026-11-11) e execução contínua mediante autorização |
+| Prazo apertado para TASK-018 a TASK-023 | Cronograma | Encerrado | Backlog concluído em 2026-11-23 com escopo reduzido (2026-11-11) |
 | Vazamento de dados de clientes | Segurança | Baixa/Alta | Ownership, RBAC, testes e auditoria |
 | Backup sem rotina automatizada | Operacional | Média/Alta | Baseline aprovado; automação antes de produção |
 | Dependência de provedores ainda não escolhidos | Integração | Média/Média | Portas e adaptadores (ADR-008, ADR-010, ADR-012) |
 | Rate limiting ausente | Segurança | Média/Média | Risco aceito na V1 local; reavaliar antes de hospedagem |
+| Sessão no Safari em `http://localhost` | Compatibilidade | Alta (somente local)/Baixa | O cookie `Secure` exige HTTPS no WebKit; usar Chrome ou Firefox localmente (risco R-03) |
+
+O registro formal dos riscos aceitos da V1 (R-01 a R-13) está no [checkpoint da TASK-022](docs/checkpoints/PHASE-04-CHECKPOINT.md).
 
 ## 17. Roadmap
 
@@ -686,11 +690,15 @@ Em `.env.local` (ignorado pelo Git), configure:
 Valores sem prefixo público são lidos somente no servidor. Nunca use credenciais reais.
 
 ```sh
-npm run db:migrate              # aplica db/migrations/001–012
+npm run db:migrate              # aplica db/migrations/001–013
 npm run identity:create-admin   # cria o primeiro Administrador Geral (uso único, interativo)
 ```
 
 O comando de administrador não imprime a senha e recusa uma segunda execução quando já existe um administrador. A aplicação não publica nada nem usa serviços remotos. Recuperação de acesso, notificações e pagamentos usam adaptadores locais.
+
+**Navegador:** use **Chrome ou Firefox** em `http://localhost:3000`. O cookie de sessão é sempre `Secure`, e o Safari/WebKit não o guarda em HTTP, então o login não persiste no Safari sem HTTPS.
+
+**Pagamento simulado:** depois de criar o pagamento no checkout, aprove-o com `npm run payment:simulate -- <paymentId> payment.processing` e, em seguida, `payment.approved`. O script lê `DATABASE_URL` e `PAYMENT_WEBHOOK_SECRET` do `.env.local`, que devem ser os mesmos da aplicação em execução.
 
 ### Execução com Docker (opcional)
 
@@ -723,12 +731,20 @@ Comandos úteis:
 | `npm run start` | Servir a versão gerada |
 | `npm run db:migrate` | Aplicar as migrations no PostgreSQL configurado |
 | `npm run identity:create-admin` | Criar o primeiro administrador |
+| `npm run payment:simulate -- <paymentId> <evento>` | Enviar um evento assinado ao webhook local do pagamento simulado |
 | `npm run lint` | oxlint em `app`, `src`, `tests` e `scripts` |
 | `npm test` | Testes unitários, de integração e arquiteturais. Os de integração exigem `DATABASE_URL` |
 | `npm run test:watch` | Testes em modo de observação |
+| `npm run test:e2e` | Testes E2E, de acessibilidade e de desempenho com Playwright (ver abaixo) |
 | `npm run typecheck` | Verificação de tipos TypeScript |
 | `npm run format` / `format:check` | Formatar ou verificar a formatação |
 | `npm run quality` | Formatação, lint, tipos, testes e build |
+
+### Testes E2E
+
+Pré-requisitos: banco do Compose (`docker compose up -d db`), OpenSSL no `PATH` e navegadores do Playwright (`npx playwright install`).
+
+`npm run test:e2e` gera um build de produção, sobe a aplicação na porta 3100 atrás de um proxy HTTPS local (porta 3443, certificado autoassinado temporário) e usa o banco dedicado `tropa_fight_e2e`. O setup cria esse banco, aplica as migrations e semeia os dados de teste. Para usar outro banco, defina `E2E_DATABASE_URL`. O segredo do webhook é gerado a cada execução. O relatório HTML fica em `playwright-report/`.
 
 ### Convenções de código
 
@@ -736,7 +752,7 @@ Comandos úteis:
 - Cada módulo organiza-se em `domain/`, `application/`, `infrastructure/` e `presentation/`, conforme necessário.
 - `src/domain`, `src/application`, `src/infrastructure` e `src/presentation` guardam o núcleo transversal (saúde da aplicação, erros, configuração, logger, pool de banco e o componente inicial).
 - Direção de dependência aprovada: apresentação → aplicação → domínio; a infraestrutura implementa as portas da aplicação. A apresentação pode **instanciar** adaptadores de infraestrutura (ADR-020), sem conter regra de negócio ou SQL.
-- Imports por caminho relativo. Testes em `tests/unit/`, `tests/integration/` ou `tests/architecture/`, com arquivos `*.test.ts(x)`.
+- Imports por caminho relativo. Testes em `tests/unit/`, `tests/integration/` ou `tests/architecture/`, com arquivos `*.test.ts(x)`; E2E em `tests/e2e/`, com arquivos `*.spec.ts`.
 - Erros de configuração são detectados no bootstrap. Logs nunca contêm segredos ou dados pessoais desnecessários.
 
 ## Documentação
