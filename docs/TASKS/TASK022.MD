@@ -3,7 +3,7 @@
 > **Escopo revisado em 2026-11-11.** O bloco da TASK-022 no `TASKS.md` (objetivo, IDs oficiais, Scope Guard, critérios e dependências) **prevalece** sobre este documento onde houver conflito. Os IDs RF, RN e UC citados abaixo podem ser legados; use os IDs oficiais do `README.md` e o "Mapeamento de referências legadas" do `TASKS.md`. As seções de processo, gates e relatório deste documento continuam aplicáveis.
 
 
- **Status:** BLOCKED\
+ **Status:** DONE (2026-11-23)\
  **Phase/Priority:** PHASE-04 / HIGH\
  **Dependência:** `DEPENDS_ON: TASK-021`\
  **Política incidental:** `MINIMAL_DIRECTLY_CAUSED_CHANGES_ALLOWED`
@@ -2063,3 +2063,34 @@ PARAR E AGUARDAR AUTORIZAÇÃO
  **Resultado final da TASK-022:** produzir evidência suficiente para a decisão formal de lançamento da V1, sem transformar o checkpoint em uma nova etapa de desenvolvimento.
 
  Esse template fecha o ciclo inteiro das `TASK-001`–`TASK-022`: a `TASK-022` **não deve "melhorar" o produto**, mas provar, com evidências, que aquilo que foi especificado e construído está pronto — ou documentar exatamente por que ainda não está.
+
+---
+
+ # Registro de execução (2026-11-23)
+
+ **TASK:** TASK-022 — **Status:** DONE — **Branch:** `chore/TASK-022-checkpoint-v1`
+ **Autorização:** "Fiz o merge, verifique e inicie a TASK-022" (responsável, 2026-11-23).
+ **Transições:** `BLOCKED → READY → IN_PROGRESS → IN_REVIEW → DONE`.
+
+ O relatório completo (gates, backup e restore, consistência, rastreabilidade, riscos aceitos e roteiro de demonstração) está em `docs/checkpoints/PHASE-04-CHECKPOINT.md`. O resumo normativo está no bloco da TASK-022 do `TASKS.md`.
+
+| Arquivo | Classificação |
+| --- | --- |
+| `docs/checkpoints/PHASE-04-CHECKPOINT.md` | PRIMARY |
+| `README.md` (somente seção 18, matriz de rastreabilidade) | PRIMARY |
+| `vitest.config.ts` (inclusão de `*.test.tsx`), `tests/unit/catalog-browser.test.tsx` (asserção de HTML escapado) | PRIMARY (testes) |
+| `docs/TASKS/TASK022.MD`, `TASKS.md` | PRIMARY |
+
+ Nenhuma alteração INCIDENTAL ou FORBIDDEN. Não houve funcionalidade nova, mudança de escopo, atalho de segurança nem mudança arquitetural.
+
+| Gate | Resultado |
+|---|---|
+| Build | PASS |
+| Lint | PASS (27 avisos preexistentes) |
+| Unit | PASS |
+| Integration | PASS |
+| API | PASS |
+| Security | PASS |
+| Acceptance | PASS |
+| Regression | PASS (253 Vitest + 104 E2E) |
+

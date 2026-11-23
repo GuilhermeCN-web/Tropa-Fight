@@ -66,7 +66,7 @@ A partir de 2026-11-11 (DIV-011), as etapas do fluxo de prompts (`prompts/tasks/
 |    20 | TASK-020 | PHASE-04 | HIGH       | TASK-019                   | DONE    |
 |    21 | TASK-023 | PHASE-04 | HIGH       | TASK-017                   | DONE    |
 |    22 | TASK-021 | PHASE-04 | HIGH       | TASK-020,TASK-023          | DONE    |
-|    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | BLOCKED |
+|    23 | TASK-022 | PHASE-04 | HIGH       | TASK-021                   | DONE    |
 
 ---
 
@@ -619,7 +619,7 @@ Registro completo: `docs/TASKS/TASK023.MD`.
 
 ## TASK-022 — Checkpoint PHASE-04 e readiness da V1
 
-**Status:** BLOCKED
+**Status:** DONE
 **Phase/Priority:** PHASE-04 / HIGH
 **Dependências:** `DEPENDS_ON: TASK-021`
 **Relacionados:** todos os RF, RN, RNF, UC e ADR oficiais da V1
@@ -634,6 +634,32 @@ Registro completo: `docs/TASKS/TASK023.MD`.
 **FORBIDDEN_CHANGES:** funcionalidades novas; alterações de escopo; atalhos de segurança; mudança arquitetural.
 **Critérios de aceitação:** todos os gates passam; restore verificado; autenticação, autorização, pagamentos e webhooks consistentes; rastreabilidade completa; riscos aceitos registrados.
 **DoD específico:** V1 pronta para apresentação, com limitações conhecidas explicitamente registradas.
+**Prontidão (2026-11-23): PASS.** TASK-021 `DONE` (PR #25 mergeado); `main` verificada (47 arquivos/252 testes, build). Início autorizado pelo responsável ("inicie a TASK-022"). Transições `BLOCKED → READY → IN_PROGRESS`, branch `chore/TASK-022-checkpoint-v1`.
+
+**Execução concluída (2026-11-23):** transições `IN_PROGRESS → IN_REVIEW → DONE`. **Resultado: V1 pronta para apresentação, com limitações conhecidas registradas.** Relatório completo em `docs/checkpoints/PHASE-04-CHECKPOINT.md`.
+- **Quality Gates:**
+  - `npm run quality`: 48 arquivos/253 testes, lint sem erros (27 avisos preexistentes), build aprovado;
+  - `npm run test:e2e`: 104 aprovados, 0 falhas, nos três motores em desktop e a 360 px;
+  - `npm audit`: 0 vulnerabilidades.
+- **Teste reativado:** o `vitest.config.ts` passou a incluir `*.test.tsx`, porque `catalog-browser.test.tsx` (TASK-008) nunca rodava. A asserção dele esperava `&` literal num atributo `href` renderizado; foi corrigida para o HTML escapado `&amp;`, que corresponde ao mesmo link. Não é enfraquecimento de teste.
+- **Backup e restore:** dump completo com `pg_dump -Fc` do banco E2E, restaurado num banco novo. As 31 tabelas têm contagem e md5 do conteúdo idênticos; 0 restrições não validadas; 76/76 índices; 3 s no total. Sobre o banco restaurado: migrations reaplicadas, `/api/health` 200 e suíte completa 253/253 em três execuções isoladas. A primeira execução, feita por engano ao mesmo tempo que um servidor, teve 2 falhas não reproduzidas; o caso está registrado no checkpoint.
+- **Rastreabilidade:** a matriz da seção 18 do `README.md` foi corrigida e a verificação automática confirmou 38 RF, 23 RNF, 23 RN e 23 UC sem lacunas.
+- **Consistência:** autenticação, autorização, posse de dados, pagamentos, webhooks e auditoria têm evidência automatizada, listada no checkpoint.
+- **Riscos aceitos registrados (R-01 a R-13):**
+  - rate limiting ausente;
+  - TLS N/A no ambiente local;
+  - Safari em `http://localhost`;
+  - dívida do checkout (ADR-020);
+  - 5 violações arquiteturais preexistentes;
+  - retenção de auditoria (PD-014);
+  - itens fora da V1;
+  - integrações simuladas;
+  - notificações em memória;
+  - leituras administrativas não auditadas;
+  - limites dos RNF-023 e RNF-022;
+  - backup sem automação.
+- **Pendências de manutenção, fora do escopo:** o texto do `payment:simulate` na seção 12 do `README.md`, as notas de Safari e E2E na seção de desenvolvimento local e o vínculo da seção 16 com o checkpoint.
+- Sem alterações incidentais. Era a última TASK do backlog.
 
 ---
 
