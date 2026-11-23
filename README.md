@@ -619,11 +619,11 @@ IDs oficiais. A tabela de referências legadas das TASKs concluídas está no `T
 
 | RF | RN | RNF | UC | Entidades | API | Testes | TASK |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| RF-001 | RN-016, RN-018 | RNF-004, RNF-006, RNF-009 | UC-001–003 | User, Role, Session | `/auth/*`, `/me` | `identity-flow`, `identity-password-*` | 003 |
+| RF-001 | RN-001, RN-016, RN-018 | RNF-004, RNF-006, RNF-009 | UC-001–003 | User, Role, Session | `/auth/*`, `/me` | `identity-flow`, `identity-password-*`; E2E `auth` | 003, 021 |
 | RF-019, RF-028 | RN-019 | RNF-007, RNF-013, RNF-015 | UC-021, UC-023 | AuditLog | `/admin/audit-logs` | `audit-event`, `privacy-logging`, `notification-service` | 004, 020 |
 | RF-003, RF-004, RF-006, RF-020, RF-021 | RN-006 | RNF-017 | UC-004, UC-005, UC-014 | Product, Brand, Category | `/admin/products`, `/admin/categories`, `/admin/brands`, `/products` | `catalog-domain`, `catalog-flow` | 006 |
 | RF-007, RF-020 | RN-002 | — | UC-005, UC-014 | ProductVariant | `/admin/products/{id}/variants`, `/admin/variants/{id}` | `product-variant-*` | 007 |
-| RF-003, RF-005 | — | RNF-022 | UC-004 | — | `/products` | `catalog-search*`, `catalog-browser` | 008 |
+| RF-003, RF-005 | — | RNF-022 | UC-004 | — | `/products` | `catalog-search*`, `catalog-browser` (executado a partir da TASK-022) | 008 |
 | RF-015, RF-016, RF-022 | RN-003, RN-004, RN-007 | RNF-010 | UC-015 | InventoryStock, InventoryMovement | `/admin/inventory/*` | `inventory-*` | 009 |
 | RF-008 | RN-002, RN-003 | — | UC-006, UC-007 | Cart, CartItem | `/cart`, `/cart/items/*` | `cart-domain`, `cart-flow` | 011 |
 | RF-009, RF-026 | RN-013, RN-014 | — | UC-018 | Promotion, Coupon, CouponRedemption | `/admin/promotions`, `/admin/coupons`, `/cart/coupon` | `coupon-*`, `promotion-domain`, `discount-domain` | 012 |
@@ -631,12 +631,14 @@ IDs oficiais. A tabela de referências legadas das TASKs concluídas está no `T
 | RF-011 | RN-008–011 | RNF-008 | UC-009 | Payment, PaymentWebhookEvent | `/payments*` | `payment-*` | 014 |
 | RF-012–014, RF-023 | RN-008, RN-018 | RNF-009 | UC-011, UC-016 | Order (consulta) | `/orders*`, `/admin/orders*` | `order-query`, `order-api-flow` | 015 |
 | RF-017, RF-018 | RN-015, RN-021 | RNF-009 | UC-012, UC-013 | ProductReview, CustomerFavorite | `/products/{id}/reviews`, `/customer/*`, `/reviews/{id}` | `review-domain`, `review-favorite-flow` | 017 |
-| RF-031–034 | RN-016, RN-018, RN-019 | RNF-006, RNF-009 | UC-014–017 | User, Order | `/admin/customers*`, `/admin/orders` (filtros) | a criar | 018 |
-| RF-035–038 | RN-015, RN-016, RN-019, RN-022, RN-023 | RNF-006, RNF-007 | UC-018–020 | ProductReview, User, Role | `/admin/reviews*`, `/admin/users*` | a criar | 019 |
-| RF-019, RF-028 | RN-019 | RNF-007, RNF-013, RNF-014 | UC-021, UC-023 | AuditLog, Notification | `/health` | a criar | 020 |
-| RF-006–008, RF-010, RF-011, RF-013, RF-014 | RN-002, RN-003, RN-005 | RNF-020, RNF-021 | UC-005–011 | — (consome APIs existentes) | Páginas `/products/[id]`, `/cart`, `/checkout`, `/orders`, `/orders/[id]` | a criar | 023 |
-| Todos os RF da V1 | RN-016, RN-017 | RNF-001, RNF-002, RNF-017, RNF-020–023 | UC-001–021 | — | — | E2E, a11y e arquitetura (a criar) | 021 |
-| Todos | Todos | Todos | Todos | — | — | Relatório de release | 022 |
+| RF-024, RF-031–034 | RN-016, RN-018, RN-019 | RNF-006, RNF-009 | UC-014–017 | User, Order | `/admin/customers*`, `/admin/orders` (filtros) | `customer-query`, `order-query`, `admin-management-flow`; E2E `admin-api` | 018 |
+| RF-025–027, RF-035–038 | RN-015, RN-016, RN-019, RN-022, RN-023 | RNF-006, RNF-007 | UC-018–020 | ProductReview, User, Role | `/admin/reviews*`, `/admin/users*` | `review-moderation-domain`, `admin-account-domain`, `admin-moderation-users-flow`; E2E `admin-api` | 019 |
+| RF-019, RF-028 | RN-019 | RNF-007, RNF-013, RNF-014 | UC-021, UC-023 | AuditLog, Notification | `/health` | `order-notifications`, `notification-post-commit`, `health-check`, `checkout-api-flow`, `admin-moderation-users-flow` | 020 |
+| RF-006–008, RF-010, RF-011, RF-013, RF-014 | RN-002, RN-003, RN-005 | RNF-020, RNF-021 | UC-005–011 | — (consome APIs existentes) | Páginas `/products/[id]`, `/cart`, `/checkout`, `/orders`, `/orders/[id]` | `storefront-presentation`, `payment-simulator-script`; E2E `storefront`, `accessibility` | 023, 021 |
+| Todos os RF da V1 | RN-016, RN-017 | RNF-001–003, RNF-016–018, RNF-020–023 | UC-001–021 | — | — | E2E `auth`, `storefront`, `admin-api`, `accessibility`, `performance`; `layer-dependencies` | 021 |
+| — | — | RNF-005, RNF-011, RNF-012, RNF-019 | — | Banco local | `/health` | Restore verificado (TASK-005 sintético; TASK-022 dump completo); TLS e disponibilidade N/A no ambiente local (riscos aceitos) | 002, 005, 022 |
+| RF-029, RF-030 | RN-020 | — | UC-022 | — | — | Fora da V1 (`WON'T`); sem implementação nem teste | — |
+| Todos | Todos | Todos | Todos | — | — | Checkpoint final: `docs/checkpoints/PHASE-04-CHECKPOINT.md` | 022 |
 
 ## 19. Pendências
 
